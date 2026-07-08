@@ -20,17 +20,17 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen">
       <header className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-blue-950 dark:text-white">Overview</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-blue-950 dark:text-white">Dashboard Overview</h1>
         <p className="text-base text-slate-600 dark:text-zinc-400 mt-2">Real-time facility status and recent activity.</p>
       </header>
 
       <div className="grid grid-cols-12 gap-6">
         {/* Bento Grid: Quick Overview (8 columns) */}
         <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
-          
+
           {/* Status Cards Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Main Entrance Status */}
             <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-md border border-slate-200 dark:border-zinc-800 relative overflow-hidden flex flex-col items-center justify-center text-center">
               <div className="absolute top-4 right-4 flex items-center gap-1.5">
@@ -121,10 +121,9 @@ export default function AdminDashboardPage() {
                           {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td className="py-4 px-6 text-sm text-slate-900 dark:text-white font-medium flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                            log.status === 'GRANTED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' :
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${log.status === 'GRANTED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' :
                             'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
-                          }`}>
+                            }`}>
                             {log.userName ? log.userName.charAt(0) : '?'}
                           </div>
                           <div>
