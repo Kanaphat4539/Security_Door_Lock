@@ -23,11 +23,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <WebSocketProvider>
-      <div className="min-h-screen flex bg-slate-50 dark:bg-zinc-950">
+      <div 
+        className="min-h-screen flex relative bg-[url('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2VjdXJpdHl8ZW58MHx8MHx8fDA%3D')] bg-cover bg-center bg-fixed"
+      >
+        <div className="absolute inset-0 bg-slate-50/70 dark:bg-black/70 pointer-events-none z-0"></div>
         {/* Sidebar */}
-        <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col">
-          <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-zinc-800">
-            <Shield className="w-6 h-6 text-blue-600 mr-2" />
+        <aside className="w-64 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border-r border-slate-200/50 dark:border-zinc-800/50 flex flex-col relative z-10">
+          <div className="h-16 flex items-center px-6 border-b border-slate-200/50 dark:border-zinc-800/50">
+            <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-2" />
             <span className="font-bold text-lg text-slate-900 dark:text-white">Admin Panel</span>
           </div>
           
@@ -40,18 +43,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
                     isActive 
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' 
-                      : 'text-slate-700 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                      ? 'bg-blue-600/10 text-blue-700 dark:bg-blue-500/30 dark:text-white' 
+                      : 'text-slate-600 hover:bg-white/50 dark:text-slate-300 dark:hover:bg-white/10'
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-slate-400 dark:text-zinc-500'}`} />
+                  <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400'}`} />
                   {item.name}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="p-4 border-t border-slate-200 dark:border-zinc-800">
+          <div className="p-4 border-t border-slate-200/20 dark:border-zinc-800/50">
             <button
               onClick={handleLogout}
               className="flex items-center w-full px-3 py-2.5 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 transition-colors"
@@ -63,8 +66,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 flex items-center justify-between px-8 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800">
+        <main className="flex-1 flex flex-col overflow-hidden relative z-10">
+          <header className="h-16 flex items-center justify-between px-8 bg-white/30 dark:bg-zinc-900/30 backdrop-blur-md border-b border-slate-200/50 dark:border-zinc-800/50">
             <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
               {navItems.find(item => item.href === pathname)?.name || 'Admin'}
             </h1>

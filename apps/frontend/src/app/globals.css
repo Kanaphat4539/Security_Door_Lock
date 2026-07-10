@@ -33,3 +33,35 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 400ms;
 }
+
+@keyframes mascot-float {
+
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+@keyframes shield-pulse {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.5));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.9));
+  }
+}
+
+.animate-mascot {
+  animation: mascot-float 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.animate-shield {
+  animation: shield-pulse 3s ease-in-out infinite;
+}

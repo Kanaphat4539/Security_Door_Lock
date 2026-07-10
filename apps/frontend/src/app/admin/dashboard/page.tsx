@@ -54,9 +54,9 @@ export default function AdminDashboardPage() {
   const doorState = isRecentlyUnlocked ? 'UNLOCKED' : 'LOCKED';
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-[#080b12] transition-colors duration-500 p-4 md:p-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-transparent transition-colors duration-500 p-4 md:p-8 font-sans relative overflow-hidden">
       {/* Background ambient lighting */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-blue-500/5 dark:bg-blue-900/10 blur-[120px] pointer-events-none -z-10"></div>
+      <div className="absolute top-0 left-0 w-full h-96 bg-blue-500/10 dark:bg-blue-900/20 blur-[120px] pointer-events-none -z-10"></div>
 
       <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div>
@@ -286,33 +286,7 @@ export default function AdminDashboardPage() {
         {/* SIDEBAR AREA */}
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
 
-          {/* AI Guardian Mascot Panel */}
-          <div className="bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950 rounded-2xl p-6 shadow-xl border border-blue-500/20 relative overflow-hidden flex flex-col items-center">
-            {/* Background glows */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-blue-600/20 rounded-full blur-[50px] pointer-events-none"></div>
 
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide mb-6 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-              AI GUARDIAN ONLINE
-            </div>
-
-            {/* Mascot Video Container */}
-            <div className="relative z-20 w-[160px] h-[160px] rounded-full overflow-hidden border-[4px] border-slate-800 shadow-[0_0_30px_rgba(34,211,238,0.2)] bg-slate-950 mb-5 group-hover:scale-105 transition-transform duration-500">
-              <video
-                src="https://cdn.hailuoai.video/moss/prod/2026-07-10-14/user/multi_chat_file/1783663231339744588-0_1783663231.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover scale-[1.15]"
-              ></video>
-              <div className="absolute inset-0 rounded-full shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] pointer-events-none"></div>
-              <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,rgba(56,189,248,0.2)_50%,transparent_100%)] bg-[length:100%_4px] opacity-20 animate-pulse pointer-events-none"></div>
-            </div>
-
-            <h3 className="text-lg font-bold text-white mb-1.5">Security Matrix</h3>
-            <p className="text-xs text-blue-200/60 font-medium text-center">Continuous real-time threat detection is active.</p>
-          </div>
 
           <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200/60 dark:border-slate-800/60">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -359,6 +333,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
