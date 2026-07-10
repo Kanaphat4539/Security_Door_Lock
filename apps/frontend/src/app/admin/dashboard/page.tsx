@@ -299,7 +299,7 @@ export default function AdminDashboardPage() {
             {/* Mascot Video Container */}
             <div className="relative z-20 w-[160px] h-[160px] rounded-full overflow-hidden border-[4px] border-slate-800 shadow-[0_0_30px_rgba(34,211,238,0.2)] bg-slate-950 mb-5 group-hover:scale-105 transition-transform duration-500">
               <video
-                src="https://cdn.hailuoai.video/moss/prod/2026-07-09-22/user/multi_chat_file/1783607460751496397-0_1783607460.mp4"
+                src="https://cdn.hailuoai.video/moss/prod/2026-07-10-14/user/multi_chat_file/1783663231339744588-0_1783663231.mp4"
                 autoPlay
                 loop
                 muted
