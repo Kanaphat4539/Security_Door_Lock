@@ -3,205 +3,364 @@
 import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { useLogStore } from '@/store/useLogStore';
-import { Users, DoorOpen, AlertTriangle, Activity, Zap } from 'lucide-react';
+import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Sun, Moon, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminDashboardPage() {
   const { isConnected } = useWebSocket();
-  const { logs, recentLog } = useLogStore();
+  const { logs } = useLogStore();
   const [stats, setStats] = useState({ totalScans: 0, granted: 0, denied: 0 });
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // Calculate simple stats based on logs in store (for demo purposes)
+    if (typeof window !== 'undefined') {
+      const isDark = document.documentElement.classList.contains('dark') ||
+        localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      setIsDarkMode(isDark);
+      if (isDark) document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  useEffect(() => {
     const granted = logs.filter(l => l.status === 'GRANTED').length;
     const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
     setStats({ totalScans: logs.length, granted, denied });
   }, [logs]);
 
-  const statCards = [
-    { 
-      title: 'Total Scans Today', 
-      value: stats.totalScans.toString(), 
-      icon: Activity, 
-      color: 'text-blue-500', 
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-500/20',
-      shadow: 'hover:shadow-blue-500/20'
-    },
-    { 
-      title: 'Access Granted', 
-      value: stats.granted.toString(), 
-      icon: DoorOpen, 
-      color: 'text-emerald-500', 
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/20',
-      shadow: 'hover:shadow-emerald-500/20'
-    },
-    { 
-      title: 'Access Denied', 
-      value: stats.denied.toString(), 
-      icon: AlertTriangle, 
-      color: 'text-rose-500', 
-      bg: 'bg-rose-500/10',
-      border: 'border-rose-500/20',
-      shadow: 'hover:shadow-rose-500/20'
-    },
-    { 
-      title: 'Active Employees', 
-      value: '124', 
-      icon: Users, 
-      color: 'text-purple-500', 
-      bg: 'bg-purple-500/10',
-      border: 'border-purple-500/20',
-      shadow: 'hover:shadow-purple-500/20'
-    },
-  ];
+  const handleLockdown = () => {
+    alert("SYSTEM LOCKDOWN INITIATED. All access revoked. Doors locked.");
+  };
+
+  const handlePing = () => {
+    alert("Pinging devices... All sensors responding.");
+  };
+
+  // Determine current door state mock (in real app, this comes from WebSocket)
+  const latestLog = logs[0];
+  const isRecentlyUnlocked = latestLog && latestLog.status === 'GRANTED' && (Date.now() - new Date(latestLog.timestamp).getTime() < 8000);
+  const doorState = isRecentlyUnlocked ? 'UNLOCKED' : 'LOCKED';
 
   return (
-    <div className="space-y-8">
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400">
-            Overview Dashboard
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Monitor real-time security access and system status.
-          </p>
-        </div>
-        
-        {/* Status Pill */}
-        <div className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-full border shadow-sm backdrop-blur-md transition-all ${
-          isConnected 
-            ? 'bg-emerald-50/80 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/50' 
-            : 'bg-rose-50/80 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/50'
-        }`}>
-          <div className="relative flex h-3 w-3">
-            {isConnected && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            )}
-            <span className={`relative inline-flex rounded-full h-3 w-3 ${isConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-rose-500'}`}></span>
-          </div>
-          <span className={`text-sm font-semibold tracking-wide ${isConnected ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-            {isConnected ? 'SYSTEM ONLINE' : 'SYSTEM OFFLINE'}
-          </span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-slate-100 dark:bg-[#080b12] transition-colors duration-500 p-4 md:p-8 font-sans relative overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-blue-500/5 dark:bg-blue-900/10 blur-[120px] pointer-events-none -z-10"></div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat, index) => (
-          <div 
-            key={index} 
-            className={`group relative overflow-hidden bg-white dark:bg-zinc-900/80 p-6 rounded-2xl border ${stat.border} shadow-sm hover:-translate-y-1 ${stat.shadow} hover:shadow-xl transition-all duration-300 backdrop-blur-xl`}
-          >
-            {/* Background Gradient Blob */}
-            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full ${stat.bg} blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-500`}></div>
-            
-            <div className="relative z-10 flex items-center justify-between">
-              <div className={`p-3.5 rounded-xl ${stat.bg} backdrop-blur-md border border-white/10 dark:border-white/5`}>
-                <stat.icon className={`w-6 h-6 ${stat.color}`} />
+      <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+            <Monitor className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            Security Door Lock
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 font-medium">Real-time facility monitoring and physical access control.</p>
+        </div>
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all self-start md:self-auto group active:scale-95"
+        >
+          {isDarkMode ? <Sun className="w-5 h-5 text-amber-500 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-5 h-5 text-indigo-600 group-hover:-rotate-12 transition-transform duration-500" />}
+          <span className="font-semibold text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
+      </header>
+
+      <div className="grid grid-cols-12 gap-6 relative z-10">
+
+        {/* MAIN CONTENT AREA */}
+        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
+
+          {/* Security & System Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* 1. Control Panel (Door State & Quick Actions) */}
+            <div className="bg-white/90 dark:bg-[#111827]/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-slate-200/60 dark:border-slate-800/60 relative overflow-hidden flex flex-col justify-between transition-all hover:shadow-xl">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Control Panel</h3>
+                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/50 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {isConnected ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${doorState === 'LOCKED' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse'}`}>
+                      {doorState === 'LOCKED' ? <DoorClosed className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Physical Door</p>
+                      <p className={`text-sm font-black ${doorState === 'LOCKED' ? 'text-slate-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                        {doorState}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <button onClick={handleLockdown} className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 transition-colors active:scale-95">
+                    <ShieldAlert className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Lockdown</span>
+                  </button>
+                  <button onClick={handlePing} className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-colors active:scale-95">
+                    <RefreshCw className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Ping Sensor</span>
+                  </button>
+                </div>
               </div>
             </div>
-            
-            <div className="relative z-10 mt-5">
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stat.value}</h3>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{stat.title}</p>
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {/* Real-time Logs section */}
-      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 shadow-lg overflow-hidden transition-all">
-        <div className="px-6 py-5 border-b border-slate-200/80 dark:border-zinc-800/80 flex justify-between items-center bg-slate-50/50 dark:bg-zinc-900/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Zap className="w-5 h-5 text-blue-500" />
+            {/* 2. Security Metrics (Threats & Scans) */}
+            <div className="bg-white/90 dark:bg-[#111827]/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-slate-200/60 dark:border-slate-800/60 flex flex-col justify-between transition-all hover:shadow-xl">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Security Metrics</h3>
+                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md text-blue-600 dark:text-blue-400">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Unauthorized Attempts</p>
+                    <span className="text-4xl font-black text-red-600 dark:text-red-500 block leading-none mt-1.5">{stats.denied}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Scans</p>
+                    <span className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalScans}</span>
+                  </div>
+                </div>
+
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-1 shadow-inner">
+                  {/* Visual ratio of denied vs granted */}
+                  <div className="flex h-full w-full">
+                    <div className="bg-red-500 h-full" style={{ width: `${stats.totalScans > 0 ? (stats.denied / stats.totalScans) * 100 : 0}%` }}></div>
+                    <div className="bg-emerald-500 h-full" style={{ width: `${stats.totalScans > 0 ? (stats.granted / stats.totalScans) * 100 : 100}%` }}></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Live Activity Stream</h2>
+
+            {/* 3. Hardware & Network Status */}
+            <div className="bg-white/90 dark:bg-[#111827]/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-slate-200/60 dark:border-slate-800/60 flex flex-col justify-between transition-all hover:shadow-xl">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hardware Status</h3>
+                <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-indigo-600 dark:text-indigo-400">
+                  <Server className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Battery className="w-3.5 h-3.5" /> Battery</span>
+                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">98%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Wifi className="w-3.5 h-3.5" /> Network latency</span>
+                  <span className="text-xs font-black text-blue-600 dark:text-blue-400">24 ms</span>
+                </div>
+                <div className="mt-1 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">System Uptime</span>
+                    <span className="text-sm font-black text-emerald-500 dark:text-emerald-400">99.98%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          {recentLog && (
-            <span className="flex items-center gap-2 text-xs font-semibold bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 py-1.5 px-3 rounded-full border border-blue-200 dark:border-blue-500/20 shadow-sm animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              New Scan Detected
-            </span>
-          )}
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-zinc-800/50">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Timestamp</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Identity</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Entry Point</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/50">
-              {logs.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500">
-                      <Activity className="w-12 h-12 mb-3 opacity-20" />
-                      <p className="text-sm font-medium">Monitoring for activity...</p>
+
+          {/* Live Access Stream & Trends */}
+          <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-800/60 overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-500" /> Live Access Stream
+              </h3>
+              <Link href="/admin/logs" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors">
+                View Log History
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 divide-y xl:divide-y-0 xl:divide-x divide-slate-200 dark:divide-slate-800/60">
+              {/* Left side: Access Table */}
+              <div className="xl:col-span-2 overflow-x-auto p-0">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+                      <th className="py-3 px-5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
+                      <th className="py-3 px-5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Identity</th>
+                      <th className="py-3 px-5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Access Point</th>
+                      <th className="py-3 px-5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                    {logs.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-12 px-6 text-center text-slate-500 dark:text-slate-400 font-medium">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <Activity className="w-8 h-8 text-slate-300 dark:text-slate-600 animate-pulse" />
+                            Monitoring for entry attempts...
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      logs.slice(0, 5).map(log => (
+                        <tr key={log.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${log.status === 'DENIED' || log.status === 'ERROR' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
+                          <td className="py-3.5 px-5 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </td>
+                          <td className="py-3.5 px-5 text-sm text-slate-900 dark:text-white font-medium flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm ${log.status === 'GRANTED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
+                              'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
+                              }`}>
+                              {log.userName ? log.userName.charAt(0).toUpperCase() : <Key className="w-3.5 h-3.5" />}
+                            </div>
+                            <div>
+                              <div className="font-bold text-sm leading-none">{log.userName || 'Unknown RFID'}</div>
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">ID: {log.uid}</div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-5 text-xs font-bold text-slate-700 dark:text-slate-300">{log.doorId}</td>
+                          <td className="py-3.5 px-5">
+                            {log.status === 'GRANTED' && (
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 dark:border-emerald-800/50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-md">
+                                <Unlock className="w-3 h-3" /> GRANTED
+                              </span>
+                            )}
+                            {log.status === 'DENIED' && (
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-md">
+                                <AlertTriangle className="w-3 h-3" /> DENIED
+                              </span>
+                            )}
+                            {log.status === 'ERROR' && (
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400 px-2.5 py-1 rounded-md">
+                                <AlertTriangle className="w-3 h-3" /> ERROR
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Right side: Access Trends Bar Chart Placeholder */}
+              <div className="xl:col-span-1 p-5 bg-slate-50/30 dark:bg-slate-900/20 flex flex-col justify-center min-h-[200px]">
+                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider flex items-center justify-between">
+                  Access Volume (Today)
+                  <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">Last 12h</span>
+                </h4>
+                <div className="flex items-end gap-1.5 h-28 mt-auto">
+                  {[20, 35, 15, 60, 90, 45, 80, 100, 30, 10, 5, 25].map((height, i) => (
+                    <div key={i} className="flex-1 bg-blue-100 dark:bg-blue-900/30 rounded-t-sm relative group h-full flex items-end">
+                      <div
+                        className="w-full bg-blue-500 dark:bg-blue-500/80 rounded-t-sm transition-all duration-500 group-hover:bg-cyan-400"
+                        style={{ height: `${height}%` }}
+                      ></div>
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                logs.slice(0, 8).map((log, i) => (
-                  <tr 
-                    key={log.id} 
-                    className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors group"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-600 dark:text-zinc-300">
-                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </div>
-                      <div className="text-xs text-slate-400 dark:text-zinc-500 mt-0.5">
-                        {new Date(log.timestamp).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-800 dark:to-zinc-700 flex items-center justify-center text-sm font-bold text-slate-600 dark:text-zinc-300 border border-slate-300/50 dark:border-zinc-600/50 shadow-sm group-hover:scale-105 transition-transform">
-                          {log.userName ? log.userName.charAt(0).toUpperCase() : '?'}
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-slate-900 dark:text-white">
-                            {log.userName || 'Unknown Identity'}
-                          </div>
-                          <div className="text-xs font-mono text-slate-500 dark:text-zinc-400 mt-0.5 opacity-80">
-                            ID: {log.uid}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-zinc-300">
-                        <DoorOpen className="w-4 h-4 text-slate-400" />
-                        {log.doorId}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${
-                        log.status === 'GRANTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
-                        log.status === 'DENIED' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' :
-                        'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
-                      }`}>
-                        {log.status === 'GRANTED' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span>}
-                        {log.status === 'DENIED' && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-2"></span>}
-                        {log.status === 'ERROR' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2"></span>}
-                        {log.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                  ))}
+                </div>
+                <div className="flex justify-between mt-3 text-[10px] text-slate-400 font-bold">
+                  <span>08:00</span>
+                  <span>14:00</span>
+                  <span>20:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SIDEBAR AREA */}
+        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
+
+          {/* AI Guardian Mascot Panel */}
+          <div className="bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950 rounded-2xl p-6 shadow-xl border border-blue-500/20 relative overflow-hidden flex flex-col items-center">
+            {/* Background glows */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-blue-600/20 rounded-full blur-[50px] pointer-events-none"></div>
+
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide mb-6 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+              AI GUARDIAN ONLINE
+            </div>
+
+            {/* Mascot Video Container */}
+            <div className="relative z-20 w-[160px] h-[160px] rounded-full overflow-hidden border-[4px] border-slate-800 shadow-[0_0_30px_rgba(34,211,238,0.2)] bg-slate-950 mb-5 group-hover:scale-105 transition-transform duration-500">
+              <video
+                src="https://cdn.hailuoai.video/moss/prod/2026-07-10-14/user/multi_chat_file/1783663231339744588-0_1783663231.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover scale-[1.15]"
+              ></video>
+              <div className="absolute inset-0 rounded-full shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,rgba(56,189,248,0.2)_50%,transparent_100%)] bg-[length:100%_4px] opacity-20 animate-pulse pointer-events-none"></div>
+            </div>
+
+            <h3 className="text-lg font-bold text-white mb-1.5">Security Matrix</h3>
+            <p className="text-xs text-blue-200/60 font-medium text-center">Continuous real-time threat detection is active.</p>
+          </div>
+
+          <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200/60 dark:border-slate-800/60">
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Settings className="w-4 h-4 text-indigo-500" /> Administration
+            </h3>
+            <div className="flex flex-col gap-2.5">
+              <Link href="/admin/users" className="w-full bg-blue-600 dark:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                <UserPlus className="w-4 h-4" />
+                Register New User
+              </Link>
+              <Link href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                <Shield className="w-4 h-4" />
+                Manage Permissions
+              </Link>
+            </div>
+          </div>
+
+          {/* System Notification Area */}
+          <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200/60 dark:border-slate-800/60">
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">System Alerts</h3>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 rounded-lg h-fit">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Scheduled Update</h4>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">Firmware update at 02:00 AM tonight.</p>
+                </div>
+              </div>
+
+              {!isConnected && (
+                <div className="flex gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 animate-pulse">
+                  <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-lg h-fit">
+                    <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Connection Lost</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">WebSocket disconnected.</p>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+
