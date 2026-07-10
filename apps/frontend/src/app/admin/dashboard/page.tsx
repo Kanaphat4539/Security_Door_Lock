@@ -84,7 +84,10 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {/* 1. Control Panel (Door State & Quick Actions) */}
-            <div className="bg-white/90 dark:bg-[#111827]/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-slate-200/60 dark:border-slate-800/60 relative overflow-hidden flex flex-col justify-between transition-all hover:shadow-xl">
+            <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-blue-100/80 dark:border-blue-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-blue-500/20 hover:border-blue-300/80 dark:hover:border-blue-600/60 hover:-translate-y-1">
+              {/* Decorative accent */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-400/20 dark:bg-blue-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
+              <div className="relative z-10">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Control Panel</h3>
                 <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/50 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">
@@ -121,10 +124,13 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
               </div>
+              </div>
             </div>
 
             {/* 2. Security Metrics (Threats & Scans) */}
-            <div className="bg-white/90 dark:bg-[#111827]/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-slate-200/60 dark:border-slate-800/60 flex flex-col justify-between transition-all hover:shadow-xl">
+            <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-emerald-100/80 dark:border-emerald-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-emerald-500/20 hover:border-emerald-300/80 dark:hover:border-emerald-600/60 hover:-translate-y-1">
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-400/20 dark:bg-emerald-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Security Metrics</h3>
                 <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md text-blue-600 dark:text-blue-400">
@@ -152,10 +158,13 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
               </div>
+              </div>
             </div>
 
             {/* 3. Hardware & Network Status */}
-            <div className="bg-white/90 dark:bg-[#111827]/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-slate-200/60 dark:border-slate-800/60 flex flex-col justify-between transition-all hover:shadow-xl">
+            <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-indigo-100/80 dark:border-indigo-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-indigo-500/20 hover:border-indigo-300/80 dark:hover:border-indigo-600/60 hover:-translate-y-1">
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-400/20 dark:bg-indigo-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hardware Status</h3>
                 <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-indigo-600 dark:text-indigo-400">
@@ -179,12 +188,14 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
               </div>
+              </div>
             </div>
           </div>
 
           {/* Live Access Stream & Trends */}
-          <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-800/60 overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden flex flex-col ring-1 ring-white/50 dark:ring-white/5 relative transition-all duration-500">
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 transition-colors duration-500">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="w-5 h-5 text-blue-500" /> Live Access Stream
               </h3>
@@ -288,7 +299,9 @@ export default function AdminDashboardPage() {
 
 
 
-          <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200/60 dark:border-slate-800/60">
+          <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden transition-all duration-500 hover:shadow-indigo-500/10">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-400/15 dark:bg-indigo-600/15 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none transition-colors duration-500"></div>
+            <div className="relative z-10">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Settings className="w-4 h-4 text-indigo-500" /> Administration
             </h3>
@@ -302,10 +315,13 @@ export default function AdminDashboardPage() {
                 Manage Permissions
               </Link>
             </div>
+            </div>
           </div>
 
           {/* System Notification Area */}
-          <div className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200/60 dark:border-slate-800/60">
+          <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/60 relative overflow-hidden transition-all duration-500">
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-400/10 dark:bg-slate-600/10 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
+            <div className="relative z-10">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">System Alerts</h3>
             <div className="flex flex-col gap-3">
               <div className="flex gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
@@ -329,6 +345,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
