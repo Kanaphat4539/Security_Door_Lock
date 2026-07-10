@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, FileText, LogOut, Shield } from 'lucide-react';
 import { WebSocketProvider } from '@/providers/WebSocketProvider';
+import ParticleBackground from '@/components/shared/ParticleBackground';
+import MouseTrail from '@/components/shared/MouseTrail';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,7 +28,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div 
         className="min-h-screen flex relative bg-[url('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2VjdXJpdHl8ZW58MHx8MHx8fDA%3D')] bg-cover bg-center bg-fixed"
       >
-        <div className="absolute inset-0 bg-slate-50/70 dark:bg-black/70 pointer-events-none z-0"></div>
+        <MouseTrail />
+        <div className="absolute inset-0 bg-slate-50/70 dark:bg-black/70 pointer-events-none z-0 transition-colors duration-500"></div>
+        <ParticleBackground />
         {/* Sidebar */}
         <aside className="w-64 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border-r border-slate-200/50 dark:border-zinc-800/50 flex flex-col relative z-10">
           <div className="h-16 flex items-center px-6 border-b border-slate-200/50 dark:border-zinc-800/50">
