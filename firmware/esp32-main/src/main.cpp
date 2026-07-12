@@ -61,8 +61,9 @@ public:
     digitalWrite(relay, LOW);
   }
   void denyAccess() {
-    // เสียงยาว 1 ครั้ง ประตูไม่เปิด
-    tone(buzzer, 1000, 1500);
+    // เสียงยาว 1 ครั้ง ประตูไม่เปิด (ดังค้างไว้ 3 วินาที)
+    tone(buzzer, 1000, 3000);
+    delay(3000); // หน่วงเวลา 3 วินาทีเพื่อให้เสียงดังจบและมีเวลาดูหน้าจอ
   }
 };
 
@@ -123,6 +124,10 @@ RFIDReader rfidOut(SS_OUT_PIN, RST_PIN);
 
 // ตัวแปรเก็บสถานะ
 bool isStreaming = false;
+bool hasSnapped = false; // สำหรับป้องกันไม่ให้ส่งคำสั่งถ่ายรูปซ้ำๆ (Anti-spam)
+
+// ประกาศฟังก์ชันก่อนเรียกใช้
+void waitForResponse();
 
 void setup() {
   Serial.begin(115200); // สำหรับ Debug
@@ -141,17 +146,33 @@ void loop() {
   // 1. อ่านค่าระยะทาง
   int dist = sonar.getDistance();
 
-  // ตรวจสอบระยะเพื่อสั่งงานกล้อง
-  if (dist < 100 && dist > 45 && !isStreaming) {
-    Serial2.println("CMD_STREAM");
-    oled.showText("Please Scan");
-    isStreaming = true;
-  } else if (dist <= 45) {
-    Serial2.println("CMD_SNAP");
-  } else if (dist >= 100 && isStreaming) {
-    Serial2.println("CMD_SLEEP");
-    oled.showText("Standby");
-    isStreaming = false;
+  // ตรวจสอบระยะเพื่อสั่งงานกล้องและจอภาพ
+  if (dist < 100) {
+    // 1. ถ้าระยะ < 100 ซม. และยังไม่ได้สตรีม ให้สั่งเปิดสตรีมภาพสด
+    if (!isStreaming) {
+      Serial2.println("CMD_STREAM");
+      oled.showText("Please Scan");
+      isStreaming = true;
+    }
+    
+    // 2. ถ้าระยะประชิด < 45 ซม. ให้ถ่ายรูปเก็บไว้ล่วงหน้า 1 รูป (Auto Snapshot)
+    if (dist < 45) {
+      if (!hasSnapped) {
+        Serial2.println("CMD_SNAP");
+        hasSnapped = true;
+      }
+    } else {
+      // เมื่อถอยห่างเกิน 45 ซม. ให้รีเซ็ตสิทธิ์การถ่ายรูปล่วงหน้า
+      hasSnapped = false;
+    }
+  } else {
+    // ระยะ >= 100 ซม. (สแตนด์บาย)
+    if (isStreaming) {
+      Serial2.println("CMD_SLEEP");
+      oled.showText("Standby");
+      isStreaming = false;
+      hasSnapped = false;
+    }
   }
 
   // 2. ตรวจสอบการทาบบัตร (ขาเข้า)
@@ -198,7 +219,6 @@ void waitForResponse() {
   }
   // ถ้าหมดเวลา (Timeout)
   oled.showText("Timeout Error");
-  door.denyAccess();
-  delay(2000);
+  door.denyAccess(); // มี delay(3000) ด้านในแล้วเพื่อคงหน้าจอและเล่นเสียง
   oled.showText("Standby");
 }
