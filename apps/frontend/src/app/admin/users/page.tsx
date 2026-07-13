@@ -14,31 +14,55 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     uid: '',
     department: '',
     role: 'Employee',
     status: 'Active'
   });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.uid.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const openAddModal = () => {
+    setFormData({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
+    setEditingUserId(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (user: typeof initialUsers[0]) => {
+    setFormData({ name: user.name, uid: user.uid, department: user.department, role: user.role, status: user.status });
+    setEditingUserId(user.id);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteUser = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      setUsers(users.filter(u => u.id !== id));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUser.name || !newUser.uid) return;
+    if (!formData.name || !formData.uid) return;
 
-    const userToAdd = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...newUser
-    };
+    if (editingUserId) {
+      setUsers(users.map(u => u.id === editingUserId ? { ...formData, id: editingUserId } : u));
+    } else {
+      const userToAdd = {
+        id: Math.random().toString(36).substring(2, 9),
+        ...formData
+      };
+      setUsers([...users, userToAdd]);
+    }
 
-    setUsers([...users, userToAdd]);
     setIsModalOpen(false);
-    setNewUser({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
+    setFormData({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
+    setEditingUserId(null);
   };
 
   return (
@@ -50,7 +74,7 @@ export default function AdminUsersPage() {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage employees, RFID cards, and access roles.</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAddModal}
           className="relative z-10 flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 group"
         >
           <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
@@ -118,10 +142,10 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-2">
-                      <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:shadow-sm rounded-lg transition-all dark:hover:bg-blue-900/30 dark:hover:text-blue-400">
+                      <button onClick={() => openEditModal(user)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:shadow-sm rounded-lg transition-all dark:hover:bg-blue-900/30 dark:hover:text-blue-400">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-sm rounded-lg transition-all dark:hover:bg-red-900/30 dark:hover:text-red-400">
+                      <button onClick={() => handleDeleteUser(user.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-sm rounded-lg transition-all dark:hover:bg-red-900/30 dark:hover:text-red-400">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -148,7 +172,8 @@ export default function AdminUsersPage() {
             
             <div className="flex items-center justify-between p-6 border-b border-slate-200/80 dark:border-slate-700/60 relative z-10 bg-slate-50/50 dark:bg-slate-800/30">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-blue-500" /> Add New User
+                {editingUserId ? <Edit2 className="w-5 h-5 text-blue-500" /> : <Plus className="w-5 h-5 text-blue-500" />}
+                {editingUserId ? 'Edit User' : 'Add New User'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -157,14 +182,14 @@ export default function AdminUsersPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleAddUser} className="p-6 space-y-4 relative z-10">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 relative z-10">
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Name</label>
                 <input
                   type="text"
                   required
-                  value={newUser.name}
-                  onChange={e => setNewUser({ ...newUser, name: e.target.value })}
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80"
                   placeholder="John Doe"
                 />
@@ -174,8 +199,8 @@ export default function AdminUsersPage() {
                 <input
                   type="text"
                   required
-                  value={newUser.uid}
-                  onChange={e => setNewUser({ ...newUser, uid: e.target.value })}
+                  value={formData.uid}
+                  onChange={e => setFormData({ ...formData, uid: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80"
                   placeholder="A1B2C3D4"
                 />
@@ -184,8 +209,8 @@ export default function AdminUsersPage() {
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Department</label>
                 <input
                   type="text"
-                  value={newUser.department}
-                  onChange={e => setNewUser({ ...newUser, department: e.target.value })}
+                  value={formData.department}
+                  onChange={e => setFormData({ ...formData, department: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80"
                   placeholder="Engineering"
                 />
@@ -194,8 +219,8 @@ export default function AdminUsersPage() {
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Role</label>
                   <select
-                    value={newUser.role}
-                    onChange={e => setNewUser({ ...newUser, role: e.target.value })}
+                    value={formData.role}
+                    onChange={e => setFormData({ ...formData, role: e.target.value })}
                     className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80 appearance-none"
                   >
                     <option value="Employee">Employee</option>
@@ -205,8 +230,8 @@ export default function AdminUsersPage() {
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
                   <select
-                    value={newUser.status}
-                    onChange={e => setNewUser({ ...newUser, status: e.target.value })}
+                    value={formData.status}
+                    onChange={e => setFormData({ ...formData, status: e.target.value })}
                     className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80 appearance-none"
                   >
                     <option value="Active">Active</option>
@@ -226,7 +251,7 @@ export default function AdminUsersPage() {
                   type="submit"
                   className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95"
                 >
-                  Save User
+                  {editingUserId ? 'Update User' : 'Save User'}
                 </button>
               </div>
             </form>

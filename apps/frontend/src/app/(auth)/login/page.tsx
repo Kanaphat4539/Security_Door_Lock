@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Users, Lock, KeyRound, ArrowRight, Fingerprint } from 'lucide-react';
+import Link from 'next/link';
+import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, Monitor, Users } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import SecurityPhysicsBackground from '@/components/shared/SecurityPhysicsBackground';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,6 +18,17 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Handle Theme
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isDark = document.documentElement.classList.contains('dark') ||
+        localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,49 +72,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-slate-950 overflow-hidden px-4 py-8">
-      {/* Background decorations */}
-      <div className="absolute top-0 -left-1/4 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 -right-1/4 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen transition-colors duration-500 font-sans relative overflow-hidden flex items-center justify-center p-4">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-[url('https://media.istockphoto.com/id/1388013584/photo/cloud-computing-technology-concept-transfer-database-to-cloud-there-is-a-large-cloud-icon.webp?a=1&b=1&s=612x612&w=0&k=20&c=jSk6ApGKwFuS2yuWBEUAQXhMSmSIshHPujdM5lcX48s=')]"
+      />
+      {/* Overlay for better readability */}
+      <div className="absolute inset-0 z-0 bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-[2px]"></div>
 
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 relative">
+      {/* Background ambient lighting */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-blue-500/20 dark:bg-blue-900/30 blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500/20 dark:bg-indigo-600/20 blur-[120px] pointer-events-none z-0"></div>
 
-        {/* Left side: Branding / Info */}
-        <div className="hidden md:flex flex-col justify-between p-12 bg-gradient-to-br from-blue-600 to-indigo-900 text-white relative overflow-hidden">
-          {/* subtle pattern overlay */}
-          <div className="absolute inset-0 bg-white/5 opacity-20 mix-blend-overlay bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      {/* Physics Network Background */}
+      <SecurityPhysicsBackground />
 
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-16">
-              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md shadow-inner shadow-white/20">
-                <Fingerprint className="w-8 h-8 text-white" />
-              </div>
-              <span className="text-2xl font-bold tracking-tight">SecureLock</span>
-            </div>
+      <div className="w-full max-w-lg bg-white/10 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/40 dark:border-slate-700/60 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_0_50px_-10px_rgba(59,130,246,0.4)] overflow-hidden z-10 relative transition-all duration-500 ring-1 ring-white/50 dark:ring-white/20">
 
-            <h1 className="text-5xl font-extrabold leading-tight mb-6 tracking-tight">
-              Next-Gen <br /> <span className="text-blue-300">Access Control.</span>
-            </h1>
-            <p className="text-blue-100/90 text-lg leading-relaxed max-w-sm">
-              Manage your facility's security doors seamlessly.
-              Advanced authentication and real-time monitoring at your fingertips.
-            </p>
-          </div>
+        {/* Premium Top Glow Bar */}
+        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-100"></div>
+        <div className="absolute -top-10 inset-x-0 h-[20px] bg-blue-500/40 blur-xl"></div>
 
-          <div className="relative z-10">
-            <div className="flex items-center gap-4 text-sm font-medium text-blue-200">
-              <div className="w-12 h-[2px] bg-blue-400/40 rounded-full"></div>
-              <span>System Version 2.0.4</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right side: Login Form */}
-        <div className="p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-slate-950/80">
+        {/* Login Form */}
+        <div className="p-8 md:p-12 flex flex-col justify-center">
           <div className="w-full max-w-md mx-auto">
-            <div className="text-center md:text-left mb-10">
-              <h2 className="text-3xl font-bold text-white mb-3">Welcome Back</h2>
-              <p className="text-slate-400">Please enter your credentials to continue securely.</p>
+            <div className="flex justify-center mb-6">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl shadow-inner border border-blue-100 dark:border-blue-800/50">
+                <Monitor className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">SECURITY LOGIN</h2>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Sign in to access your secure dashboard.</p>
             </div>
 
             {error && (
@@ -110,90 +113,83 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Quick Demo Login Buttons */}
-            <div className="flex gap-4 mb-8">
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('admin');
-                  setPassword('password');
-                }}
-                className="flex-1 py-2 px-4 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 rounded-xl text-indigo-300 text-sm font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Shield className="w-4 h-4" /> Auto-fill Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('employee');
-                  setPassword('password');
-                }}
-                className="flex-1 py-2 px-4 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-xl text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Users className="w-4 h-4" /> Auto-fill Employee
-              </button>
-            </div>
-
-            {/* Login Form */}
-            <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 ml-1">Username</label>
+            <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
+              {/* Username Input */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Username</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Users className="w-5 h-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                    <Users className="w-5 h-5 text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
                   </div>
                   <input
                     type="text"
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your username"
+                    placeholder="Enter username"
                     autoComplete="new-password"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-700/50 rounded-xl text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm font-medium"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 ml-1">Password</label>
+              {/* Password Input */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Password</label>
+                  <a href="#" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">Forgot password?</a>
+                </div>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className="w-5 h-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                    <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     autoComplete="new-password"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-700/50 rounded-xl text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
+                    className="w-full pl-12 pr-12 py-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full relative group overflow-hidden bg-white text-slate-900 font-semibold py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+                className="w-full relative group overflow-hidden bg-blue-600 dark:bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center justify-center gap-2">
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>Sign In</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                    </>
-                  )}
-                </div>
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </>
+                )}
               </button>
             </form>
 
-            <div className="mt-10 pt-6 border-t border-slate-800/50 text-center">
-              <p className="text-sm text-slate-500 flex items-center justify-center gap-2">
-                <KeyRound className="w-4 h-4" />
+            <div className="mt-8 text-center">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Don't have an account?{' '}
+                <Link href="/register" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold transition-colors">
+                  Create one now
+                </Link>
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/50 text-center">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
                 Secure, end-to-end encrypted connection
               </p>
             </div>
