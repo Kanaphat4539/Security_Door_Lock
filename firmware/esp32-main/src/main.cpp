@@ -1,9 +1,10 @@
-#include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Arduino.h>
 #include <MFRC522.h>
 #include <SPI.h>
 #include <Wire.h>
+
 
 // --- กำหนดขาพิน (ปรับเปลี่ยนได้ตามการต่อจริง) ---
 #define TRIG_PIN 5
@@ -155,7 +156,7 @@ void loop() {
       oled.showText("Please Scan");
       isStreaming = true;
     }
-    
+
     // 2. ถ้าระยะประชิด < 45 ซม. ให้ถ่ายรูปเก็บไว้ล่วงหน้า 1 รูป (Auto Snapshot)
     if (dist < 45) {
       if (!hasSnapped) {
