@@ -9,7 +9,7 @@ import Link from 'next/link';
 export default function AdminDashboardPage() {
   const { isConnected } = useWebSocket();
   const { logs } = useLogStore();
-  const [stats, setStats] = useState({ totalScans: 0, granted: 0, denied: 0 });
+  const [stats, setStats] = useState({ totalScans: 0, granted: 0, denied: 0, uniqueEmployeesToday: 0 });
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -37,7 +37,16 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const granted = logs.filter(l => l.status === 'GRANTED').length;
     const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
-    setStats({ totalScans: logs.length, granted, denied });
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayLogs = logs.filter(l => {
+      const logDate = new Date(l.timestamp);
+      return logDate >= today && l.status === 'GRANTED' && l.userName;
+    });
+    const uniqueUsers = new Set(todayLogs.map(l => l.userName));
+    
+    setStats({ totalScans: logs.length, granted, denied, uniqueEmployeesToday: uniqueUsers.size });
   }, [logs]);
 
   const handleLockdown = () => {
@@ -81,7 +90,7 @@ export default function AdminDashboardPage() {
         <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
 
           {/* Security & System Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* 1. Control Panel (Door State & Quick Actions) */}
             <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-blue-100/80 dark:border-blue-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-blue-500/20 hover:border-blue-300/80 dark:hover:border-blue-600/60 hover:-translate-y-1">
@@ -186,6 +195,34 @@ export default function AdminDashboardPage() {
                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400">System Uptime</span>
                     <span className="text-sm font-black text-emerald-500 dark:text-emerald-400">99.98%</span>
                   </div>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            {/* 4. Employee Access Today */}
+            <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-purple-100/80 dark:border-purple-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-purple-500/20 hover:border-purple-300/80 dark:hover:border-purple-600/60 hover:-translate-y-1">
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-400/20 dark:bg-purple-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Employees</h3>
+                <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md text-purple-600 dark:text-purple-400">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Present Today</p>
+                    <span className="text-4xl font-black text-purple-600 dark:text-purple-500 block leading-none mt-1.5">{stats.uniqueEmployeesToday}</span>
+                  </div>
+                </div>
+
+                <div className="w-full mt-1 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                     <Activity className="w-3.5 h-3.5 text-purple-500"/> Distinct users scanned in
+                  </p>
                 </div>
               </div>
               </div>
