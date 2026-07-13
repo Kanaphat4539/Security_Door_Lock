@@ -4,12 +4,24 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AccessLogsModule } from './modules/access-logs/access-logs.module';
 import { HardwareModule } from './modules/hardware/hardware.module';
-import { AppGateway } from './gateways/app/app.gateway';
+import { GatewaysModule } from './gateways/gateways.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AccessLogsModule, HardwareModule],
+  imports: [
+    PrismaModule, 
+    GatewaysModule,
+    UsersModule, 
+    AccessLogsModule, 
+    HardwareModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
+  ],
   controllers: [AppController],
-  providers: [AppService, AppGateway],
+  providers: [AppService],
 })
 export class AppModule {}
