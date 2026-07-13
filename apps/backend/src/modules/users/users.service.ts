@@ -27,13 +27,19 @@ export class UsersService {
     });
   }
 
-  async create(data: { name: string; role?: string; rfidTag?: string; pinCode?: string; faceImage?: string }) {
+  async findByUsername(username: string) {
+    return this.prisma.user.findUnique({
+      where: { username },
+    });
+  }
+
+  async create(data: { name: string; username?: string; password?: string; role?: string; rfidTag?: string; pinCode?: string; faceImage?: string }) {
     return this.prisma.user.create({
       data,
     });
   }
 
-  async update(id: string, data: Partial<{ name: string; role: string; rfidTag: string; pinCode: string; faceImage: string }>) {
+  async update(id: string, data: Partial<{ name: string; username: string; password: string; role: string; rfidTag: string; pinCode: string; faceImage: string }>) {
     return this.prisma.user.update({
       where: { id },
       data,

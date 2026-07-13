@@ -3,17 +3,17 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // We'll use a mock cookie 'user_role' to determine access
   const roleCookie = request.cookies.get('user_role');
-  const role = roleCookie?.value;
+  const role = roleCookie?.value?.toUpperCase();
 
   // Protect Admin routes
   if (pathname.startsWith('/admin')) {
     if (!role) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-    if (role !== 'admin') {
+    if (role !== 'ADMIN') {
       // If employee tries to access admin, redirect to employee profile
       return NextResponse.redirect(new URL('/employee/profile', request.url));
     }
@@ -24,16 +24,16 @@ export function middleware(request: NextRequest) {
     if (!role) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-    if (role !== 'employee' && role !== 'admin') {
+    if (role !== 'USER' && role !== 'ADMIN' && role !== 'EMPLOYEE') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
   // If logged in user tries to access login page, redirect them based on role
   if (pathname === '/login' || pathname === '/') {
-    if (role === 'admin') {
+    if (role === 'ADMIN') {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-    } else if (role === 'employee') {
+    } else if (role === 'USER' || role === 'EMPLOYEE') {
       return NextResponse.redirect(new URL('/employee/profile', request.url));
     }
   }
