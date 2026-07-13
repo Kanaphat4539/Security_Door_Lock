@@ -107,6 +107,30 @@ export default function LoginPage() {
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Sign in to access your secure dashboard.</p>
             </div>
 
+            {/* Quick Demo Login Buttons */}
+            <div className="flex gap-4 mb-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setUsername('admin');
+                  setPassword('password');
+                }}
+                className="flex-1 py-2 px-4 bg-indigo-100/50 dark:bg-indigo-600/20 hover:bg-indigo-200 dark:hover:bg-indigo-600/40 border border-indigo-200 dark:border-indigo-500/30 rounded-xl text-indigo-700 dark:text-indigo-300 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Shield className="w-4 h-4" /> Auto Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUsername('employee');
+                  setPassword('password');
+                }}
+                className="flex-1 py-2 px-4 bg-blue-100/50 dark:bg-blue-600/20 hover:bg-blue-200 dark:hover:bg-blue-600/40 border border-blue-200 dark:border-blue-500/30 rounded-xl text-blue-700 dark:text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Users className="w-4 h-4" /> Auto Employee
+              </button>
+            </div>
+
             {error && (
               <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm font-medium">
                 {error}
