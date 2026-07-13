@@ -3,11 +3,53 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  role         String      @default("USER") // ADMIN, USER, GUEST
+  rfidTag      String?     @unique
+  pinCode      String?
+  faceImage    String?     // Path or URL to face image
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  accessLogs   AccessLog[]
+
+  @@map("users")
+}
+
+model AccessLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  timestamp DateTime @default(now())
+  status    String   // GRANTED, DENIED
+  method    String   // RFID, FACE, PIN, MANUAL
+  photoUrl  String?  // Path to captured ESP32-CAM image
+  notes     String?
+
+  @@map("access_logs")
+}
+
+model HardwareDevice {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // CONTROLLER, CAMERA
+  ipAddress   String?
+  status      String   @default("OFFLINE") // ONLINE, OFFLINE
+  lastSeen    DateTime @default(now()) @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hardware_devices")
+}
+
