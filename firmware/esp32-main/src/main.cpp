@@ -6,15 +6,15 @@
 #include <Wire.h>
 
 
-// --- กำหนดขาพิน (ปรับเปลี่ยนได้ตามการต่อจริง) ---
-#define TRIG_PIN 5
-#define ECHO_PIN 18
-#define RELAY_PIN 2
-#define BUZZER_PIN 19
+// --- กำหนดขาพิน (แก้ไขใหม่เพื่อไม่ให้ชนกับระบบ SPI) ---
+#define TRIG_PIN 32
+#define ECHO_PIN 33
+#define RELAY_PIN 26
+#define BUZZER_PIN 25
 
 // ขา SPI สำหรับ RFID (แชร์กัน)
 #define RST_PIN 27
-#define SS_IN_PIN 15 // ขา SS เครื่องอ่านขาเข้า
+#define SS_IN_PIN 5  // ขา SS เครื่องอ่านขาเข้า
 #define SS_OUT_PIN 4 // ขา SS เครื่องอ่านขาออก
 
 // ==========================================

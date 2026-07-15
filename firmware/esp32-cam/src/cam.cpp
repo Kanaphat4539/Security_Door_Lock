@@ -5,8 +5,8 @@
 #include <TFT_eSPI.h>       
 #include <TJpg_Decoder.h>   
 
-const char* ssid = "YOUR_WIFI_NAME";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "Siuuuu";
+const char* password = "j1234567";
 const String apiUrl = "http://192.168.1.xxx:3000/api/auth/scan";
 
 // --- ตั้งค่าพินกล้อง (รุ่น AI Thinker) ---

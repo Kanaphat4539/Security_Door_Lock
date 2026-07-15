@@ -10,6 +10,29 @@
         {
             "name": "ESP32 CAM",
             "compileCommands": "${workspaceFolder}/firmware/esp32-cam/compile_commands.json",
+            "includePath": [
+                "${workspaceFolder}/firmware/esp32-cam/src",
+                "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/cores/esp32",
+                "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
+                "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
+                "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp32-camera/driver/include",
+                "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp32-camera/conversions/include",
+                "${workspaceFolder}/firmware/esp32-cam/.pio/libdeps/esp32cam/TFT_eSPI",
+                "${workspaceFolder}/firmware/esp32-cam/.pio/libdeps/esp32cam/TJpg_Decoder/src"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/firmware/esp32-cam/src",
+                    "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/cores/esp32",
+                    "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
+                    "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
+                    "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp32-camera/driver/include",
+                    "C:/Users/TEE/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp32-camera/conversions/include",
+                    "${workspaceFolder}/firmware/esp32-cam/.pio/libdeps/esp32cam/TFT_eSPI",
+                    "${workspaceFolder}/firmware/esp32-cam/.pio/libdeps/esp32cam/TJpg_Decoder/src"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-gcc-x64"
