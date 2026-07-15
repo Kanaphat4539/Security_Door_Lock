@@ -4,6 +4,7 @@
 #include "esp_camera.h"
 #include <TFT_eSPI.h>       
 #include <TJpg_Decoder.h>   
+#include <base64.h>
 
 const char* ssid = "Siuuuu";
 const char* password = "j1234567";
@@ -51,13 +52,22 @@ class NetworkManager {
       }
     }
     
-    String sendAuthRequest(String direction, String uid, bool includeImage) {
+    String sendAuthRequest(String direction, String uid, camera_fb_t *fb = nullptr) {
       if(WiFi.status() == WL_CONNECTED){
         HTTPClient http;
         http.begin(apiUrl);
         http.addHeader("Content-Type", "application/json");
 
-        String jsonPayload = "{\"uid\":\"" + uid + "\",\"direction\":\"" + direction + "\"}";
+        String jsonPayload;
+        if (fb != nullptr) {
+          // แปลงภาพเป็น Base64
+          String encodedImage = base64::encode(fb->buf, fb->len);
+          jsonPayload = "{\"uid\":\"" + uid + "\",\"direction\":\"" + direction + "\",\"image\":\"" + encodedImage + "\"}";
+        } else {
+          // ถ้าไม่มีภาพ
+          jsonPayload = "{\"uid\":\"" + uid + "\",\"direction\":\"" + direction + "\"}";
+        }
+        
         int httpResponseCode = http.POST(jsonPayload);
         String response = "denied"; 
         
@@ -172,7 +182,8 @@ void loop() {
     else if (command.startsWith("CMD_AUTH_IN:")) {
       String uid = command.substring(12);
       camera_fb_t *fb = cam.capture();
-      String result = net.sendAuthRequest("in", uid, true);
+      // ส่งบัตรเข้า พร้อมกับภาพ
+      String result = net.sendAuthRequest("in", uid, fb);
       cam.freeBuffer(fb);
       
       if (result.indexOf("granted") >= 0) Serial.println("RESP_GRANTED");
@@ -180,7 +191,8 @@ void loop() {
     }
     else if (command.startsWith("CMD_AUTH_OUT:")) {
       String uid = command.substring(13);
-      String result = net.sendAuthRequest("out", uid, false);
+      // ส่งบัตรออก (ไม่ใช้ภาพตามของเดิม หรือจะส่งภาพด้วยก็เพิ่ม cam.capture() ได้)
+      String result = net.sendAuthRequest("out", uid, nullptr);
       if (result.indexOf("granted") >= 0) Serial.println("RESP_GRANTED");
       else Serial.println("RESP_DENIED");
     }
