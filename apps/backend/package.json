@@ -23,7 +23,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:add-card": "tsx scripts/add-card.ts",
-    "db:add-admin": "tsx scripts/add-admin.ts"
+    "db:add-admin": "tsx scripts/add-admin.ts",
+    "setup": "tsx scripts/setup-env.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

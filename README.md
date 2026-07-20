@@ -33,11 +33,15 @@ docker compose up -d --wait
 ```bash
 cd apps/backend
 npm install
-cp .env.example .env          # แล้วใส่ค่า token/secret จริง (ดูคำอธิบายในไฟล์)
+npm run setup                 # สร้าง .env พร้อม token สุ่มให้อัตโนมัติ
 npm run db:generate           # สร้าง Prisma client
 npm run db:migrate            # สร้างตาราง
 npm run start:dev             # http://localhost:3001
 ```
+
+> **ทำไมไม่ commit token ไว้ให้เลย?** repo นี้เป็น public — ถ้า `JWT_SECRET` อยู่ใน git
+> ใครก็ปลอม session เป็น ADMIN ได้ และประวัติ git ลบไม่ออก `npm run setup` เลยสุ่มให้
+> ทุกคนคนละชุด รันคำสั่งเดียวได้ `.env` ที่ใช้ได้เลย รันซ้ำได้ไม่ทับของเดิม
 
 ### 3. Frontend
 ```bash
