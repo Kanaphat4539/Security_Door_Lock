@@ -29,7 +29,8 @@ const GENERATED: Record<string, () => string> = {
 
 /** ค่าที่ลอกจาก .env.example ได้ตรง ๆ (ตรงกับ docker-compose.yml อยู่แล้ว) */
 const DEFAULTS: Record<string, string> = {
-  DATABASE_URL: '"mysql://doorlock:doorlock_dev@localhost:3306/doorlock"',
+  // พอร์ต 3307 ไม่ใช่ 3306 — ดูเหตุผลใน docker-compose.yml (เลี่ยงชนกับ repo Door)
+  DATABASE_URL: '"mysql://doorlock:doorlock_dev@localhost:3307/doorlock"',
   PORT: "3001",
   UPLOAD_DIR: "uploads",
 };

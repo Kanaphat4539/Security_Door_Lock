@@ -161,11 +161,17 @@ npx jest -t "should return"
 
 ### ฐานข้อมูล (MySQL ผ่าน Docker) — จาก root ของ repo
 ```bash
-docker compose up -d          # เปิด MySQL 8.4 (พอร์ต 3306)
+docker compose up -d          # เปิด MySQL 8.4 (host พอร์ต 3307)
 docker compose down           # ปิด (ข้อมูลยังอยู่)
 docker compose down -v        # ปิด + ล้างข้อมูลทั้งหมด
 docker compose logs -f mysql  # ดู log ตอนต่อไม่ติด
 ```
+
+⚠️ **พอร์ต host คือ 3307 ไม่ใช่ 3306** และ container ชื่อ `securitydoor-mysql`
+ตั้งใจให้ต่างจาก repo `Door` (`doorlock-mysql` : 3306) เพราะเครื่องเดียวเปิดสอง container
+ชื่อซ้ำกันหรือจองพอร์ตเดียวกันไม่ได้ — ถ้าเผลอแก้กลับเป็น 3306 จะเปิดพร้อม Door ไม่ได้
+ในคอนเทนเนอร์ MySQL ยังฟัง 3306 ตามปกติ (map 3307:3306) ค่าที่ต้องตรงกันคือ
+`DATABASE_URL` ใน `.env` ซึ่ง `npm run setup` ใส่ 3307 ให้แล้ว
 จาก `apps/backend/`:
 ```bash
 npm run db:migrate            # สร้าง/อัปเดตตารางตาม schema.prisma (dev)

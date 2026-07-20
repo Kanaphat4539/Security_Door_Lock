@@ -3,13 +3,17 @@
 #   docker compose down       ปิด (ข้อมูลยังอยู่ใน volume)
 #   docker compose down -v    ปิด + ลบข้อมูลทั้งหมด (ใช้ตอนอยาก reset)
 #
-# ค่าที่ตั้งไว้ตรงกับ DATABASE_URL ตัวอย่างใน backend/.env.example
+# ค่าที่ตั้งไว้ตรงกับ DATABASE_URL ที่ `npm run setup` เขียนลง apps/backend/.env
 # เป็นค่าสำหรับ dev บนเครื่องตัวเองเท่านั้น ห้ามใช้ตอน deploy จริง
+#
+# ⚠️ ชื่อ container กับพอร์ต host ตั้งใจไม่ให้ซ้ำกับ repo `Door` (doorlock-mysql : 3306)
+# เพราะเครื่องเดียวเปิดสอง container ชื่อเดียวกัน/จองพอร์ตเดียวกันไม่ได้
+# ถ้าเปลี่ยนพอร์ตตรงนี้ ต้องแก้ DATABASE_URL ใน .env ให้ตรงด้วย
 
 services:
   mysql:
     image: mysql:8.4
-    container_name: doorlock-mysql
+    container_name: securitydoor-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: doorlock_root
@@ -17,8 +21,9 @@ services:
       MYSQL_USER: doorlock
       MYSQL_PASSWORD: doorlock_dev
     ports:
-      # เปิดออกมาที่ 3306 ของเครื่อง host เพื่อให้ Prisma ต่อได้
-      - "3306:3306"
+      # host 3307 -> container 3306 (ในคอนเทนเนอร์ยังเป็น 3306 ตามปกติ)
+      # ใช้ 3307 เพื่อไม่ให้ชนกับ MySQL ของ repo `Door` ที่จอง 3306 อยู่
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       # สคริปต์ในนี้รันครั้งแรกที่สร้าง volume เท่านั้น
