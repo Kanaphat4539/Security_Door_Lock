@@ -9,8 +9,13 @@ This monorepo contains the software and firmware for a Security Door Lock system
 - **apps/backend**: NestJS + Prisma application for the API and WebSocket server.
 - **firmware/esp32-main**: PlatformIO firmware for the main ESP32 (RFID, Ultrasonic, Lock control).
 - **firmware/esp32-cam**: PlatformIO firmware for the ESP32-CAM (Face capture).
-- **docker**: Docker compose configurations for database and other services.
-- **uploads**: Local storage directory for captured face images.
+- **firmware/shared**: `protocol.h` — the serial contract shared by both boards.
+- **docker**: MySQL init scripts used by `docker-compose.yml`.
+
+> `apps/backend` and `apps/frontend` each have their own `node_modules` and
+> `package-lock.json` — this is *not* an npm workspaces setup, so install in each folder.
+
+รายละเอียดทั้งหมด (สถาปัตยกรรม, สัญญาระหว่างสามฝั่ง, ขา GPIO, ระบบสิทธิ์) อยู่ใน **`CLAUDE.md`**
 
 ## Getting Started
 
@@ -19,21 +24,36 @@ This monorepo contains the software and firmware for a Security Door Lock system
 - Docker & Docker Compose
 - PlatformIO (for firmware development)
 
-### Running the Database
+### 1. Database
 ```bash
-docker-compose up -d
+docker compose up -d --wait
 ```
 
-### Running the Backend
+### 2. Backend
 ```bash
 cd apps/backend
 npm install
-npm run start:dev
+cp .env.example .env          # แล้วใส่ค่า token/secret จริง (ดูคำอธิบายในไฟล์)
+npm run db:generate           # สร้าง Prisma client
+npm run db:migrate            # สร้างตาราง
+npm run start:dev             # http://localhost:3001
 ```
 
-### Running the Frontend
+### 3. Frontend
 ```bash
 cd apps/frontend
 npm install
-npm run dev
+cp .env.example .env.local
+npm run dev                   # http://localhost:3000
+```
+
+### 4. Firmware
+แต่ละบอร์ดเป็นโปรเจกต์ PlatformIO แยกกัน — `cd` เข้าโฟลเดอร์ก่อนรัน:
+```bash
+cd firmware/esp32-cam
+cp src/secrets.example.h src/secrets.h   # ใส่ Wi-Fi + DEVICE_TOKEN ให้ตรงกับ backend
+pio run -t upload
+
+cd ../esp32-main
+pio run -t upload
 ```

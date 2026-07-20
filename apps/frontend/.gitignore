@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# .env.example ต้อง commit ให้ทีมเห็นว่าต้องตั้งค่าอะไรบ้าง
+!.env.example

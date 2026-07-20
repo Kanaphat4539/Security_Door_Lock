@@ -1,20 +1,37 @@
-version: '3.8'
+# MySQL สำหรับ development
+#   docker compose up -d      เปิด
+#   docker compose down       ปิด (ข้อมูลยังอยู่ใน volume)
+#   docker compose down -v    ปิด + ลบข้อมูลทั้งหมด (ใช้ตอนอยาก reset)
+#
+# ค่าที่ตั้งไว้ตรงกับ DATABASE_URL ตัวอย่างใน backend/.env.example
+# เป็นค่าสำหรับ dev บนเครื่องตัวเองเท่านั้น ห้ามใช้ตอน deploy จริง
 
 services:
   mysql:
-    image: mysql:8.0
-    container_name: security_door_mysql
-    restart: always
+    image: mysql:8.4
+    container_name: doorlock-mysql
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: security_door
-      MYSQL_USER: db_user
-      MYSQL_PASSWORD: db_password
+      MYSQL_ROOT_PASSWORD: doorlock_root
+      MYSQL_DATABASE: doorlock
+      MYSQL_USER: doorlock
+      MYSQL_PASSWORD: doorlock_dev
     ports:
+      # เปิดออกมาที่ 3306 ของเครื่อง host เพื่อให้ Prisma ต่อได้
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # สคริปต์ในนี้รันครั้งแรกที่สร้าง volume เท่านั้น
+      # ถ้าแก้แล้วอยากให้มีผล ต้อง docker compose down -v ก่อน
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # Prisma จะต่อไม่ติดถ้ายิงตอน MySQL ยังบูตไม่เสร็จ
+      # healthcheck นี้ทำให้ `docker compose up --wait` รอจนพร้อมจริง
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-pdoorlock_root"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
 
 volumes:
   mysql_data:

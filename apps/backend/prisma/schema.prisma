@@ -1,56 +1,80 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Security Door Lock — schema ฐานข้อมูล
+// URL ของ datasource อ่านจาก DATABASE_URL ผ่าน prisma.config.ts (Prisma 7)
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
 
 datasource db {
   provider = "mysql"
 }
 
-generator client {
-  provider = "prisma-client-js"
+/// ค่าตรงกับที่ firmware ส่งมาและที่ frontend ใช้แสดงผลเป๊ะ ๆ
+/// อย่าเปลี่ยนตัวพิมพ์ ไม่งั้นสัญญาสามฝั่งจะพัง (ดู CLAUDE.md)
+enum Direction {
+  in
+  out
 }
 
+enum AccessStatus {
+  granted
+  denied
+}
+
+/// สิทธิ์ของบัญชี dashboard
+/// ADMIN = จัดการบัตร/ผู้ใช้ได้ทั้งหมด
+/// USER  = ดูหน้าภาพรวมได้อย่างเดียว แตะ /users ไม่ได้เลย
+enum Role {
+  ADMIN
+  USER
+}
+
+/// บัญชีสำหรับ "เข้าใช้ dashboard" — คนละเรื่องกับ User ที่เป็นเจ้าของบัตร RFID
+/// (คนที่มีบัตรเข้าประตูได้ ไม่จำเป็นต้องเข้า dashboard ได้ และกลับกันด้วย)
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(64)
+  /// รูปแบบ "scrypt:<salt hex>:<hash hex>" — ดู auth/password.ts
+  passwordHash String   @db.VarChar(255)
+  /// สมัครเองผ่านหน้าเว็บได้แค่ USER — ADMIN ต้องตั้งจาก CLI (db:add-admin)
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/// ผู้มีสิทธิ์เข้า-ออก 1 คนต่อ 1 บัตร
 model User {
-  id           String      @id @default(uuid())
-  name         String
-  username     String?     @unique
-  password     String?
-  role         String      @default("USER") // ADMIN, USER, GUEST
-  rfidTag      String?     @unique
-  pinCode      String?
-  faceImage    String?     // Path or URL to face image
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  accessLogs   AccessLog[]
+  id        Int      @id @default(autoincrement())
+  /// UID ของบัตร RFID เก็บเป็น hex ตัวพิมพ์ใหญ่ไม่มีตัวคั่น เช่น "A1B2C3D4"
+  uid       String   @unique @db.VarChar(32)
+  name      String   @db.VarChar(191)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("users")
+  logs AccessLog[]
 }
 
+/// ประวัติการทาบบัตรทุกครั้ง รวมถึงบัตรที่ไม่รู้จัก (userId เป็น null)
 model AccessLog {
-  id        String   @id @default(uuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  timestamp DateTime @default(now())
-  status    String   // GRANTED, DENIED
-  method    String   // RFID, FACE, PIN, MANUAL
-  photoUrl  String?  // Path to captured ESP32-CAM image
-  notes     String?
+  id Int @id @default(autoincrement())
 
-  @@map("access_logs")
+  /// เก็บ uid ซ้ำไว้ตรงนี้ด้วย เพราะบัตรที่ไม่รู้จักจะไม่มีแถวใน User ให้อ้างอิง
+  /// และถ้าผู้ใช้ถูกลบทีหลัง log ก็ยังต้องบอกได้ว่าบัตรใบไหนมาทาบ
+  uid       String       @db.VarChar(32)
+  direction Direction
+  status    AccessStatus
+  /// path ของภาพ มีเฉพาะขาเข้า — ขาออกไม่ถ่ายภาพจึงเป็น null
+  imagePath String?      @db.VarChar(255)
+  createdAt DateTime     @default(now())
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  /// dashboard ดึง log ล่าสุดเป็นหลัก และมีหน้าดูประวัติรายบุคคล
+  @@index([createdAt])
+  @@index([uid])
+  @@index([userId])
 }
-
-model HardwareDevice {
-  id          String   @id @default(uuid())
-  name        String
-  type        String   // CONTROLLER, CAMERA
-  ipAddress   String?
-  status      String   @default("OFFLINE") // ONLINE, OFFLINE
-  lastSeen    DateTime @default(now()) @updatedAt
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("hardware_devices")
-}
-
