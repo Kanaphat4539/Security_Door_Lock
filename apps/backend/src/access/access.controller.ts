@@ -15,7 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { existsSync } from 'fs';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { join } from 'path';
 
 import { DeviceRoute } from '../auth/auth.constants';
 import { AccessService } from './access.service';
@@ -47,12 +47,13 @@ export class AccessController {
     FileInterceptor('image', {
       storage: diskStorage({
         destination: UPLOAD_DIR,
-        filename: (_req, file, cb) => {
+        filename: (_req, _file, cb) => {
           // ชื่อไฟล์: <iso-timestamp>_<direction>_<uid>.jpg
           // ใช้ - แทน : เพราะ Windows ห้ามใช้ : ในชื่อไฟล์
+          // บังคับ .jpg เสมอ — ESP32-CAM ส่ง JPEG อย่างเดียว
+          // ไม่เชื่อ originalname จากผู้ส่ง (กันอัปไฟล์ .html ที่มีสคริปต์ -> stored XSS)
           const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const ext = extname(file.originalname) || '.jpg';
-          cb(null, `${stamp}${ext}`);
+          cb(null, `${stamp}.jpg`);
         },
       }),
       limits: { fileSize: 5 * 1024 * 1024 }, // ภาพ SVGA ปกติ < 100KB
@@ -120,6 +121,13 @@ export class AccessController {
       throw new NotFoundException('ไม่พบไฟล์ภาพนี้');
     }
 
+    // บังคับชนิดไฟล์เป็น JPEG + nosniff — ต่อให้มีไฟล์แปลกปลอมหลุดเข้ามา
+    // เบราว์เซอร์จะไม่รันเป็น HTML/สคริปต์ (กัน stored XSS ผ่านภาพ)
+    res.set({
+      'Content-Type': 'image/jpeg',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Disposition': 'inline',
+    });
     res.sendFile(fullPath);
   }
 }
