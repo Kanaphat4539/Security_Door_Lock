@@ -8,17 +8,18 @@ jest.mock('../../generated/prisma/client', () => ({
 
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { ImageFetchService } from '../devices/image-fetch.service';
 import { EventsGateway } from '../events/events.gateway';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessService } from './access.service';
 
-// mock Prisma แทนการต่อ DB จริง เพื่อให้ `npm test` รันได้โดยไม่ต้องมี MySQL
+// mock dependency ทั้งหมด เพื่อให้ `npm test` รันได้โดยไม่ต้องมี MySQL / CAM จริง
 const prismaMock = {
   user: { findUnique: jest.fn() },
-  accessLog: { create: jest.fn(), findMany: jest.fn() },
+  accessLog: { create: jest.fn(), findMany: jest.fn(), update: jest.fn() },
 };
-
 const eventsMock = { emitAccess: jest.fn() };
+const imageFetchMock = { fetchFromCam: jest.fn() };
 
 const fakeLog = (over: Record<string, unknown> = {}) => ({
   id: 1,
@@ -31,6 +32,9 @@ const fakeLog = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
+// ปล่อยให้งาน async แบบ fire-and-forget (ดึงรูปตอนขาเข้า) ทำงานจนจบก่อน assert
+const flush = () => new Promise((resolve) => setImmediate(resolve));
+
 describe('AccessService', () => {
   let service: AccessService;
 
@@ -42,6 +46,7 @@ describe('AccessService', () => {
         AccessService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: EventsGateway, useValue: eventsMock },
+        { provide: ImageFetchService, useValue: imageFetchMock },
       ],
     }).compile();
 
@@ -57,7 +62,7 @@ describe('AccessService', () => {
       });
       prismaMock.accessLog.create.mockResolvedValue(fakeLog());
 
-      const result = await service.authorize('A1B2C3D4', 'in', null);
+      const result = await service.authorize('A1B2C3D4', 'in');
 
       expect(result.status).toBe('granted');
       expect(result.userName).toBe('ธีรภัทร');
@@ -69,7 +74,7 @@ describe('AccessService', () => {
         fakeLog({ uid: 'DEADBEEF', status: 'denied', userId: null }),
       );
 
-      const result = await service.authorize('DEADBEEF', 'in', null);
+      const result = await service.authorize('DEADBEEF', 'in');
 
       expect(result.status).toBe('denied');
       expect(result.userName).toBeNull();
@@ -90,7 +95,7 @@ describe('AccessService', () => {
         fakeLog({ status: 'denied', userId: 2 }),
       );
 
-      const result = await service.authorize('A1B2C3D4', 'out', null);
+      const result = await service.authorize('A1B2C3D4', 'out');
 
       expect(result.status).toBe('denied');
     });
@@ -101,55 +106,84 @@ describe('AccessService', () => {
         fakeLog({ status: 'denied', userId: null }),
       );
 
-      await service.authorize('  a1b2c3d4 ', 'in', null);
+      await service.authorize('  a1b2c3d4 ', 'in');
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { uid: 'A1B2C3D4' },
       });
     });
 
-    it('เก็บ imagePath ที่ส่งเข้ามาลง log', async () => {
+    it('สร้าง log ด้วย imagePath = null (รูปมาทีหลังตอนขาเข้า)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
       prismaMock.accessLog.create.mockResolvedValue(
-        fakeLog({ status: 'denied', userId: null, imagePath: 'uploads/a.jpg' }),
+        fakeLog({ status: 'denied', userId: null }),
       );
 
-      await service.authorize('DEADBEEF', 'in', 'uploads/a.jpg');
+      await service.authorize('DEADBEEF', 'in');
 
       expect(prismaMock.accessLog.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ imagePath: 'uploads/a.jpg' }),
+          data: expect.objectContaining({ imagePath: null }),
         }),
       );
     });
   });
 
-  describe('การยิง WebSocket event', () => {
-    it('ยิง event ทั้งกรณี granted และ denied', async () => {
+  describe('handleAccess (Design B)', () => {
+    it('ขาออก: ตอบ status + ยิง event ทันที ไม่ดึงรูป', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
       prismaMock.accessLog.create.mockResolvedValue(
-        fakeLog({ uid: 'DEADBEEF', status: 'denied', userId: null }),
+        fakeLog({ uid: 'DEADBEEF', direction: 'out', status: 'denied', userId: null }),
       );
 
-      await service.authorize('DEADBEEF', 'in', null);
+      const res = await service.handleAccess('DEADBEEF', 'out');
 
+      expect(res.status).toBe('denied');
+      expect(imageFetchMock.fetchFromCam).not.toHaveBeenCalled();
       expect(eventsMock.emitAccess).toHaveBeenCalledTimes(1);
-      expect(eventsMock.emitAccess).toHaveBeenCalledWith(
-        expect.objectContaining({ uid: 'DEADBEEF', status: 'denied' }),
-      );
     });
 
-    it('payload ที่ยิงออกไปเป็นตัวเดียวกับที่ตอบกลับ controller', async () => {
+    it('ขาเข้า: ตอบ status ทันที แล้วดึงรูป -> อัปเดต log -> ยิง event พร้อมรูป', async () => {
       prismaMock.user.findUnique.mockResolvedValue({
         id: 1,
         name: 'ธีรภัทร',
         isActive: true,
       });
       prismaMock.accessLog.create.mockResolvedValue(fakeLog());
+      prismaMock.accessLog.update.mockResolvedValue({});
+      imageFetchMock.fetchFromCam.mockResolvedValue('uploads/x.jpg');
 
-      const returned = await service.authorize('A1B2C3D4', 'in', null);
+      const res = await service.handleAccess('A1B2C3D4', 'in');
+      expect(res.status).toBe('granted');
 
-      expect(eventsMock.emitAccess).toHaveBeenCalledWith(returned);
+      await flush();
+
+      expect(imageFetchMock.fetchFromCam).toHaveBeenCalledTimes(1);
+      expect(prismaMock.accessLog.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: { imagePath: 'uploads/x.jpg' },
+        }),
+      );
+      expect(eventsMock.emitAccess).toHaveBeenCalledWith(
+        expect.objectContaining({ imagePath: 'uploads/x.jpg' }),
+      );
+    });
+
+    it('ขาเข้า: ถ้าดึงรูปไม่ได้ ยังยิง event (imagePath null) และไม่อัปเดต log', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.accessLog.create.mockResolvedValue(
+        fakeLog({ status: 'denied', userId: null }),
+      );
+      imageFetchMock.fetchFromCam.mockResolvedValue(null);
+
+      await service.handleAccess('DEADBEEF', 'in');
+      await flush();
+
+      expect(prismaMock.accessLog.update).not.toHaveBeenCalled();
+      expect(eventsMock.emitAccess).toHaveBeenCalledWith(
+        expect.objectContaining({ imagePath: null }),
+      );
     });
   });
 
