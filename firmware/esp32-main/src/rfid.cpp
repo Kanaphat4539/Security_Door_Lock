@@ -61,6 +61,18 @@ void releaseReset(int pin) {
 
 }  // namespace
 
+// PCD_Init คืน false เมื่ออ่าน version register ไม่ได้ ซึ่งบางทีเป็นแค่จังหวะบูต
+// ที่ไฟยังไม่นิ่ง (หัวอ่านตั้งค่า register + antenna เสร็จแล้ว แค่เช็ค version ไม่ผ่าน)
+// ลองซ้ำก่อนจะยอมแพ้ กัน false alarm และให้ทนขึ้น
+static bool initWithRetry(MFRC522& reader, const char* label) {
+  for (int i = 0; i < 3; i++) {
+    if (reader.PCD_Init()) return true;
+    delay(50);
+  }
+  Serial.printf("[rfid] %s reader init failed\n", label);
+  return false;
+}
+
 void rfidBegin() {
   releaseReset(kPinRfidEntryRst);
   releaseReset(kPinRfidExitRst);
@@ -70,8 +82,8 @@ void rfidBegin() {
   gSpiExit.begin(kPinRfidExitSck, kPinRfidExitMiso, kPinRfidExitMosi,
                  kPinRfidExitSs);
 
-  if (!gEntry.PCD_Init()) Serial.println(F("[rfid] entry reader init failed"));
-  if (!gExit.PCD_Init()) Serial.println(F("[rfid] exit reader init failed"));
+  initWithRetry(gEntry, "entry");
+  initWithRetry(gExit, "exit");
 }
 
 bool rfidReadEntry(String& uid) { return readFrom(gEntry, uid); }

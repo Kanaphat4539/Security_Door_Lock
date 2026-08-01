@@ -10,8 +10,11 @@ constexpr int kPinRfidEntrySs   = 5;
 constexpr int kPinRfidEntryRst  = 27;
 
 // ---- RFID reader 2 = ขาออก (HSPI — คนละ bus กับตัวขาเข้า) ----
+// ⚠️ MISO ห้ามใช้ GPIO12 — เป็น strapping pin (MTDI) ที่ตั้งแรงดัน flash ตอนบูต
+//    ถ้าโมดูล RC522 ดึงขาขึ้น HIGH ตอนบูต flash จะเพี้ยนเป็น 1.8V แล้วบอร์ดบูตค้าง
+//    (เจอจริงตอนทดสอบฮาร์ดแวร์) ย้ายมา GPIO35 (input-only, ไม่ใช่ strapping pin)
 constexpr int kPinRfidExitSck  = 14;
-constexpr int kPinRfidExitMiso = 12;
+constexpr int kPinRfidExitMiso = 35;
 constexpr int kPinRfidExitMosi = 13;
 constexpr int kPinRfidExitSs   = 4;
 constexpr int kPinRfidExitRst  = 2;
