@@ -30,6 +30,15 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  // เปิด CORS ให้ frontend (aniwat) ยิง axios จากเบราว์เซอร์ตรงมาได้
+  // ทุก route ต้องมี Bearer token อยู่แล้ว (CORS ไม่ใช่ด่านความปลอดภัย) + ไม่ได้ใช้ cookie
+  // ตั้ง CORS_ORIGIN ใน .env เป็นรายการคั่นด้วย , เพื่อจำกัด origin ตอน deploy จริง
+  const corsOrigin = process.env.CORS_ORIGIN;
+  app.enableCors({
+    origin: corsOrigin ? corsOrigin.split(',') : true, // dev: สะท้อน origin ใดก็ได้
+    credentials: false,
+  });
+
   // validate + แปลงชนิดข้อมูลตาม DTO ให้อัตโนมัติ
   // ไม่กระทบ POST /access เพราะ body ที่นั่นไม่ได้ผูกกับคลาส DTO
   // (ValidationPipe ข้าม metatype ที่เป็น native type)
