@@ -7,6 +7,7 @@ import { LayoutDashboard, Users, FileText, LogOut, Shield, Menu, X } from 'lucid
 import { WebSocketProvider } from '@/providers/WebSocketProvider';
 import ParticleBackground from '@/components/shared/ParticleBackground';
 import MouseTrail from '@/components/shared/MouseTrail';
+import { logout } from '@/services/backend';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    logout();
     router.push('/login');
   };
 

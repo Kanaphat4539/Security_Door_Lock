@@ -4,13 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, Monitor } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import SecurityPhysicsBackground from '@/components/shared/SecurityPhysicsBackground';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { login as loginRequest } from '@/services/backend';
+import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +14,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Handle Theme
   useEffect(() => {
@@ -29,28 +26,27 @@ export default function LoginPage() {
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    // Simulate setting a cookie (In a real app, the server sets this via NextAuth or similar)
-    let role = 'employee';
-    if (email === 'admin' && password === 'admin') {
-      role = 'admin';
-    } else if (email.includes('admin')) {
-      role = 'admin';
-    }
-
-    document.cookie = `user_role=${role}; path=/; max-age=86400`; // 1 day
-
-    // Redirect based on role
-    setTimeout(() => {
+    try {
+      const role = await loginRequest(email, password);
       if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/employee/profile');
       }
-    }, 800);
+    } catch (err) {
+      // backend ตอบ 401 = ชื่อผู้ใช้/รหัสผ่านไม่ถูกต้อง
+      const msg =
+        axios.isAxiosError(err) && err.response?.status === 401
+          ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+          : 'เข้าสู่ระบบไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?';
+      setError(msg);
+      setLoading(false);
+    }
   };
 
   return (
@@ -136,6 +132,12 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-800/50 dark:bg-red-900/20 dark:text-red-300">
+                  {error}
+                </div>
+              )}
 
               {/* Auto Fill Buttons */}
               <div className="flex gap-3 justify-center pt-2">
