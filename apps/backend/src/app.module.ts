@@ -1,14 +1,23 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
-import { AccessLogsModule } from './modules/access-logs/access-logs.module';
-import { HardwareModule } from './modules/hardware/hardware.module';
-import { AppGateway } from './gateways/app/app.gateway';
+import { AccessModule } from './access/access.module';
+import { AuthModule } from './auth/auth.module';
+import { DevicesModule } from './devices/devices.module';
+import { EventsModule } from './events/events.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [UsersModule, AccessLogsModule, HardwareModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    EventsModule,
+    AccessModule,
+    DevicesModule,
+    UsersModule,
+  ],
   controllers: [AppController],
-  providers: [AppService, AppGateway],
+  providers: [AppService],
 })
 export class AppModule {}
