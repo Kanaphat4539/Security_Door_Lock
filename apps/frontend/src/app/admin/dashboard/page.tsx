@@ -35,14 +35,14 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    const granted = logs.filter(l => l.status === 'GRANTED').length;
-    const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
+    const granted = logs.filter(l => l.status === 'granted').length;
+    const denied = logs.filter(l => l.status === 'denied').length;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayLogs = logs.filter(l => {
-      const logDate = new Date(l.timestamp);
-      return logDate >= today && l.status === 'GRANTED' && l.userName;
+      const logDate = new Date(l.createdAt);
+      return logDate >= today && l.status === 'granted' && l.userName;
     });
     const uniqueUsers = new Set(todayLogs.map(l => l.userName));
 
@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
 
   // Determine current door state mock (in real app, this comes from WebSocket)
   const latestLog = logs[0];
-  const isRecentlyUnlocked = latestLog && latestLog.status === 'GRANTED' && (Date.now() - new Date(latestLog.timestamp).getTime() < 8000);
+  const isRecentlyUnlocked = latestLog && latestLog.status === 'granted' && (Date.now() - new Date(latestLog.createdAt).getTime() < 8000);
   const doorState = isRecentlyUnlocked ? 'UNLOCKED' : 'LOCKED';
 
   return (
@@ -265,12 +265,12 @@ export default function AdminDashboardPage() {
                       </tr>
                     ) : (
                       logs.slice(0, 5).map(log => (
-                        <tr key={log.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${log.status === 'DENIED' || log.status === 'ERROR' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
+                        <tr key={log.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${log.status === 'denied' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
                           <td className="py-3.5 px-5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </td>
                           <td className="py-3.5 px-5 text-sm text-slate-900 dark:text-white font-medium flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm ${log.status === 'GRANTED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm ${log.status === 'granted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
                               'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                               }`}>
                               {log.userName ? log.userName.charAt(0).toUpperCase() : <Key className="w-3.5 h-3.5" />}
@@ -280,21 +280,16 @@ export default function AdminDashboardPage() {
                               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">ID: {log.uid}</div>
                             </div>
                           </td>
-                          <td className="py-3.5 px-5 text-xs font-bold text-slate-700 dark:text-slate-300">{log.doorId}</td>
+                          <td className="py-3.5 px-5 text-xs font-bold text-slate-700 dark:text-slate-300">{log.direction ? log.direction.toUpperCase() : 'IN'}</td>
                           <td className="py-3.5 px-5">
-                            {log.status === 'GRANTED' && (
+                            {log.status === 'granted' && (
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 dark:border-emerald-800/50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-md">
                                 <Unlock className="w-3 h-3" /> GRANTED
                               </span>
                             )}
-                            {log.status === 'DENIED' && (
+                            {log.status === 'denied' && (
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-md">
                                 <AlertTriangle className="w-3 h-3" /> DENIED
-                              </span>
-                            )}
-                            {log.status === 'ERROR' && (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400 px-2.5 py-1 rounded-md">
-                                <AlertTriangle className="w-3 h-3" /> ERROR
                               </span>
                             )}
                           </td>

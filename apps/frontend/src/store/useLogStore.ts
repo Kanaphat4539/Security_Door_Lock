@@ -1,16 +1,16 @@
 import { create } from 'zustand';
 
-export type AccessStatus = 'GRANTED' | 'DENIED' | 'ERROR';
+export type Direction = 'in' | 'out';
+export type AccessStatus = 'granted' | 'denied';
 
 export interface AccessLog {
-  id: string;
-  userId: string | null;
-  userName?: string;
+  id: number;
   uid: string;
-  timestamp: string;
+  direction: Direction;
   status: AccessStatus;
-  doorId: string;
-  imageUrl?: string;
+  imagePath: string | null;
+  userName: string | null;
+  createdAt: string;
 }
 
 interface LogStore {

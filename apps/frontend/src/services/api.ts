@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Ensure the API base URL points to our NestJS backend
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
   timeout: 10000,
 });
 
@@ -38,3 +38,23 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Auth Endpoints
+export const authApi = {
+  login: async (credentials: Record<string, string>) => {
+    const res = await api.post('/auth/login', credentials);
+    return res.data;
+  },
+  register: async (data: Record<string, string>) => {
+    const res = await api.post('/auth/register', data);
+    return res.data;
+  },
+  getWsTicket: async () => {
+    const res = await api.post('/auth/ws-ticket');
+    return res.data;
+  },
+  getMe: async () => {
+    const res = await api.get('/auth/me');
+    return res.data;
+  }
+};

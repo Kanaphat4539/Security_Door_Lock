@@ -45,6 +45,9 @@ async function bootstrap() {
     new TokenAuthGuard(app.get(Reflector), app.get(AuthService)),
   );
 
+  // Enable CORS
+  app.enableCors();
+
   // 3001 ไม่ใช่ 3000 เพราะ Next.js dashboard ใช้ 3000 อยู่แล้ว
   await app.listen(process.env.PORT ?? 3001);
 }

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useLogStore } from '@/store/useLogStore';
+import { authApi } from '@/services/api';
 
 interface WebSocketContextType {
   socket: Socket | null;
@@ -22,37 +23,60 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const addLog = useLogStore((state) => state.addLog);
 
   useEffect(() => {
-    // Initialize socket connection
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
-    
-    // Note: If using mock authentication, you might need to pass token here
-    // const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    
-    const socketInstance = io(socketUrl, {
-      // auth: { token },
-      autoConnect: true,
-    });
+    let socketInstance: Socket | null = null;
+    let isMounted = true;
 
-    setSocket(socketInstance);
+    const connectWebSocket = async () => {
+      try {
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
+        let token = '';
 
-    socketInstance.on('connect', () => {
-      console.log('Connected to WebSocket server');
-      setIsConnected(true);
-    });
+        // Try getting the ws-ticket if authenticated
+        if (typeof window !== 'undefined' && localStorage.getItem('auth_token')) {
+          try {
+            const { ticket } = await authApi.getWsTicket();
+            token = ticket;
+          } catch (e) {
+            console.error('Failed to get WebSocket ticket:', e);
+          }
+        }
+        
+        if (!isMounted) return;
 
-    socketInstance.on('disconnect', () => {
-      console.log('Disconnected from WebSocket server');
-      setIsConnected(false);
-    });
+        socketInstance = io(socketUrl, {
+          auth: { token },
+          autoConnect: true,
+        });
 
-    // Listen for real-time access logs
-    socketInstance.on('newAccessLog', (data) => {
-      console.log('New access log received:', data);
-      addLog(data);
-    });
+        setSocket(socketInstance);
+
+        socketInstance.on('connect', () => {
+          console.log('Connected to WebSocket server');
+          setIsConnected(true);
+        });
+
+        socketInstance.on('disconnect', () => {
+          console.log('Disconnected from WebSocket server');
+          setIsConnected(false);
+        });
+
+        // Listen for real-time access logs using the new event name
+        socketInstance.on('access', (data) => {
+          console.log('New access log received:', data);
+          addLog(data);
+        });
+      } catch (err) {
+        console.error('WebSocket connection setup failed:', err);
+      }
+    };
+
+    connectWebSocket();
 
     return () => {
-      socketInstance.disconnect();
+      isMounted = false;
+      if (socketInstance) {
+        socketInstance.disconnect();
+      }
     };
   }, [addLog]);
 

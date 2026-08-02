@@ -11,10 +11,10 @@ export default function AdminLogsPage() {
 
   // Fallback to mock data if store is empty for demonstration
   const displayLogs = logs.length > 0 ? logs : [
-    { id: '1', userName: 'John Doe', uid: 'A1B2C3D4', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-    { id: '2', userName: 'Unknown', uid: 'UNKNOWN_123', timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: 'DENIED', doorId: 'Back Door' },
-    { id: '3', userName: 'Jane Smith', uid: 'E5F6G7H8', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-  ];
+    { id: 1, userName: 'John Doe', uid: 'A1B2C3D4', createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), status: 'granted', direction: 'in', imagePath: null },
+    { id: 2, userName: 'Unknown', uid: 'UNKNOWN_123', createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: 'denied', direction: 'in', imagePath: null },
+    { id: 3, userName: 'Jane Smith', uid: 'E5F6G7H8', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), status: 'granted', direction: 'out', imagePath: null },
+  ] as any[];
 
   const filteredLogs = displayLogs.filter(log => {
     const matchesSearch = (log.userName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -62,9 +62,8 @@ export default function AdminLogsPage() {
               className="block w-full pl-9 pr-10 py-2.5 border border-slate-200/60 dark:border-slate-700/60 rounded-xl leading-5 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 sm:text-sm transition-all appearance-none backdrop-blur-sm shadow-inner hover:bg-white/80 dark:hover:bg-slate-800/80"
             >
               <option value="ALL">All Status</option>
-              <option value="GRANTED">Granted</option>
-              <option value="DENIED">Denied</option>
-              <option value="ERROR">Error</option>
+              <option value="granted">Granted</option>
+              <option value="denied">Denied</option>
             </select>
           </div>
         </div>
@@ -85,27 +84,27 @@ export default function AdminLogsPage() {
                 <tr key={log.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-100 dark:border-slate-800/50 last:border-0 group">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
                     <div className="font-medium text-slate-900 dark:text-white">
-                      {new Date(log.timestamp).toLocaleDateString()}
+                      {new Date(log.createdAt).toLocaleDateString()}
                     </div>
-                    <div>{new Date(log.timestamp).toLocaleTimeString()}</div>
+                    <div>{new Date(log.createdAt).toLocaleTimeString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{log.userName || 'Unknown User'}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-1 bg-slate-100/50 dark:bg-slate-800/50 inline-block px-1.5 py-0.5 rounded">UID: {log.uid}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    {log.doorId}
+                    {log.direction ? log.direction.toUpperCase() : 'IN'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${log.status === 'GRANTED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' :
-                        log.status === 'DENIED' ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' :
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${log.status === 'granted' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' :
+                        log.status === 'denied' ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' :
                           'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
                       }`}>
-                      {log.status}
+                      {log.status.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
-                    {log.status === 'DENIED' ? (
+                    {log.status === 'denied' ? (
                       <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-bold text-xs underline underline-offset-2 transition-colors">
                         View Snapshot
                       </button>
