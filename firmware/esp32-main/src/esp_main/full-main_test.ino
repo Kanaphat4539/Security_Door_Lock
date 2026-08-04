@@ -32,6 +32,17 @@ uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
 #define ECHO_PIN   27
 #define BUZZER_PIN 33
 
+// ระยะ (ซม.) ที่ตรวจจับว่ามีคนเข้ามาใกล้ → ปลุกจอ
+// ใช้ 30 ซม. (ระยะประชิดจริงหน้าประตู) — ปรับได้ตามหน้างาน
+#define WAKE_DISTANCE_CM 30
+
+// ---------- ★ ประหยัดพลังงาน / จัดการความร้อน ★ ----------
+// ไม่ต้องยิง ultrasonic ทุกรอบลูป (pulseIn บล็อกได้ถึง 20ms/ครั้ง) — อ่านทุก 60ms พอ
+// ลดการทำงาน CPU/เซนเซอร์ = กินไฟน้อยลง ยังตรวจจับคนได้ทัน
+#define ULTRASONIC_POLL_MS 60
+#define TEMP_WARN_C 78.0f          // อุณหภูมิแกนชิปที่ถือว่าเริ่มร้อน (°C)
+#define ULTRASONIC_POLL_HOT_MS 250 // ร้อน: ยืดรอบอ่านให้ช้าลงเพื่อลดความร้อน
+
 #define i2c_Address 0x3c
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -154,24 +165,22 @@ void grantAccess(String name, String device) {
   
   delay(200);
   digitalWrite(BUZZER_PIN, LOW);
-  
-  delay(3000);
+
+  delay(5000);   // ปลดล็อกประตูค้าง 5 วินาที (ตามโฟลว์ชาร์ต) แล้วล็อกกลับ
   digitalWrite(RELAY_PIN, LOW);
-  
+
   lastDisplayState = false;
 }
 
 void denyAccess(String name, String device) {
   Serial.println("[ACTION] Access Denied!");
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(80);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(80);
-  }
   show("ACCESS DENIED", name, "Gate: " + device);
-  delay(2000);
-  
+
+  // buzzer ยาว 3 วินาที (ตามโฟลว์ชาร์ต: denied = เสียงยาว) ประตูคงสถานะล็อก
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(3000);
+  digitalWrite(BUZZER_PIN, LOW);
+
   lastDisplayState = false;
 }
 
@@ -247,51 +256,66 @@ void setup() {
     }
   }
 
-  display.clearDisplay();
-  display.display();
+  // OLED แสดงสถานะสแตนด์บายตั้งแต่เริ่มต้น (ตามโฟลว์ชาร์ต)
+  show("== STANDBY ==", "Please come closer");
 
   // สั่งดับจอ TFT ฝั่ง ESP32-CAM ตั้งแต่เริ่มต้น
-  sendCamCommand(0); 
+  sendCamCommand(0);
 
   Serial.println(F("[SYSTEM] Standby. Waiting for Ultrasonic..."));
 }
 
 void loop() {
-  // 1. อ่านระยะจาก Ultrasonic Sensor
-  digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-  long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
+  // 0. เฝ้าอุณหภูมิแกนชิปทุก 3 วินาที → ถ้าร้อนให้ยืดรอบอ่านเซนเซอร์ (ลดความร้อน/กินไฟ)
+  static unsigned long lastTempCheck = 0;
+  static float chipTempC = 0.0f;
+  static unsigned long ultrasonicInterval = ULTRASONIC_POLL_MS;
+  if (millis() - lastTempCheck > 3000) {
+    lastTempCheck = millis();
+    chipTempC = temperatureRead();
+    ultrasonicInterval = (chipTempC >= TEMP_WARN_C) ? ULTRASONIC_POLL_HOT_MS : ULTRASONIC_POLL_MS;
+    if (chipTempC >= TEMP_WARN_C)
+      Serial.printf("[THERMAL] main %.1f C -> slow sensor poll %lums\n", chipTempC, ultrasonicInterval);
+  }
 
-  // 2. ควบคุมหน้าจอ OLED และสั่งงานจอ TFT ไร้สายไปที่ ESP32-CAM
-  if (dist > 0 && dist <= 30) {
-    if (!lastDisplayState) {
-      Serial.printf("[Ultrasonic] Detected! Distance: %ld cm\n", dist);
-      
-      // 💡 เปิดหน้าจอ OLED ตัวหลัก
-      show("== READY TO SCAN ==", "Tap your RFID card");
+  // 1+2. อ่าน Ultrasonic + คุมจอ — ทำเป็นรอบ (ไม่ยิงรัวทุกลูป) เพื่อประหยัดพลังงาน
+  static unsigned long lastPing = 0;
+  if (millis() - lastPing >= ultrasonicInterval) {
+    lastPing = millis();
 
-      // 📡 ส่งสัญญาณไร้สายสั่งเปิด TFT หน้าจอ ESP32-CAM
-      sendCamCommand(1);
+    digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+    long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
 
-      lastDisplayState = true;
-    }
-  } else {
-    if (lastDisplayState) {
-      Serial.println("[Ultrasonic] No object nearby. Turning off displays...");
-      
-      // 🌑 ดับหน้าจอ OLED ตัวหลัก
-      display.clearDisplay();
-      display.display();
+    if (dist > 0 && dist <= WAKE_DISTANCE_CM) {
+      if (!lastDisplayState) {
+        Serial.printf("[Ultrasonic] Detected! Distance: %ld cm\n", dist);
 
-      // 📡 ส่งสัญญาณไร้สายสั่งดับ TFT หน้าจอ ESP32-CAM
-      sendCamCommand(0);
-      
-      lastDisplayState = false;
+        // 💡 เปิดหน้าจอ OLED ตัวหลัก
+        show("== READY TO SCAN ==", "Tap your RFID card");
+
+        // 📡 ส่งสัญญาณไร้สายสั่งเปิด TFT หน้าจอ ESP32-CAM
+        sendCamCommand(1);
+
+        lastDisplayState = true;
+      }
+    } else {
+      if (lastDisplayState) {
+        Serial.println("[Ultrasonic] No object nearby. Back to standby...");
+
+        // 🌑 OLED กลับไปแสดงสแตนด์บาย (ตามโฟลว์ชาร์ต) — จอ TFT ฝั่ง CAM ถูกสั่งดับ
+        show("== STANDBY ==", "Please come closer");
+
+        // 📡 ส่งสัญญาณไร้สายสั่งดับ TFT หน้าจอ ESP32-CAM
+        sendCamCommand(0);
+
+        lastDisplayState = false;
+      }
     }
   }
 
-  // 3. ตรวจสอบการแตะบัตร RFID ทั้ง 2 หัวอ่าน (IN / OUT)
+  // 3. ตรวจสอบการแตะบัตร RFID ทั้ง 2 หัวอ่าน (IN / OUT) — ทำทุกลูปให้ตอบสนองไว
   processRFID(rfidIn, "IN");
   processRFID(rfidOut, "OUT");
 

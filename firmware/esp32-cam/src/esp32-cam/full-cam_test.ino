@@ -71,7 +71,20 @@ uint32_t lastFrameTime = 0;
 uint32_t frameCount = 0;
 
 // ตัวแปรเก็บสถานะการเปิด/ปิด TFT จอดำ จากสัญญาณ ESP-NOW
-volatile bool isTftActive = false; 
+volatile bool isTftActive = false;
+
+// ==================== ★ ระบบจัดการความร้อน (Thermal Throttling) ★ ====================
+// ESP32-CAM เป็นตัวที่ร้อนสุดในระบบ (WiFi + กล้องสตรีมต่อเนื่อง) อ่านอุณหภูมิชิปในตัว
+// แล้วลด FPS ลงเมื่อร้อนเกิน เพื่อกันชิปร้อนจนภาพเพี้ยน/รีเซ็ตเอง และประหยัดพลังงาน
+// หมายเหตุ: temperatureRead() วัด "อุณหภูมิแกนชิป" ไม่ใช่บรรยากาศ ปกติจึงสูงกว่าห้อง ~15-25°C
+#define TEMP_WARN_C   70.0f   // อุ่น: เริ่มลด FPS
+#define TEMP_HOT_C    80.0f   // ร้อนมาก: ลด FPS ลงเยอะ
+#define FPS_NORMAL_MS 30      // ~33 fps (ปกติ)
+#define FPS_WARN_MS   100     // ~10 fps
+#define FPS_HOT_MS    250     // ~4 fps
+
+uint32_t gFrameIntervalMs = FPS_NORMAL_MS;   // รอบเฟรมแบบปรับได้ตามความร้อน
+float    gChipTempC       = 0.0f;
 
 // ==================== ESP-NOW Callback Function ====================
 void OnDataRecv(const esp_now_recv_info *info, const uint8_t *incomingData, int len) {
@@ -224,6 +237,33 @@ void connectWiFi() {
   }
 }
 
+// ==================== จัดการความร้อน + ประหยัดพลังงาน ====================
+// อ่านอุณหภูมิชิปทุก 3 วินาที แล้วปรับรอบเฟรม (FPS) ตามระดับความร้อน
+// ร้อน = ลด FPS = กล้องทำงานน้อยลง = กินไฟน้อยลง + เย็นลง
+void manageThermal() {
+  static uint32_t nextCheck = 0;
+  if (millis() < nextCheck) return;
+  nextCheck = millis() + 3000;
+
+  gChipTempC = temperatureRead();   // อุณหภูมิแกนชิป ESP32 (°C)
+
+  uint32_t newInterval;
+  const char* level;
+  if (gChipTempC >= TEMP_HOT_C) {
+    newInterval = FPS_HOT_MS;   level = "HOT";
+  } else if (gChipTempC >= TEMP_WARN_C) {
+    newInterval = FPS_WARN_MS;  level = "WARM";
+  } else {
+    newInterval = FPS_NORMAL_MS; level = "OK";
+  }
+
+  if (newInterval != gFrameIntervalMs) {
+    gFrameIntervalMs = newInterval;
+    Serial.printf("[THERMAL] %.1f C -> %s (frame every %ums)\n",
+                  gChipTempC, level, gFrameIntervalMs);
+  }
+}
+
 // ==================== Main Setup & Loop ====================
 void setup() {
   Serial.begin(115200);
@@ -276,13 +316,16 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(FLASH_LED_PIN, LOW);
+  digitalWrite(FLASH_LED_PIN, LOW);   // ปิดไฟแฟลชเสมอ (แหล่งความร้อน ~1W ที่ไม่จำเป็น)
 
   server.handleClient();
 
-  // แสดงผลขึ้นจอ TFT เมื่อสั่งเปิด และถึงรอบเฟรม
+  // เฝ้าอุณหภูมิชิป แล้วปรับ FPS ให้อัตโนมัติ
+  manageThermal();
+
+  // แสดงผลขึ้นจอ TFT เมื่อสั่งเปิด และถึงรอบเฟรม (รอบเฟรมยืดตามความร้อน)
   if (isTftActive && millis() >= gNextPreviewMs) {
-    gNextPreviewMs = millis() + 30;
+    gNextPreviewMs = millis() + gFrameIntervalMs;
     tftStreamFrame();
   }
 
