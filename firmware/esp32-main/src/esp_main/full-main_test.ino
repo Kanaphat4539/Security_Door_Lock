@@ -2,7 +2,11 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h> 
 #include <SPI.h>
-#include <MFRC522.h>
+// ★ ไลบรารี MFRC522v2 (ต้องติดตั้งใน Arduino IDE: Library Manager → ค้น "MFRC522v2")
+//   ใช้ v2 เพราะรับ SPIClass& ได้ จึงต่อหัวอ่าน 2 ตัวคนละบัส (VSPI/HSPI) เพื่อไม่ให้ MISO ชนกัน
+#include <MFRC522v2.h>
+#include <MFRC522DriverSPI.h>
+#include <MFRC522DriverPinSimple.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
@@ -23,10 +27,21 @@ const char* DEVICE_TOKEN = "511d890b7d952e2c7291f2328a46f4ebce4ed81dd825b0bd6b29
 uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
 
 // ---------- ★ PIN Definitions ★ ----------
-#define SS_IN      5      // RFID ตัวเข้า (IN)
-#define RST_IN     4
-#define SS_OUT     17     // RFID ตัวออก (OUT)
-#define RST_OUT    2
+// RFID หัวอ่าน 2 ตัว แยกคนละ SPI บัส (แก้ปัญหา MISO ชนกันตอนใช้บัสเดียว)
+//   หัวเข้า (IN)  → VSPI  — คงสายเดิม ไม่ต้องย้าย
+//   หัวออก (OUT) → HSPI  — ⚠️ ต้องย้ายสาย SCK/MISO/MOSI/RST ตามค่าด้านล่าง
+#define SS_IN    5        // RFID เข้า — VSPI
+#define RST_IN   4
+#define SCK_IN   18
+#define MISO_IN  19
+#define MOSI_IN  23
+
+#define SS_OUT   17       // RFID ออก — HSPI (SS เดิม คงไว้ได้ ไม่ต้องย้าย)
+#define RST_OUT  2        // RST เดิม คงไว้ได้ (ดึง HIGH หลังบูต — Door ใช้ขานี้ทำงานได้)
+#define SCK_OUT  14       // ⚠️ ย้ายจาก 18
+#define MISO_OUT 35       // ⚠️ ย้ายจาก 19 — GPIO35 input-only ปลอดภัย ไม่ใช่ strapping
+#define MOSI_OUT 13       // ⚠️ ย้ายจาก 23
+
 #define RELAY_PIN  25
 #define TRIG_PIN   26
 #define ECHO_PIN   27
@@ -36,19 +51,20 @@ uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
 // ใช้ 30 ซม. (ระยะประชิดจริงหน้าประตู) — ปรับได้ตามหน้างาน
 #define WAKE_DISTANCE_CM 30
 
-// ---------- ★ ประหยัดพลังงาน / จัดการความร้อน ★ ----------
-// ไม่ต้องยิง ultrasonic ทุกรอบลูป (pulseIn บล็อกได้ถึง 20ms/ครั้ง) — อ่านทุก 60ms พอ
-// ลดการทำงาน CPU/เซนเซอร์ = กินไฟน้อยลง ยังตรวจจับคนได้ทัน
-#define ULTRASONIC_POLL_MS 60
-#define TEMP_WARN_C 78.0f          // อุณหภูมิแกนชิปที่ถือว่าเริ่มร้อน (°C)
-#define ULTRASONIC_POLL_HOT_MS 250 // ร้อน: ยืดรอบอ่านให้ช้าลงเพื่อลดความร้อน
-
 #define i2c_Address 0x3c
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
-MFRC522 rfidIn(SS_IN, RST_IN);
-MFRC522 rfidOut(SS_OUT, RST_OUT);
+// ★ หัวอ่าน 2 ตัวคนละบัส (MFRC522v2 รับ SPIClass& ได้)
+SPIClass gSpiIn(VSPI);
+SPIClass gSpiOut(HSPI);
+MFRC522DriverPinSimple gSsIn(SS_IN);
+MFRC522DriverPinSimple gSsOut(SS_OUT);
+MFRC522DriverSPI gDriverIn(gSsIn, gSpiIn);
+MFRC522DriverSPI gDriverOut(gSsOut, gSpiOut);
+MFRC522 rfidIn(gDriverIn);
+MFRC522 rfidOut(gDriverOut);
+
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 bool lastDisplayState = false;
@@ -184,7 +200,30 @@ void denyAccess(String name, String device) {
   lastDisplayState = false;
 }
 
+// ==================== เริ่มต้นหัวอ่าน RFID ====================
+// MFRC522v2 ไม่รับขา RST ทาง driver (ใช้ soft reset) แต่วงจรต่อ RST ไว้จริง
+// จึงต้องดึงขา RST ขึ้น HIGH เองก่อน init
+void releaseReset(int pin) {
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
+  delay(2);
+  digitalWrite(pin, HIGH);
+  delay(50);
+}
+
+// PCD_Init คืน false บางจังหวะบูตที่ไฟยังไม่นิ่ง (ทั้งที่หัวอ่านตั้งค่าเสร็จแล้ว)
+// ลองซ้ำ 3 ครั้งก่อนยอมแพ้ กัน log init failed หลอก
+bool initWithRetry(MFRC522 &reader, const char *label) {
+  for (int i = 0; i < 3; i++) {
+    if (reader.PCD_Init()) return true;
+    delay(50);
+  }
+  Serial.printf("[rfid] %s reader init failed\n", label);
+  return false;
+}
+
 // ==================== ตรวจสอบการแตะบัตร RFID ====================
+// 2 หัวอ่านอยู่คนละ SPI บัส (VSPI/HSPI) จึงอ่านสลับกันได้เลย ไม่ต้องสลับ power-down
 void processRFID(MFRC522 &mfrc522, String deviceName) {
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
     String uid = "";
@@ -238,9 +277,14 @@ void setup() {
   show("System Starting...", "Checking sensors...");
   delay(1500);
 
-  SPI.begin();
-  rfidIn.PCD_Init();
-  rfidOut.PCD_Init();
+  // ---------- เริ่มหัวอ่าน RFID (2 บัสแยกกัน VSPI/HSPI) ----------
+  // MFRC522v2 ใช้ soft reset ไม่รับขา RST ทาง driver จึงต้องปลดรีเซ็ตเองด้วยการดึง RST ขึ้น HIGH
+  releaseReset(RST_IN);
+  releaseReset(RST_OUT);
+  gSpiIn.begin(SCK_IN, MISO_IN, MOSI_IN, SS_IN);
+  gSpiOut.begin(SCK_OUT, MISO_OUT, MOSI_OUT, SS_OUT);
+  initWithRetry(rfidIn, "entry");
+  initWithRetry(rfidOut, "exit");
 
   connectWiFi();
 
@@ -266,57 +310,46 @@ void setup() {
 }
 
 void loop() {
-  // 0. เฝ้าอุณหภูมิแกนชิปทุก 3 วินาที → ถ้าร้อนให้ยืดรอบอ่านเซนเซอร์ (ลดความร้อน/กินไฟ)
-  static unsigned long lastTempCheck = 0;
-  static float chipTempC = 0.0f;
-  static unsigned long ultrasonicInterval = ULTRASONIC_POLL_MS;
-  if (millis() - lastTempCheck > 3000) {
-    lastTempCheck = millis();
-    chipTempC = temperatureRead();
-    ultrasonicInterval = (chipTempC >= TEMP_WARN_C) ? ULTRASONIC_POLL_HOT_MS : ULTRASONIC_POLL_MS;
-    if (chipTempC >= TEMP_WARN_C)
-      Serial.printf("[THERMAL] main %.1f C -> slow sensor poll %lums\n", chipTempC, ultrasonicInterval);
-  }
+  // 1. อ่านระยะจาก Ultrasonic Sensor
+  digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
 
-  // 1+2. อ่าน Ultrasonic + คุมจอ — ทำเป็นรอบ (ไม่ยิงรัวทุกลูป) เพื่อประหยัดพลังงาน
-  static unsigned long lastPing = 0;
-  if (millis() - lastPing >= ultrasonicInterval) {
-    lastPing = millis();
+  // มีคนเข้ามาใกล้ในระยะปลุกจอหรือไม่ (ฝั่งขาเข้า)
+  bool nearby = (dist > 0 && dist <= WAKE_DISTANCE_CM);
 
-    digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
-    digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
-    digitalWrite(TRIG_PIN, LOW);
-    long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
+  // 2. ควบคุมหน้าจอ OLED และสั่งงานจอ TFT ไร้สายไปที่ ESP32-CAM
+  if (nearby) {
+    if (!lastDisplayState) {
+      Serial.printf("[Ultrasonic] Detected! Distance: %ld cm\n", dist);
 
-    if (dist > 0 && dist <= WAKE_DISTANCE_CM) {
-      if (!lastDisplayState) {
-        Serial.printf("[Ultrasonic] Detected! Distance: %ld cm\n", dist);
+      // 💡 เปิดหน้าจอ OLED ตัวหลัก
+      show("== READY TO SCAN ==", "Tap your RFID card");
 
-        // 💡 เปิดหน้าจอ OLED ตัวหลัก
-        show("== READY TO SCAN ==", "Tap your RFID card");
+      // 📡 ส่งสัญญาณไร้สายสั่งเปิด TFT หน้าจอ ESP32-CAM
+      sendCamCommand(1);
 
-        // 📡 ส่งสัญญาณไร้สายสั่งเปิด TFT หน้าจอ ESP32-CAM
-        sendCamCommand(1);
+      lastDisplayState = true;
+    }
+  } else {
+    if (lastDisplayState) {
+      Serial.println("[Ultrasonic] No object nearby. Back to standby...");
 
-        lastDisplayState = true;
-      }
-    } else {
-      if (lastDisplayState) {
-        Serial.println("[Ultrasonic] No object nearby. Back to standby...");
+      // 🌑 OLED กลับไปแสดงสแตนด์บาย — จอ TFT ฝั่ง CAM ถูกสั่งดับ
+      show("== STANDBY ==", "Please come closer");
 
-        // 🌑 OLED กลับไปแสดงสแตนด์บาย (ตามโฟลว์ชาร์ต) — จอ TFT ฝั่ง CAM ถูกสั่งดับ
-        show("== STANDBY ==", "Please come closer");
+      // 📡 ส่งสัญญาณไร้สายสั่งดับ TFT หน้าจอ ESP32-CAM
+      sendCamCommand(0);
 
-        // 📡 ส่งสัญญาณไร้สายสั่งดับ TFT หน้าจอ ESP32-CAM
-        sendCamCommand(0);
-
-        lastDisplayState = false;
-      }
+      lastDisplayState = false;
     }
   }
 
-  // 3. ตรวจสอบการแตะบัตร RFID ทั้ง 2 หัวอ่าน (IN / OUT) — ทำทุกลูปให้ตอบสนองไว
-  processRFID(rfidIn, "IN");
+  // 3. ตรวจสอบการแตะบัตร RFID
+  //    หัวเข้า (IN) : ทาบได้เฉพาะตอนมีคนเข้ามาใกล้ < WAKE_DISTANCE_CM (ตามที่ต้องการ)
+  //    หัวออก (OUT): ทาบได้เสมอ — ฝั่งในไม่มี ultrasonic ไม่งั้นคนข้างในจะออกไม่ได้
+  if (nearby) processRFID(rfidIn, "IN");
   processRFID(rfidOut, "OUT");
 
   // 4. ตรวจสอบสถานะการเชื่อมต่อ WiFi ทุกๆ 10 วินาที

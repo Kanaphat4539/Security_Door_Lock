@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, Download } from 'lucide-react';
 import { useLogStore } from '@/store/useLogStore';
+import AuthImage from '@/components/shared/AuthImage';
 
 export default function AdminLogsPage() {
   const { logs } = useLogStore();
@@ -99,10 +100,8 @@ export default function AdminLogsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
-                    {log.status === 'DENIED' ? (
-                      <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-bold text-xs underline underline-offset-2 transition-colors">
-                        View Snapshot
-                      </button>
+                    {log.imageUrl ? (
+                      <AuthImage src={log.imageUrl} className="w-14 h-14" />
                     ) : (
                       <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
                     )}
