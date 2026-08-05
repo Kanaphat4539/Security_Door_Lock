@@ -1,14 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { ImageFetchService } from '../devices/image-fetch.service';
 import { EventsGateway } from '../events/events.gateway';
 import { PrismaService } from '../prisma/prisma.service';
-import type {
-  AccessAttempt,
-  AccessResponse,
-  AccessStatus,
-  Direction,
-} from './access.types';
+import type { AccessAttempt, AccessStatus, Direction } from './access.types';
 
 @Injectable()
 export class AccessService {
@@ -17,40 +11,20 @@ export class AccessService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly events: EventsGateway,
-    private readonly imageFetch: ImageFetchService,
   ) {}
 
   /**
-   * รับคำขอจาก ESP32 main (Design B): main ส่งแค่ { uid, direction } มา
-   *
-   * ตอบ { status } กลับทันที (ประตูเปิดเร็ว ไม่รอโหลดรูป)
-   * ถ้าเป็นขาเข้า จะไปดึงรูปจาก CAM เบื้องหลังแล้วค่อยยิง WebSocket ให้ dashboard
-   */
-  async handleAccess(
-    uid: string,
-    direction: Direction,
-  ): Promise<AccessResponse> {
-    const attempt = await this.authorize(uid, direction);
-
-    if (direction === 'in') {
-      // ขาเข้า: ดึงรูปจาก CAM เบื้องหลัง (ไม่ await -> ไม่บล็อกการตอบ)
-      void this.attachImageThenEmit(attempt);
-    } else {
-      // ขาออก: ไม่มีรูป ยิง event ได้เลย
-      this.events.emitAccess(attempt);
-    }
-
-    return { status: attempt.status };
-  }
-
-  /**
-   * ตัดสินสิทธิ์ + บันทึก log (ยังไม่มีรูป — รูปมาทีหลังตอนขาเข้า)
+   * ตัดสินสิทธิ์ + บันทึก log ในขั้นตอนเดียว
    *
    * granted ต่อเมื่อ "มีแถวใน Users" และ "isActive = true"
    * บัตรที่ไม่รู้จักหรือถูกปิดใช้งาน -> denied แต่ยังบันทึก log ไว้เสมอ
    * (บัตรไม่รู้จักจะได้ userId = null)
    */
-  async authorize(uid: string, direction: Direction): Promise<AccessAttempt> {
+  async authorize(
+    uid: string,
+    direction: Direction,
+    imagePath: string | null,
+  ): Promise<AccessAttempt> {
     const normalized = uid.trim().toUpperCase();
 
     const user = await this.prisma.user.findUnique({
@@ -65,14 +39,14 @@ export class AccessService {
         uid: normalized,
         direction,
         status,
-        imagePath: null,
+        imagePath,
         userId: user?.id ?? null,
       },
     });
 
     this.logResult(normalized, direction, status, user);
 
-    return {
+    const attempt: AccessAttempt = {
       id: log.id,
       uid: log.uid,
       direction: log.direction,
@@ -81,30 +55,11 @@ export class AccessService {
       userName: user?.name ?? null,
       createdAt: log.createdAt.toISOString(),
     };
-  }
 
-  /**
-   * ดึงรูปจาก CAM -> อัปเดต imagePath ของ log -> ยิง WebSocket
-   * ทำเบื้องหลังหลังตอบ status ไปแล้ว (ประตูไม่ต้องรอ)
-   * ยิง event ครั้งเดียวหลังได้รูป (หรือหลัง timeout ถ้าดึงไม่ได้) กันแถวซ้ำใน dashboard
-   */
-  private async attachImageThenEmit(attempt: AccessAttempt): Promise<void> {
-    const imagePath = await this.imageFetch.fetchFromCam();
+    // ยิงหลังบันทึก DB สำเร็จแล้วเท่านั้น dashboard จะได้ไม่เห็นรายการที่ยังไม่ถูกบันทึก
+    this.events.emitAccess(attempt);
 
-    if (imagePath !== null) {
-      try {
-        await this.prisma.accessLog.update({
-          where: { id: attempt.id },
-          data: { imagePath },
-        });
-      } catch (err) {
-        this.logger.warn(
-          `อัปเดต imagePath ไม่สำเร็จ (id=${attempt.id}): ${(err as Error).message}`,
-        );
-      }
-    }
-
-    this.events.emitAccess({ ...attempt, imagePath });
+    return attempt;
   }
 
   /** log ล่าสุด ใช้ตอนทดสอบฮาร์ดแวร์ และเป็นฐานให้ dashboard ต่อไป */
@@ -158,9 +113,7 @@ export class AccessService {
     user: { name: string; isActive: boolean } | null,
   ): void {
     if (status === 'granted') {
-      this.logger.log(
-        `GRANTED uid=${uid} direction=${direction} (${user?.name ?? ''})`,
-      );
+      this.logger.log(`GRANTED uid=${uid} direction=${direction} (${user?.name ?? ''})`);
       return;
     }
 
