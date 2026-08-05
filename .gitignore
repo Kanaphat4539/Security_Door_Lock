@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+
+# builds
+apps/backend/dist/
+apps/frontend/.next/
+apps/frontend/out/
+apps/frontend/next-env.d.ts
+
+# firmware
+firmware/*/.pio/
+firmware/*/.cache/
+# ค่า Wi-Fi / URL เซิร์ฟเวอร์จริง — ใช้ secrets.example.h เป็นต้นแบบ
+firmware/esp32-cam/src/secrets.h
+
+# env
+.env
+.env.local
+.env.*.local
+
+# ไฟล์ภาพที่ backend รับมาจาก ESP32-CAM
+apps/backend/uploads/
+uploads/
+
+# test output
+coverage/
+
+# ข้อมูลส่วนบุคคลของทีม (ชื่อ-รหัสนักศึกษา) — เก็บไว้ในเครื่องเท่านั้น
+TEAM.local.md
+
+# การตั้งค่า Claude Code เฉพาะเครื่อง (settings.json ที่แชร์กันทั้งทีมยัง commit ได้)
+.claude/settings.local.json
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Prisma client ที่ generate ขึ้นมา (สร้างใหม่ได้ด้วย npx prisma generate)
+apps/backend/generated/

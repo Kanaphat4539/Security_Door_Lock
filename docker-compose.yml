@@ -1,55 +1,43 @@
-version: '3.8'
+# MySQL สำหรับ development
+#   docker compose up -d      เปิด
+#   docker compose down       ปิด (ข้อมูลยังอยู่ใน volume)
+#   docker compose down -v    ปิด + ลบข้อมูลทั้งหมด (ใช้ตอนอยาก reset)
+#
+# ค่าที่ตั้งไว้ตรงกับ DATABASE_URL ที่ `npm run setup` เขียนลง apps/backend/.env
+# เป็นค่าสำหรับ dev บนเครื่องตัวเองเท่านั้น ห้ามใช้ตอน deploy จริง
+#
+# ⚠️ ชื่อ container กับพอร์ต host ตั้งใจไม่ให้ซ้ำกับ repo `Door` (doorlock-mysql : 3306)
+# เพราะเครื่องเดียวเปิดสอง container ชื่อเดียวกัน/จองพอร์ตเดียวกันไม่ได้
+# ถ้าเปลี่ยนพอร์ตตรงนี้ ต้องแก้ DATABASE_URL ใน .env ให้ตรงด้วย
 
 services:
   mysql:
-    image: mysql:8.0
-    container_name: security_door_mysql
-    restart: always
+    image: mysql:8.4
+    platform: linux/amd64
+    container_name: securitydoor-mysql
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: security_door
-      MYSQL_USER: db_user
-      MYSQL_PASSWORD: db_password
+      MYSQL_ROOT_PASSWORD: doorlock_root
+      MYSQL_DATABASE: doorlock
+      MYSQL_USER: doorlock
+      MYSQL_PASSWORD: doorlock_dev
     ports:
-      - "3306:3306"
+      # host 3307 -> container 3306 (ในคอนเทนเนอร์ยังเป็น 3306 ตามปกติ)
+      # ใช้ 3307 เพื่อไม่ให้ชนกับ MySQL ของ repo `Door` ที่จอง 3306 อยู่
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # สคริปต์ในนี้รันครั้งแรกที่สร้าง volume เท่านั้น
+      # ถ้าแก้แล้วอยากให้มีผล ต้อง docker compose down -v ก่อน
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpassword"]
-      interval: 10s
+      # Prisma จะต่อไม่ติดถ้ายิงตอน MySQL ยังบูตไม่เสร็จ
+      # healthcheck นี้ทำให้ `docker compose up --wait` รอจนพร้อมจริง
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-pdoorlock_root"]
+      interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 20s
-
-  backend:
-    build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
-    container_name: security_door_backend
-    restart: always
-    environment:
-      PORT: 3001
-      DATABASE_URL: mysql://db_user:db_password@mysql:3306/security_door
-    depends_on:
-      mysql:
-        condition: service_healthy
-    ports:
-      - "3001:3001"
-
-  frontend:
-    build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
-    container_name: security_door_frontend
-    restart: always
-    depends_on:
-      backend:
-        condition: service_started
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      retries: 20
+      start_period: 30s
 
 volumes:
   mysql_data:

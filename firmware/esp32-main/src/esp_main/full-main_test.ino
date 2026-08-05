@@ -1,0 +1,328 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h> 
+#include <SPI.h>
+#include <MFRC522.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH110X.h>
+#include <esp_now.h>
+
+// 🛡️ ป้องกัน ESP32 รีเซ็ตตัวเองจากปัญหาไฟตกกระชาก
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
+// ---------- ★ WiFi & Backend Server Config ★ ----------
+const char* WIFI_SSID    = "thiraphat";
+const char* WIFI_PASS    = "12345678";
+const char* SERVER_URL   = "http://192.168.2.207:3001/access"; 
+const char* DEVICE_TOKEN = "511d890b7d952e2c7291f2328a46f4ebce4ed81dd825b0bd6b296ac01397bdfb"; 
+
+// ---------- ★ ESP-NOW Receiver Address ★ ----------
+// ⚠️ แก้ไขค่า MAC Address ตรงนี้ตามที่ได้จาก Serial Monitor ของ ESP32-CAM
+uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
+
+// ---------- ★ PIN Definitions ★ ----------
+#define SS_IN      5      // RFID ตัวเข้า (IN)
+#define RST_IN     4
+#define SS_OUT     17     // RFID ตัวออก (OUT)
+#define RST_OUT    2
+#define RELAY_PIN  25
+#define TRIG_PIN   26
+#define ECHO_PIN   27
+#define BUZZER_PIN 33
+
+// ระยะ (ซม.) ที่ตรวจจับว่ามีคนเข้ามาใกล้ → ปลุกจอ
+// ใช้ 30 ซม. (ระยะประชิดจริงหน้าประตู) — ปรับได้ตามหน้างาน
+#define WAKE_DISTANCE_CM 30
+
+// ---------- ★ ประหยัดพลังงาน / จัดการความร้อน ★ ----------
+// ไม่ต้องยิง ultrasonic ทุกรอบลูป (pulseIn บล็อกได้ถึง 20ms/ครั้ง) — อ่านทุก 60ms พอ
+// ลดการทำงาน CPU/เซนเซอร์ = กินไฟน้อยลง ยังตรวจจับคนได้ทัน
+#define ULTRASONIC_POLL_MS 60
+#define TEMP_WARN_C 78.0f          // อุณหภูมิแกนชิปที่ถือว่าเริ่มร้อน (°C)
+#define ULTRASONIC_POLL_HOT_MS 250 // ร้อน: ยืดรอบอ่านให้ช้าลงเพื่อลดความร้อน
+
+#define i2c_Address 0x3c
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+MFRC522 rfidIn(SS_IN, RST_IN);
+MFRC522 rfidOut(SS_OUT, RST_OUT);
+Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+bool lastDisplayState = false;
+
+// ==================== ฟังก์ชันส่งคำสั่งไปหา ESP32-CAM ====================
+void sendCamCommand(uint8_t command) {
+  esp_err_t result = esp_now_send(camMacAddress, &command, sizeof(command));
+  if (result == ESP_OK) {
+    Serial.printf("[ESP-NOW] Sent command: %d OK\n", command);
+  } else {
+    Serial.println("[ESP-NOW] Error sending command");
+  }
+}
+
+// ==================== ฟังก์ชันแสดงผลบน OLED ====================
+void show(String a, String b = "", String c = "") {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(0, 10);
+  display.println(a);
+  display.println(b);
+  display.println(c);
+  display.display();
+}
+
+// ==================== เชื่อมต่อ WiFi ====================
+void connectWiFi() {
+  show("Connecting WiFi...", WIFI_SSID);
+  
+  // ใช้ AP_STA เพื่อให้รองรับ ESP-NOW
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
+    delay(300);
+    Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    show("WiFi Connected!", WiFi.localIP().toString());
+    Serial.println("\n[WiFi] Connected: " + WiFi.localIP().toString());
+  } else {
+    show("WiFi FAILED", "Check SSID/PASS");
+    Serial.println("\n[WiFi] Connection Failed");
+  }
+  delay(1200);
+}
+
+// ==================== รับส่งข้อมูลกับ Backend ====================
+bool sendScan(String device, String uid, String &outStatus, String &outName) {
+  if (WiFi.status() != WL_CONNECTED) {
+    connectWiFi();
+    if (WiFi.status() != WL_CONNECTED) return false;
+  }
+
+  HTTPClient http;
+  http.begin(SERVER_URL);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_TOKEN);
+  http.setTimeout(5000);
+
+  StaticJsonDocument<128> reqDoc;
+  reqDoc["uid"] = uid;
+
+  String dir = device;
+  dir.toLowerCase();
+  reqDoc["direction"] = dir;
+
+  String payload;
+  serializeJson(reqDoc, payload);
+
+  int httpCode = http.POST(payload);
+
+  if (httpCode == 401) {
+    Serial.println("[HTTP 401] Unauthorized! Check your DEVICE_TOKEN in code.");
+    show("401 UNAUTH", "Invalid Token!", "Check .env file");
+    delay(2000);
+    http.end();
+    return false;
+  }
+
+  if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
+    String response = http.getString();
+    Serial.printf("[HTTP] %d: %s\n", httpCode, response.c_str());
+
+    StaticJsonDocument<256> resDoc;
+    DeserializationError err = deserializeJson(resDoc, response);
+    
+    if (!err) {
+      if (response.indexOf("granted") >= 0 || (resDoc.containsKey("status") && resDoc["status"] == "OPEN")) {
+        outStatus = "granted";
+      } else {
+        outStatus = "denied";
+      }
+      outName = resDoc.containsKey("name") ? resDoc["name"].as<String>() : "User";
+      http.end();
+      return true;
+    }
+  }
+
+  Serial.printf("[HTTP] Request failed, code: %d\n", httpCode);
+  http.end();
+  return false;
+}
+
+// ==================== ควบคุมฮาร์ดแวร์เมื่อผ่าน / ไม่ผ่าน ====================
+void grantAccess(String name, String device) {
+  Serial.println("[ACTION] Access Granted! Opening relay...");
+  digitalWrite(BUZZER_PIN, HIGH);
+  digitalWrite(RELAY_PIN, HIGH);
+  show("ACCESS GRANTED", name, "Gate: " + device);
+  
+  delay(200);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  delay(5000);   // ปลดล็อกประตูค้าง 5 วินาที (ตามโฟลว์ชาร์ต) แล้วล็อกกลับ
+  digitalWrite(RELAY_PIN, LOW);
+
+  lastDisplayState = false;
+}
+
+void denyAccess(String name, String device) {
+  Serial.println("[ACTION] Access Denied!");
+  show("ACCESS DENIED", name, "Gate: " + device);
+
+  // buzzer ยาว 3 วินาที (ตามโฟลว์ชาร์ต: denied = เสียงยาว) ประตูคงสถานะล็อก
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(3000);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  lastDisplayState = false;
+}
+
+// ==================== ตรวจสอบการแตะบัตร RFID ====================
+void processRFID(MFRC522 &mfrc522, String deviceName) {
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    String uid = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      if (mfrc522.uid.uidByte[i] < 0x10) uid += "0";
+      uid += String(mfrc522.uid.uidByte[i], HEX);
+    }
+    uid.toUpperCase();
+
+    show("Scanning [" + deviceName + "]", "UID: " + uid, "Checking...");
+
+    String status, name;
+    if (sendScan(deviceName, uid, status, name)) {
+      if (status == "granted") {
+        grantAccess(name, deviceName);
+      } else {
+        denyAccess(name, deviceName);
+      }
+    } else {
+      show("SERVER ERROR", "Try again", deviceName);
+      delay(1500);
+      lastDisplayState = false;
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+  }
+}
+
+// ==================== Setup & Loop ====================
+void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+
+  Serial.begin(115200);
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  Wire.begin(21, 22);
+  Wire.setClock(100000);
+  delay(250);
+
+  if (!display.begin(i2c_Address, true)) {
+    Serial.println(F("[OLED] SH1106 Allocation Failed!"));
+  }
+
+  show("System Starting...", "Checking sensors...");
+  delay(1500);
+
+  SPI.begin();
+  rfidIn.PCD_Init();
+  rfidOut.PCD_Init();
+
+  connectWiFi();
+
+  // ---------- เริ่มระบบ ESP-NOW ----------
+  if (esp_now_init() == ESP_OK) {
+    esp_now_peer_info_t peerInfo = {};
+    memcpy(peerInfo.peer_addr, camMacAddress, 6);
+    peerInfo.channel = 0;  
+    peerInfo.encrypt = false;
+    
+    if (esp_now_add_peer(&peerInfo) == ESP_OK) {
+      Serial.println("[ESP-NOW] Peer ESP32-CAM added successfully!");
+    }
+  }
+
+  // OLED แสดงสถานะสแตนด์บายตั้งแต่เริ่มต้น (ตามโฟลว์ชาร์ต)
+  show("== STANDBY ==", "Please come closer");
+
+  // สั่งดับจอ TFT ฝั่ง ESP32-CAM ตั้งแต่เริ่มต้น
+  sendCamCommand(0);
+
+  Serial.println(F("[SYSTEM] Standby. Waiting for Ultrasonic..."));
+}
+
+void loop() {
+  // 0. เฝ้าอุณหภูมิแกนชิปทุก 3 วินาที → ถ้าร้อนให้ยืดรอบอ่านเซนเซอร์ (ลดความร้อน/กินไฟ)
+  static unsigned long lastTempCheck = 0;
+  static float chipTempC = 0.0f;
+  static unsigned long ultrasonicInterval = ULTRASONIC_POLL_MS;
+  if (millis() - lastTempCheck > 3000) {
+    lastTempCheck = millis();
+    chipTempC = temperatureRead();
+    ultrasonicInterval = (chipTempC >= TEMP_WARN_C) ? ULTRASONIC_POLL_HOT_MS : ULTRASONIC_POLL_MS;
+    if (chipTempC >= TEMP_WARN_C)
+      Serial.printf("[THERMAL] main %.1f C -> slow sensor poll %lums\n", chipTempC, ultrasonicInterval);
+  }
+
+  // 1+2. อ่าน Ultrasonic + คุมจอ — ทำเป็นรอบ (ไม่ยิงรัวทุกลูป) เพื่อประหยัดพลังงาน
+  static unsigned long lastPing = 0;
+  if (millis() - lastPing >= ultrasonicInterval) {
+    lastPing = millis();
+
+    digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+    long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
+
+    if (dist > 0 && dist <= WAKE_DISTANCE_CM) {
+      if (!lastDisplayState) {
+        Serial.printf("[Ultrasonic] Detected! Distance: %ld cm\n", dist);
+
+        // 💡 เปิดหน้าจอ OLED ตัวหลัก
+        show("== READY TO SCAN ==", "Tap your RFID card");
+
+        // 📡 ส่งสัญญาณไร้สายสั่งเปิด TFT หน้าจอ ESP32-CAM
+        sendCamCommand(1);
+
+        lastDisplayState = true;
+      }
+    } else {
+      if (lastDisplayState) {
+        Serial.println("[Ultrasonic] No object nearby. Back to standby...");
+
+        // 🌑 OLED กลับไปแสดงสแตนด์บาย (ตามโฟลว์ชาร์ต) — จอ TFT ฝั่ง CAM ถูกสั่งดับ
+        show("== STANDBY ==", "Please come closer");
+
+        // 📡 ส่งสัญญาณไร้สายสั่งดับ TFT หน้าจอ ESP32-CAM
+        sendCamCommand(0);
+
+        lastDisplayState = false;
+      }
+    }
+  }
+
+  // 3. ตรวจสอบการแตะบัตร RFID ทั้ง 2 หัวอ่าน (IN / OUT) — ทำทุกลูปให้ตอบสนองไว
+  processRFID(rfidIn, "IN");
+  processRFID(rfidOut, "OUT");
+
+  // 4. ตรวจสอบสถานะการเชื่อมต่อ WiFi ทุกๆ 10 วินาที
+  static unsigned long lastWifiCheck = 0;
+  if (millis() - lastWifiCheck > 10000) {
+    lastWifiCheck = millis();
+    if (WiFi.status() != WL_CONNECTED) connectWiFi();
+  }
+}

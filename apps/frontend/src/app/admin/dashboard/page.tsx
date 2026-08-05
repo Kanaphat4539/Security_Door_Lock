@@ -37,7 +37,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const granted = logs.filter(l => l.status === 'GRANTED').length;
     const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayLogs = logs.filter(l => {
@@ -45,7 +45,7 @@ export default function AdminDashboardPage() {
       return logDate >= today && l.status === 'GRANTED' && l.userName;
     });
     const uniqueUsers = new Set(todayLogs.map(l => l.userName));
-    
+
     setStats({ totalScans: logs.length, granted, denied, uniqueEmployeesToday: uniqueUsers.size });
   }, [logs]);
 
@@ -97,42 +97,42 @@ export default function AdminDashboardPage() {
               {/* Decorative accent */}
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-400/20 dark:bg-blue-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
               <div className="relative z-10">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Control Panel</h3>
-                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/50 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {isConnected ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${doorState === 'LOCKED' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse'}`}>
-                      {doorState === 'LOCKED' ? <DoorClosed className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Physical Door</p>
-                      <p className={`text-sm font-black ${doorState === 'LOCKED' ? 'text-slate-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
-                        {doorState}
-                      </p>
-                    </div>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Control Panel</h3>
+                  <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/50 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {isConnected ? 'Online' : 'Offline'}
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  <button onClick={handleLockdown} className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 transition-colors active:scale-95">
-                    <ShieldAlert className="w-4 h-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">Lockdown</span>
-                  </button>
-                  <button onClick={handlePing} className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-colors active:scale-95">
-                    <RefreshCw className="w-4 h-4" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">Ping Sensor</span>
-                  </button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${doorState === 'LOCKED' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse'}`}>
+                        {doorState === 'LOCKED' ? <DoorClosed className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Physical Door</p>
+                        <p className={`text-sm font-black ${doorState === 'LOCKED' ? 'text-slate-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                          {doorState}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <button onClick={handleLockdown} className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 transition-colors active:scale-95">
+                      <ShieldAlert className="w-4 h-4" />
+                      <span className="text-[10px] font-bold uppercase tracking-wide">Lockdown</span>
+                    </button>
+                    <button onClick={handlePing} className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-colors active:scale-95">
+                      <RefreshCw className="w-4 h-4" />
+                      <span className="text-[10px] font-bold uppercase tracking-wide">Ping Sensor</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
 
@@ -140,33 +140,33 @@ export default function AdminDashboardPage() {
             <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-emerald-100/80 dark:border-emerald-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-emerald-500/20 hover:border-emerald-300/80 dark:hover:border-emerald-600/60 hover:-translate-y-1">
               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-400/20 dark:bg-emerald-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
               <div className="relative z-10 flex flex-col h-full justify-between">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Security Metrics</h3>
-                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md text-blue-600 dark:text-blue-400">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Unauthorized Attempts</p>
-                    <span className="text-4xl font-black text-red-600 dark:text-red-500 block leading-none mt-1.5">{stats.denied}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Scans</p>
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalScans}</span>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Security Metrics</h3>
+                  <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md text-blue-600 dark:text-blue-400">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                 </div>
 
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-1 shadow-inner">
-                  {/* Visual ratio of denied vs granted */}
-                  <div className="flex h-full w-full">
-                    <div className="bg-red-500 h-full" style={{ width: `${stats.totalScans > 0 ? (stats.denied / stats.totalScans) * 100 : 0}%` }}></div>
-                    <div className="bg-emerald-500 h-full" style={{ width: `${stats.totalScans > 0 ? (stats.granted / stats.totalScans) * 100 : 100}%` }}></div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Unauthorized Attempts</p>
+                      <span className="text-4xl font-black text-red-600 dark:text-red-500 block leading-none mt-1.5">{stats.denied}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Scans</p>
+                      <span className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalScans}</span>
+                    </div>
+                  </div>
+
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-1 shadow-inner">
+                    {/* Visual ratio of denied vs granted */}
+                    <div className="flex h-full w-full">
+                      <div className="bg-red-500 h-full" style={{ width: `${stats.totalScans > 0 ? (stats.denied / stats.totalScans) * 100 : 0}%` }}></div>
+                      <div className="bg-emerald-500 h-full" style={{ width: `${stats.totalScans > 0 ? (stats.granted / stats.totalScans) * 100 : 100}%` }}></div>
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
             </div>
 
@@ -174,29 +174,29 @@ export default function AdminDashboardPage() {
             <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-indigo-100/80 dark:border-indigo-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-indigo-500/20 hover:border-indigo-300/80 dark:hover:border-indigo-600/60 hover:-translate-y-1">
               <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-400/20 dark:bg-indigo-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
               <div className="relative z-10 flex flex-col h-full justify-between">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hardware Status</h3>
-                <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-indigo-600 dark:text-indigo-400">
-                  <Server className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Battery className="w-3.5 h-3.5" /> Battery</span>
-                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">98%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Wifi className="w-3.5 h-3.5" /> Network latency</span>
-                  <span className="text-xs font-black text-blue-600 dark:text-blue-400">24 ms</span>
-                </div>
-                <div className="mt-1 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">System Uptime</span>
-                    <span className="text-sm font-black text-emerald-500 dark:text-emerald-400">99.98%</span>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hardware Status</h3>
+                  <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-md text-indigo-600 dark:text-indigo-400">
+                    <Server className="w-4 h-4" />
                   </div>
                 </div>
-              </div>
+
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Battery className="w-3.5 h-3.5" /> Battery</span>
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">98%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Wifi className="w-3.5 h-3.5" /> Network latency</span>
+                    <span className="text-xs font-black text-blue-600 dark:text-blue-400">24 ms</span>
+                  </div>
+                  <div className="mt-1 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400">System Uptime</span>
+                      <span className="text-sm font-black text-emerald-500 dark:text-emerald-400">99.98%</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -204,27 +204,27 @@ export default function AdminDashboardPage() {
             <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-purple-100/80 dark:border-purple-800/50 relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-purple-500/20 hover:border-purple-300/80 dark:hover:border-purple-600/60 hover:-translate-y-1">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-400/20 dark:bg-purple-600/20 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
               <div className="relative z-10 flex flex-col h-full justify-between">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Employees</h3>
-                <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md text-purple-600 dark:text-purple-400">
-                  <Users className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Present Today</p>
-                    <span className="text-4xl font-black text-purple-600 dark:text-purple-500 block leading-none mt-1.5">{stats.uniqueEmployeesToday}</span>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Employees</h3>
+                  <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md text-purple-600 dark:text-purple-400">
+                    <Users className="w-4 h-4" />
                   </div>
                 </div>
 
-                <div className="w-full mt-1 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                     <Activity className="w-3.5 h-3.5 text-purple-500"/> Distinct users scanned in
-                  </p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Present Today</p>
+                      <span className="text-4xl font-black text-purple-600 dark:text-purple-500 block leading-none mt-1.5">{stats.uniqueEmployeesToday}</span>
+                    </div>
+                  </div>
+
+                  <div className="w-full mt-1 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5 text-purple-500" /> Distinct users scanned in
+                    </p>
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           </div>
@@ -339,19 +339,19 @@ export default function AdminDashboardPage() {
           <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden transition-all duration-500 hover:shadow-indigo-500/10">
             <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-400/15 dark:bg-indigo-600/15 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none transition-colors duration-500"></div>
             <div className="relative z-10">
-            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Settings className="w-4 h-4 text-indigo-500" /> Administration
-            </h3>
-            <div className="flex flex-col gap-2.5">
-              <Link href="/admin/users" className="w-full bg-blue-600 dark:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
-                <UserPlus className="w-4 h-4" />
-                Register New User
-              </Link>
-              <Link href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
-                <Shield className="w-4 h-4" />
-                Manage Permissions
-              </Link>
-            </div>
+              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Settings className="w-4 h-4 text-indigo-500" /> Administration
+              </h3>
+              <div className="flex flex-col gap-2.5">
+                <Link href="/admin/users" className="w-full bg-blue-600 dark:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                  <UserPlus className="w-4 h-4" />
+                  Register New User
+                </Link>
+                <Link href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                  <Shield className="w-4 h-4" />
+                  Manage Permissions
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -359,30 +359,30 @@ export default function AdminDashboardPage() {
           <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/60 relative overflow-hidden transition-all duration-500">
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-400/10 dark:bg-slate-600/10 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
             <div className="relative z-10">
-            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">System Alerts</h3>
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
-                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 rounded-lg h-fit">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Scheduled Update</h4>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">Firmware update at 02:00 AM tonight.</p>
-                </div>
-              </div>
-
-              {!isConnected && (
-                <div className="flex gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 animate-pulse">
-                  <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-lg h-fit">
-                    <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">System Alerts</h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 rounded-lg h-fit">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Connection Lost</h4>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">WebSocket disconnected.</p>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Scheduled Update</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">Firmware update at 02:00 AM tonight.</p>
                   </div>
                 </div>
-              )}
-            </div>
+
+                {!isConnected && (
+                  <div className="flex gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 animate-pulse">
+                    <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-lg h-fit">
+                      <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Connection Lost</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">WebSocket disconnected.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

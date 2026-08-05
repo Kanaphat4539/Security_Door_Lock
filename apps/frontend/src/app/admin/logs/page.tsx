@@ -9,14 +9,8 @@ export default function AdminLogsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  // Fallback to mock data if store is empty for demonstration
-  const displayLogs = logs.length > 0 ? logs : [
-    { id: '1', userName: 'John Doe', uid: 'A1B2C3D4', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-    { id: '2', userName: 'Unknown', uid: 'UNKNOWN_123', timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: 'DENIED', doorId: 'Back Door' },
-    { id: '3', userName: 'Jane Smith', uid: 'E5F6G7H8', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-  ];
-
-  const filteredLogs = displayLogs.filter(log => {
+  // ข้อมูลจริงมาจาก store (WebSocketProvider โหลด /access/recent + realtime มาให้)
+  const filteredLogs = logs.filter(log => {
     const matchesSearch = (log.userName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       log.uid.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || log.status === statusFilter;

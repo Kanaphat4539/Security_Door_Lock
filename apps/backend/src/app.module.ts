@@ -1,27 +1,21 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
-import { AccessLogsModule } from './modules/access-logs/access-logs.module';
-import { HardwareModule } from './modules/hardware/hardware.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { GatewaysModule } from './gateways/gateways.module';
+import { AccessModule } from './access/access.module';
+import { AuthModule } from './auth/auth.module';
+import { DevicesModule } from './devices/devices.module';
+import { EventsModule } from './events/events.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    PrismaModule, 
-    GatewaysModule,
-    UsersModule, 
-    AccessLogsModule, 
-    HardwareModule,
+    PrismaModule,
     AuthModule,
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', '..', 'uploads'),
-      serveRoot: '/uploads',
-    }),
+    EventsModule,
+    AccessModule,
+    DevicesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,22 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, Monitor, Users } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, Monitor } from 'lucide-react';
 import SecurityPhysicsBackground from '@/components/shared/SecurityPhysicsBackground';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { login as loginRequest } from '@/services/backend';
+import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Handle Theme
   useEffect(() => {
@@ -33,40 +29,22 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!res.ok) {
-        let errMsg = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (Invalid credentials)';
-        try {
-          const errData = await res.json();
-          if (errData.message) errMsg = errData.message;
-        } catch (e) { }
-        throw new Error(errMsg);
-      }
-
-      const data = await res.json();
-
-      // Save token to cookies (in production, use secure/httpOnly cookies via Next.js API routes)
-      document.cookie = `access_token=${data.access_token}; path=/; max-age=86400`;
-      document.cookie = `user_role=${data.user.role}; path=/; max-age=86400`;
-
-      if (data.user.role === 'ADMIN') {
-        window.location.href = '/admin/dashboard';
+      const role = await loginRequest(email, password);
+      if (role === 'admin') {
+        router.push('/admin/dashboard');
       } else {
-        window.location.href = '/employee/profile';
+        router.push('/employee/profile');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to login');
-    } finally {
+    } catch (err) {
+      // backend ตอบ 401 = ชื่อผู้ใช้/รหัสผ่านไม่ถูกต้อง
+      const msg =
+        axios.isAxiosError(err) && err.response?.status === 401
+          ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+          : 'เข้าสู่ระบบไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?';
+      setError(msg);
       setLoading(false);
     }
   };
@@ -96,6 +74,7 @@ export default function LoginPage() {
         {/* Login Form */}
         <div className="p-8 md:p-12 flex flex-col justify-center">
           <div className="w-full max-w-md mx-auto">
+
             <div className="flex justify-center mb-6">
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl shadow-inner border border-blue-100 dark:border-blue-800/50">
                 <Monitor className="w-8 h-8 text-blue-600 dark:text-blue-400" />
@@ -107,51 +86,20 @@ export default function LoginPage() {
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Sign in to access your secure dashboard.</p>
             </div>
 
-            {/* Quick Demo Login Buttons */}
-            <div className="flex gap-4 mb-6">
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('admin');
-                  setPassword('password');
-                }}
-                className="flex-1 py-2 px-4 bg-indigo-100/50 dark:bg-indigo-600/20 hover:bg-indigo-200 dark:hover:bg-indigo-600/40 border border-indigo-200 dark:border-indigo-500/30 rounded-xl text-indigo-700 dark:text-indigo-300 text-sm font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Shield className="w-4 h-4" /> Auto Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('employee');
-                  setPassword('password');
-                }}
-                className="flex-1 py-2 px-4 bg-blue-100/50 dark:bg-blue-600/20 hover:bg-blue-200 dark:hover:bg-blue-600/40 border border-blue-200 dark:border-blue-500/30 rounded-xl text-blue-700 dark:text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Users className="w-4 h-4" /> Auto Employee
-              </button>
-            </div>
-
-            {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm font-medium">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
-              {/* Username Input */}
+            <form onSubmit={handleLogin} className="space-y-5">
+              {/* Email Input */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Username</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Username or Email</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Users className="w-5 h-5 text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
+                    <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
                   </div>
                   <input
                     type="text"
                     required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter username"
-                    autoComplete="new-password"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter username or email"
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm font-medium"
                   />
                 </div>
@@ -173,7 +121,6 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    autoComplete="new-password"
                     className="w-full pl-12 pr-12 py-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm font-medium"
                   />
                   <button
@@ -184,6 +131,30 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-800/50 dark:bg-red-900/20 dark:text-red-300">
+                  {error}
+                </div>
+              )}
+
+              {/* Auto Fill Buttons */}
+              <div className="flex gap-3 justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setEmail('admin'); setPassword('admin'); }}
+                  className="text-[11px] font-bold uppercase tracking-wider py-1.5 px-4 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-800/60 transition-colors border border-blue-200 dark:border-blue-800/50"
+                >
+                  Admin Role
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEmail('employee'); setPassword('password'); }}
+                  className="text-[11px] font-bold uppercase tracking-wider py-1.5 px-4 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  Employee Role
+                </button>
               </div>
 
               <button

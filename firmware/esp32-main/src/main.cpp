@@ -1,204 +1,142 @@
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <MFRC522.h>
-#include <SPI.h>
-#include <Wire.h>
+// ESP32 (main controller)
+// รับผิดชอบ: RFID x2, Ultrasonic, OLED, Buzzer, Relay
+// บอร์ดนี้ "ไม่มี Wi-Fi" ในสถาปัตยกรรมนี้ — ทุกอย่างที่ต้องคุยกับเซิร์ฟเวอร์
+// ต้องส่งผ่าน ESP32-CAM ทาง Serial2 เสมอ (ดู src/shared/protocol.h)
 
-// --- กำหนดขาพิน (ปรับเปลี่ยนได้ตามการต่อจริง) ---
-#define TRIG_PIN 5
-#define ECHO_PIN 18
-#define RELAY_PIN 2
-#define BUZZER_PIN 19
+#include <Arduino.h>
 
-// ขา SPI สำหรับ RFID (แชร์กัน)
-#define RST_PIN 27
-#define SS_IN_PIN 15 // ขา SS เครื่องอ่านขาเข้า
-#define SS_OUT_PIN 4 // ขา SS เครื่องอ่านขาออก
+#include "protocol.h"
+#include "buzzer.h"
+#include "config.h"
+#include "display.h"
+#include "relay.h"
+#include "rfid.h"
+#include "ultrasonic.h"
 
-// ==========================================
-// Class จัดการระยะทาง (Ultrasonic)
-// ==========================================
-class Ultrasonic {
-private:
-  int trig, echo;
+namespace {
 
-public:
-  Ultrasonic(int t, int e) : trig(t), echo(e) {
-    pinMode(trig, OUTPUT);
-    pinMode(echo, INPUT);
-  }
-  int getDistance() {
-    digitalWrite(trig, LOW);
-    delayMicroseconds(2);
-    digitalWrite(trig, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(trig, LOW);
-    long duration = pulseIn(echo, HIGH, 30000); // Timeout 30ms
-    if (duration == 0)
-      return 999;
-    return duration * 0.034 / 2;
-  }
-};
+HardwareSerial gCamLink(2);
 
-// ==========================================
-// Class จัดการประตูและเสียง (Relay & Buzzer)
-// ==========================================
-class DoorLock {
-private:
-  int relay, buzzer;
+bool gAwake = false;       // TFT เปิด/สตรีมอยู่หรือไม่
+bool gPrecaptured = false; // ถ่ายภาพล่วงหน้าไปแล้วในรอบนี้หรือยัง
 
-public:
-  DoorLock(int r, int b) : relay(r), buzzer(b) {
-    pinMode(relay, OUTPUT);
-    pinMode(buzzer, OUTPUT);
-    digitalWrite(relay, LOW); // ล็อกประตู
-  }
-  void grantAccess() {
-    // เสียงสั้น 1 ครั้ง เปิดประตู 5 วินาที
-    tone(buzzer, 2000, 200);
-    digitalWrite(relay, HIGH);
-    delay(5000);
-    digitalWrite(relay, LOW);
-  }
-  void denyAccess() {
-    // เสียงยาว 1 ครั้ง ประตูไม่เปิด
-    tone(buzzer, 1000, 1500);
-  }
-};
+unsigned long gNextDistanceReadMs = 0;
+constexpr unsigned long kDistanceIntervalMs = 200;
 
-// ==========================================
-// Class จัดการหน้าจอ (OLED)
-// ==========================================
-class DisplayOLED {
-private:
-  Adafruit_SSD1306 display;
+void sendCmd(const String& cmd) {
+  gCamLink.print(cmd);
+  gCamLink.print('\n');
+  Serial.printf("[link] -> %s\n", cmd.c_str());
+}
 
-public:
-  DisplayOLED() : display(128, 64, &Wire, -1) {}
-  void begin() {
-    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    showText("System Ready");
-  }
-  void showText(String text) {
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(WHITE);
-    display.setCursor(0, 20);
-    display.println(text);
-    display.display();
-  }
-};
+// รอผล RESULT: จาก ESP32-CAM
+// หมายเหตุ: บล็อกจนกว่าจะครบ timeout — ยอมรับได้เพราะระหว่างรอผลการทาบบัตร
+// ระบบไม่ควรรับอินพุตอื่นอยู่แล้ว ถ้าภายหลังต้องรองรับเข้า-ออกพร้อมกันจริง ๆ
+// ควรเปลี่ยนเป็น state machine แบบ non-blocking
+String waitForResult() {
+  const unsigned long deadline = millis() + proto::kResultTimeoutMs;
+  String line;
 
-// ==========================================
-// Class จัดการเครื่องอ่านบัตร (RFID)
-// ==========================================
-class RFIDReader {
-private:
-  MFRC522 mfrc522;
-
-public:
-  RFIDReader(int ss_pin, int rst_pin) : mfrc522(ss_pin, rst_pin) {}
-  void begin() { mfrc522.PCD_Init(); }
-  String readCard() {
-    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-      return "";
+  while (millis() < deadline) {
+    while (gCamLink.available()) {
+      const char c = gCamLink.read();
+      if (c == '\n') {
+        line.trim();
+        Serial.printf("[link] <- %s\n", line.c_str());
+        if (line.startsWith(proto::kResult)) {
+          return line.substring(strlen(proto::kResult));
+        }
+        line = "";
+      } else if (c != '\r') {
+        line += c;
+      }
     }
-    String uid = "";
-    for (byte i = 0; i < mfrc522.uid.size; i++) {
-      uid += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
-      uid += String(mfrc522.uid.uidByte[i], HEX);
-    }
-    uid.toUpperCase();
-    mfrc522.PICC_HaltA(); // หยุดพักบัตร
-    return uid;
+    buzzerUpdate();
+    relayUpdate();
+    delay(5);
   }
-};
 
-// --- สร้าง Object ของแต่ละอุปกรณ์ ---
-Ultrasonic sonar(TRIG_PIN, ECHO_PIN);
-DoorLock door(RELAY_PIN, BUZZER_PIN);
-DisplayOLED oled;
-RFIDReader rfidIn(SS_IN_PIN, RST_PIN);
-RFIDReader rfidOut(SS_OUT_PIN, RST_PIN);
+  Serial.println(F("[link] timeout waiting for RESULT"));
+  return proto::kError;
+}
 
-// ตัวแปรเก็บสถานะ
-bool isStreaming = false;
+void applyResult(const String& status, bool updateOled) {
+  if (status == proto::kGranted) {
+    if (updateOled) displayGranted();
+    buzzerBeep(kBuzzShortMs);
+    relayUnlockTimed();
+  } else {
+    // denied และ error ปฏิบัติเหมือนกัน: ประตูคงสถานะล็อก
+    if (updateOled) displayDenied();
+    buzzerBeep(kBuzzLongMs);
+  }
+}
+
+// ---- ฝั่งขาเข้า: เช็คระยะก่อน แล้วค่อยรอทาบบัตร ----
+void handleEntry() {
+  if (millis() >= gNextDistanceReadMs) {
+    gNextDistanceReadMs = millis() + kDistanceIntervalMs;
+
+    const long cm = ultrasonicReadCm();
+    const bool near = (cm > 0 && cm < kDistanceWakeCm);
+
+    if (near && !gAwake) {
+      gAwake = true;
+      gPrecaptured = false;
+      sendCmd(proto::kCmdWake);
+      displayShow("READY", "Tap your card");
+    } else if (!near && gAwake) {
+      gAwake = false;
+      gPrecaptured = false;
+      sendCmd(proto::kCmdSleep);
+      displayStandby();
+    }
+
+    if (gAwake && !gPrecaptured && cm > 0 && cm < kDistanceApproachCm) {
+      gPrecaptured = true;
+      sendCmd(proto::kCmdPrecap);
+    }
+  }
+
+  String uid;
+  if (!rfidReadEntry(uid)) return;
+
+  Serial.printf("[entry] uid=%s\n", uid.c_str());
+  sendCmd(String(proto::kCmdIn) + uid);
+  applyResult(waitForResult(), /*updateOled=*/true);
+
+  gPrecaptured = false;
+}
+
+// ---- ฝั่งขาออก: ไม่สนใจระยะ ไม่ถ่ายภาพ ----
+void handleExit() {
+  String uid;
+  if (!rfidReadExit(uid)) return;
+
+  Serial.printf("[exit] uid=%s\n", uid.c_str());
+  sendCmd(String(proto::kCmdOut) + uid);
+  applyResult(waitForResult(), /*updateOled=*/false);
+}
+
+}  // namespace
 
 void setup() {
-  Serial.begin(115200); // สำหรับ Debug
-  Serial2.begin(115200, SERIAL_8N1, 16,
-                17); // สำหรับคุยกับ ESP32-CAM (RX:16, TX:17)
+  Serial.begin(115200);
+  gCamLink.begin(proto::kLinkBaud, SERIAL_8N1, kPinCamLinkRx, kPinCamLinkTx);
 
-  SPI.begin();
-  rfidIn.begin();
-  rfidOut.begin();
-  oled.begin();
+  buzzerBegin();
+  relayBegin();
+  ultrasonicBegin();
+  displayBegin();
+  rfidBegin();
 
-  Serial.println("ESP32 Main Started!");
+  Serial.println(F("[main] ready"));
 }
 
 void loop() {
-  // 1. อ่านค่าระยะทาง
-  int dist = sonar.getDistance();
+  buzzerUpdate();
+  relayUpdate();
 
-  // ตรวจสอบระยะเพื่อสั่งงานกล้อง
-  if (dist < 100 && dist > 45 && !isStreaming) {
-    Serial2.println("CMD_STREAM");
-    oled.showText("Please Scan");
-    isStreaming = true;
-  } else if (dist <= 45) {
-    Serial2.println("CMD_SNAP");
-  } else if (dist >= 100 && isStreaming) {
-    Serial2.println("CMD_SLEEP");
-    oled.showText("Standby");
-    isStreaming = false;
-  }
-
-  // 2. ตรวจสอบการทาบบัตร (ขาเข้า)
-  String uidIn = rfidIn.readCard();
-  if (uidIn != "") {
-    oled.showText("Checking IN...");
-    // ส่งคำสั่งไปบอก ESP32-CAM ให้ยิง API ขาเข้า
-    Serial2.println("CMD_AUTH_IN:" + uidIn);
-    waitForResponse();
-  }
-
-  // 3. ตรวจสอบการทาบบัตร (ขาออก)
-  String uidOut = rfidOut.readCard();
-  if (uidOut != "") {
-    oled.showText("Checking OUT...");
-    // ส่งคำสั่งไปบอก ESP32-CAM ให้ยิง API ขาออก
-    Serial2.println("CMD_AUTH_OUT:" + uidOut);
-    waitForResponse();
-  }
-
-  delay(50); // หน่วงเวลาเล็กน้อยให้ระบบเสถียร
-}
-
-// ฟังก์ชันรอรับผลลัพธ์จาก ESP32-CAM
-void waitForResponse() {
-  long startTime = millis();
-  while (millis() - startTime < 5000) { // รอสูงสุด 5 วินาที
-    if (Serial2.available()) {
-      String response = Serial2.readStringUntil('\n');
-      response.trim();
-
-      if (response == "RESP_GRANTED") {
-        oled.showText("Access Granted");
-        door.grantAccess();
-        oled.showText("Standby");
-        return;
-      } else if (response == "RESP_DENIED") {
-        oled.showText("Access Denied");
-        door.denyAccess();
-        oled.showText("Standby");
-        return;
-      }
-    }
-  }
-  // ถ้าหมดเวลา (Timeout)
-  oled.showText("Timeout Error");
-  door.denyAccess();
-  delay(2000);
-  oled.showText("Standby");
+  handleEntry();
+  handleExit();
 }
