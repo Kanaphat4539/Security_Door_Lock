@@ -15,9 +15,9 @@
 const char* WIFI_SSID    = "thiraphat";
 const char* WIFI_PASS    = "12345678";
 // URL สำหรับ Backend (ระบุ Port และ Path /access ให้ตรงกับ Backend)
-const char* SERVER_URL   = "http://192.168.2.207:3001/access"; 
+const char* SERVER_URL   = "http://172.16.12.64:3001/access"; 
 // ⚠️ แก้ค่านี้ให้ตรงกับ DEVICE_TOKEN ในไฟล์ .env ของ Backend
-const char* DEVICE_TOKEN = "511d890b7d952e2c7291f2328a46f4ebce4ed81dd825b0bd6b296ac01397bdfb"; 
+const char* DEVICE_TOKEN = "a033222b56976a4d77ac32d427599ec16a2c71dac747df219475973a191ff4e5"; 
 
 // ---------- ★ PIN Definitions (ฮาร์ดแวร์อิงจาก rfid_wifi) ★ ----------
 #define SS_IN      5      // RFID ตัวเข้า (IN)

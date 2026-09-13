@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, Download } from 'lucide-react';
 import { useLogStore } from '@/store/useLogStore';
+import { SnapshotViewer } from '@/components/shared/SnapshotViewer';
 
 export default function AdminLogsPage() {
   const { logs } = useLogStore();
@@ -92,17 +93,15 @@ export default function AdminLogsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${log.status === 'GRANTED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' :
-                        log.status === 'DENIED' ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' :
-                          'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
+                      log.status === 'DENIED' ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' :
+                        'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
                       }`}>
                       {log.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
-                    {log.status === 'DENIED' ? (
-                      <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-bold text-xs underline underline-offset-2 transition-colors">
-                        View Snapshot
-                      </button>
+                    {log.imageUrl ? (
+                      <SnapshotViewer src={log.imageUrl} />
                     ) : (
                       <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
                     )}
