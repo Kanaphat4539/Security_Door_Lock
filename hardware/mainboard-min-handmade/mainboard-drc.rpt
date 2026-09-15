@@ -1,0 +1,225 @@
+** Drc report for mainboard.kicad_pcb **
+** Created on 2026-09-15T08:04:56 **
+** Report includes: Errors, Warnings **
+
+** Found 51 DRC violations **
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(139.5000 mm, 110.0000 mm): Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm
+    @(137.3000 mm, 104.7000 mm): Track [RFID_EXIT_MOSI] on B.Cu, length 73.9205 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 109.7800 mm): Track [+5V] on B.Cu, length 53.7526 mm
+    @(174.0000 mm, 87.0000 mm): Track [CAM_RX2] on B.Cu, length 82.0000 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.5000 mm, 152.0000 mm): Track [+5V] on B.Cu, length 4.5000 mm
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+[shorting_items]: Items shorting two nets (nets CAM_RX2 and BUZZER_CTRL)
+    Local override; error
+    @(162.7000 mm, 86.9200 mm): PTH pad 21 [CAM_RX2] of U1
+    @(137.3000 mm, 92.0000 mm): Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm
+[shorting_items]: Items shorting two nets (nets RELAY_CTRL and US_TRIG)
+    Local override; error
+    @(137.3000 mm, 94.5400 mm): Track [RELAY_CTRL] on B.Cu, length 0.2040 mm
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 109.7800 mm): Track [+5V] on B.Cu, length 53.7526 mm
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 86.9200 mm): Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm
+    @(137.3000 mm, 92.0000 mm): Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm
+[shorting_items]: Items shorting two nets (nets RFID_ENTRY_RST and RELAY_CTRL)
+    Local override; error
+    @(137.3000 mm, 97.0800 mm): Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm
+    @(137.3000 mm, 94.5400 mm): PTH pad 9 [RELAY_CTRL] of U1
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 84.3800 mm): Track [RFID_EXIT_MISO] on B.Cu, length 57.1051 mm
+    @(162.7000 mm, 92.0000 mm): Track [RFID_ENTRY_SS] on B.Cu, length 67.9241 mm
+[shorting_items]: Items shorting two nets (nets +5V and RFID_ENTRY_MISO)
+    Local override; error
+    @(137.3000 mm, 109.7800 mm): Track [+5V] on B.Cu, length 53.7526 mm
+    @(162.7000 mm, 97.0800 mm): PTH pad 25 [RFID_ENTRY_MISO] of U1
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(162.7000 mm, 92.0000 mm): Track [RFID_ENTRY_SS] on B.Cu, length 67.9241 mm
+    @(137.3000 mm, 92.0000 mm): Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(162.7000 mm, 92.0000 mm): Track [RFID_ENTRY_SS] on B.Cu, length 67.9241 mm
+    @(162.5000 mm, 89.5000 mm): Track [CAM_TX2] on B.Cu, length 21.0000 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 99.6200 mm): Track [RFID_EXIT_SCK] on B.Cu, length 71.8875 mm
+    @(137.3000 mm, 84.3800 mm): Track [RFID_EXIT_MISO] on B.Cu, length 57.1051 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 84.3800 mm): Track [RFID_EXIT_MISO] on B.Cu, length 57.1051 mm
+    @(137.3000 mm, 104.7000 mm): Track [RFID_EXIT_MOSI] on B.Cu, length 73.9205 mm
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)
+    Local override; error
+    @(162.5000 mm, 87.0000 mm): Track [CAM_RX2] on B.Cu, length 11.5000 mm
+    @(171.0875 mm, 86.0000 mm): Via [BUZZER_CTRL] on F.Cu - B.Cu
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 97.0800 mm): Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm
+    @(137.5000 mm, 94.5000 mm): Track [RELAY_CTRL] on B.Cu, length 2.0000 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 86.9200 mm): Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm
+    @(162.5000 mm, 110.0000 mm): Track [RFID_ENTRY_MOSI] on B.Cu, length 23.0000 mm
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.0169 mm)
+    Local override; error
+    @(162.7000 mm, 86.9200 mm): Track [CAM_RX2] on B.Cu, length 0.2154 mm
+    @(137.3000 mm, 92.0000 mm): Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(162.5000 mm, 87.0000 mm): Track [CAM_RX2] on B.Cu, length 11.5000 mm
+    @(137.3000 mm, 92.0000 mm): Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(137.3000 mm, 84.3800 mm): Track [RFID_EXIT_MISO] on B.Cu, length 57.1051 mm
+    @(141.5000 mm, 89.5000 mm): Track [CAM_TX2] on B.Cu, length 51.5000 mm
+[tracks_crossing]: Tracks crossing
+    Local override; error
+    @(162.7000 mm, 92.0000 mm): Track [RFID_ENTRY_SS] on B.Cu, length 67.9241 mm
+    @(139.5000 mm, 45.0000 mm): Track [RFID_ENTRY_MOSI] on B.Cu, length 20.5000 mm
+[clearance]: Clearance violation ( clearance 0.2000 mm; actual 0.1153 mm)
+    Local override; error
+    @(137.3000 mm, 97.0800 mm): Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm
+    @(135.5000 mm, 94.5000 mm): Track [RELAY_CTRL] on B.Cu, length 72.5000 mm
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 92.0000 mm): Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm
+    @(162.7000 mm, 86.9200 mm): PTH pad 21 [CAM_RX2] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 86.9200 mm): Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm
+    @(137.3000 mm, 89.4600 mm): PTH pad 7 [US_TRIG] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 86.9200 mm): Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm
+    @(137.3000 mm, 92.0000 mm): PTH pad 8 [BUZZER_CTRL] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 109.7800 mm): Track [+5V] on B.Cu, length 53.7526 mm
+    @(162.7000 mm, 97.0800 mm): PTH pad 25 [RFID_ENTRY_MISO] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(142.0000 mm, 152.0000 mm): PTH pad 1 [+5V] of J6
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(137.3000 mm, 92.0000 mm): PTH pad 8 [BUZZER_CTRL] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(137.3000 mm, 94.5400 mm): PTH pad 9 [RELAY_CTRL] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(137.3000 mm, 97.0800 mm): PTH pad 10 [RFID_ENTRY_RST] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(137.3000 mm, 99.6200 mm): PTH pad 11 [RFID_EXIT_SCK] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(137.3000 mm, 102.1600 mm): PTH pad 12 [<no net>] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 89.4600 mm): Track [US_TRIG] on B.Cu, length 65.2495 mm
+    @(137.3000 mm, 104.7000 mm): PTH pad 13 [RFID_EXIT_MOSI] of U1
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 97.0800 mm): Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm
+    @(119.0000 mm, 57.7800 mm): PTH pad 8 [+3V3] of J3
+[solder_mask_bridge]: Rear solder mask aperture bridges items with different nets
+    Rule: board setup solder mask min width; error
+    @(137.3000 mm, 97.0800 mm): Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm
+    @(137.3000 mm, 94.5400 mm): PTH pad 9 [RELAY_CTRL] of U1
+[lib_footprint_issues]: Footprint 'ESP32-DevKitV1-30P_Socket' not found in library 'Module'
+    Local override; warning
+    @(150.0000 mm, 92.0000 mm): Footprint U1
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x02_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(119.0000 mm, 162.0000 mm): Footprint J1
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x08_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(119.0000 mm, 40.0000 mm): Footprint J3
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x08_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(181.0000 mm, 40.0000 mm): Footprint J4
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x04_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(119.0000 mm, 108.0000 mm): Footprint J5
+[lib_footprint_mismatch]: Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'
+    Local override; warning
+    @(128.0000 mm, 104.0000 mm): Footprint R4
+[lib_footprint_mismatch]: Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'
+    Local override; warning
+    @(128.0000 mm, 111.0000 mm): Footprint R5
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x04_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(142.0000 mm, 152.0000 mm): Footprint J6
+[lib_footprint_mismatch]: Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'
+    Local override; warning
+    @(150.0000 mm, 152.0000 mm): Footprint R6
+[lib_footprint_mismatch]: Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'
+    Local override; warning
+    @(150.0000 mm, 159.0000 mm): Footprint R7
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x04_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(119.0000 mm, 140.0000 mm): Footprint J7
+[lib_footprint_mismatch]: Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'
+    Local override; warning
+    @(172.0000 mm, 86.0000 mm): Footprint R8
+[lib_footprint_mismatch]: Footprint 'SOT-23' does not match copy in library 'Package_TO_SOT_SMD'
+    Local override; warning
+    @(178.0000 mm, 86.0000 mm): Footprint Q1
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x02_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(185.0000 mm, 85.0000 mm): Footprint J9
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x03_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(172.0000 mm, 162.0000 mm): Footprint J8
+[copper_sliver]: Copper sliver (B.Cu)
+    Local override; warning
+
+** Found 5 unconnected pads **
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(119.0000 mm, 108.0000 mm): PTH pad 1 [GND] of J5
+    @(106.5000 mm, 26.5000 mm): Zone [GND] on F.Cu, priority 0
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(137.3000 mm, 107.2400 mm): PTH pad 14 [GND] of U1
+    @(106.5000 mm, 26.5000 mm): Zone [GND] on F.Cu, priority 0
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(162.7000 mm, 76.7600 mm): PTH pad 17 [GND] of U1
+    @(106.5000 mm, 26.5000 mm): Zone [GND] on F.Cu, priority 0
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(162.7000 mm, 76.7600 mm): PTH pad 17 [GND] of U1
+    @(106.5000 mm, 26.5000 mm): Zone [GND] on F.Cu, priority 0
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(162.7000 mm, 76.7600 mm): PTH pad 17 [GND] of U1
+    @(106.5000 mm, 26.5000 mm): Zone [GND] on F.Cu, priority 0
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **

@@ -1,0 +1,1258 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-15T08:03:59",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.6",
+    "schematic_parity": [],
+    "source": "mainboard.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 6 [GND] of J3",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 52.7
+                    },
+                    "uuid": "42107f69-f1db-41dd-9de5-ccc00384c7b7"
+                },
+                {
+                    "description": "PTH pad 17 [GND] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 76.76
+                    },
+                    "uuid": "9274f139-133a-46fc-84f0-51673008bf65"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 1 [GND] of J5",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 108.0
+                    },
+                    "uuid": "4a233ba4-c7f4-4421-a0e2-b8a65d516ec9"
+                },
+                {
+                    "description": "PTH pad 14 [GND] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 107.24
+                    },
+                    "uuid": "bcf258b3-9563-45fe-835c-f00b0f3ad667"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 1 [GND] of J5",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 108.0
+                    },
+                    "uuid": "4a233ba4-c7f4-4421-a0e2-b8a65d516ec9"
+                },
+                {
+                    "description": "PTH pad 2 [GND] of J7",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 142.54
+                    },
+                    "uuid": "f14f67eb-f191-4044-9940-92c710c873d9"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 2 [GND] of J7",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 142.54
+                    },
+                    "uuid": "f14f67eb-f191-4044-9940-92c710c873d9"
+                },
+                {
+                    "description": "PTH pad 2 [GND] of J1",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 164.54
+                    },
+                    "uuid": "76b2e5e0-0af3-4b2f-befd-7ea47d2d5bb4"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 2 [GND] of J1",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 164.54
+                    },
+                    "uuid": "76b2e5e0-0af3-4b2f-befd-7ea47d2d5bb4"
+                },
+                {
+                    "description": "PTH pad 4 [GND] of J6",
+                    "pos": {
+                        "x": 142.0,
+                        "y": 159.62
+                    },
+                    "uuid": "e2b89b8b-5780-47d7-b050-b6d09f9e5e6c"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 14 [GND] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 107.24
+                    },
+                    "uuid": "bcf258b3-9563-45fe-835c-f00b0f3ad667"
+                },
+                {
+                    "description": "PTH pad 17 [GND] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 76.76
+                    },
+                    "uuid": "9274f139-133a-46fc-84f0-51673008bf65"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [GND] of R7 on F.Cu",
+                    "pos": {
+                        "x": 150.9125,
+                        "y": 159.0
+                    },
+                    "uuid": "00284bd5-669a-4ef4-a298-20b1aef1f51c"
+                },
+                {
+                    "description": "PTH pad 4 [GND] of J6",
+                    "pos": {
+                        "x": 142.0,
+                        "y": 159.62
+                    },
+                    "uuid": "e2b89b8b-5780-47d7-b050-b6d09f9e5e6c"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [GND] of R7 on F.Cu",
+                    "pos": {
+                        "x": 150.9125,
+                        "y": 159.0
+                    },
+                    "uuid": "00284bd5-669a-4ef4-a298-20b1aef1f51c"
+                },
+                {
+                    "description": "PTH pad 2 [GND] of J8",
+                    "pos": {
+                        "x": 172.0,
+                        "y": 164.54
+                    },
+                    "uuid": "8dd232a3-ed4e-4edd-ad30-aa60c1fab831"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 3 [GND] of Q1 on F.Cu",
+                    "pos": {
+                        "x": 178.9375,
+                        "y": 86.0
+                    },
+                    "uuid": "03cfaf7b-8ecf-4f59-8825-f64f13a50756"
+                },
+                {
+                    "description": "PTH pad 17 [GND] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 76.76
+                    },
+                    "uuid": "9274f139-133a-46fc-84f0-51673008bf65"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 6 [GND] of J4",
+                    "pos": {
+                        "x": 181.0,
+                        "y": 52.7
+                    },
+                    "uuid": "3a38847a-65b2-4bba-9e28-f36165a3404e"
+                },
+                {
+                    "description": "PTH pad 17 [GND] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 76.76
+                    },
+                    "uuid": "9274f139-133a-46fc-84f0-51673008bf65"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [+5V] on B.Cu, length 0.0000 mm",
+                    "pos": {
+                        "x": 142.0,
+                        "y": 152.0
+                    },
+                    "uuid": "9ea1dfa1-9a49-5fac-a464-a790681ea689"
+                },
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 86.92
+                    },
+                    "uuid": "2b40e64e-2b18-5425-bdab-dc48a76c7ffd"
+                },
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm",
+                    "pos": {
+                        "x": 139.5,
+                        "y": 110.0
+                    },
+                    "uuid": "618e9edb-c156-52a1-a613-7e55f477126a"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "a7fc36e0-11ee-533c-882c-8b644eaeef62"
+                },
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm",
+                    "pos": {
+                        "x": 139.5,
+                        "y": 110.0
+                    },
+                    "uuid": "618e9edb-c156-52a1-a613-7e55f477126a"
+                },
+                {
+                    "description": "Track [RFID_EXIT_MISO] on B.Cu, length 57.1051 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 84.38
+                    },
+                    "uuid": "74579d15-3d0d-5179-bb55-0815d48c7569"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.2000 mm; actual 0.1153 mm)",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 97.08
+                    },
+                    "uuid": "21b413aa-6af3-5ff0-9acd-d3c20b81a2b7"
+                },
+                {
+                    "description": "Track [RELAY_CTRL] on B.Cu, length 72.5000 mm",
+                    "pos": {
+                        "x": 135.5,
+                        "y": 94.5
+                    },
+                    "uuid": "2affcac2-61d4-5be8-a77e-3426ec2f1752"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Items shorting two nets (nets RFID_ENTRY_RST and RELAY_CTRL)",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 97.08
+                    },
+                    "uuid": "21b413aa-6af3-5ff0-9acd-d3c20b81a2b7"
+                },
+                {
+                    "description": "PTH pad 9 [RELAY_CTRL] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 94.54
+                    },
+                    "uuid": "f65c3eee-d10a-4fc5-a225-a2934d18a0b3"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [+5V] on B.Cu, length 53.7526 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 109.78
+                    },
+                    "uuid": "0ad45972-f64b-5d95-a8f6-c0c03059ca9d"
+                },
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm",
+                    "pos": {
+                        "x": 139.5,
+                        "y": 110.0
+                    },
+                    "uuid": "618e9edb-c156-52a1-a613-7e55f477126a"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm",
+                    "pos": {
+                        "x": 139.5,
+                        "y": 110.0
+                    },
+                    "uuid": "618e9edb-c156-52a1-a613-7e55f477126a"
+                },
+                {
+                    "description": "Track [RFID_ENTRY_SS] on B.Cu, length 67.9241 mm",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 92.0
+                    },
+                    "uuid": "7552ea95-df21-5750-8cae-31abb3aa27ea"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Items shorting two nets (nets RELAY_CTRL and US_TRIG)",
+            "items": [
+                {
+                    "description": "Track [RELAY_CTRL] on B.Cu, length 0.2040 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 94.54
+                    },
+                    "uuid": "204f4486-7e7d-5c6f-b1ac-236c0132f016"
+                },
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets CAM_RX2 and BUZZER_CTRL)",
+            "items": [
+                {
+                    "description": "PTH pad 21 [CAM_RX2] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 86.92
+                    },
+                    "uuid": "5280fb94-f4ae-4f58-9c81-cbd780864069"
+                },
+                {
+                    "description": "Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "a7fc36e0-11ee-533c-882c-8b644eaeef62"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [CAM_TX2] on B.Cu, length 21.0000 mm",
+                    "pos": {
+                        "x": 162.5,
+                        "y": 89.5
+                    },
+                    "uuid": "900870cb-ad46-5c5e-9f06-33d2d30c51d6"
+                },
+                {
+                    "description": "Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "a7fc36e0-11ee-533c-882c-8b644eaeef62"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm",
+                    "pos": {
+                        "x": 139.5,
+                        "y": 110.0
+                    },
+                    "uuid": "618e9edb-c156-52a1-a613-7e55f477126a"
+                },
+                {
+                    "description": "Track [RFID_EXIT_MOSI] on B.Cu, length 73.9205 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 104.7
+                    },
+                    "uuid": "77153c4c-61fe-5597-9195-f00b9bdba8a5"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [CAM_RX2] on B.Cu, length 11.5000 mm",
+                    "pos": {
+                        "x": 162.5,
+                        "y": 87.0
+                    },
+                    "uuid": "496b8dca-c19c-525b-9cea-c42fc2a17a42"
+                },
+                {
+                    "description": "Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "a7fc36e0-11ee-533c-882c-8b644eaeef62"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [CAM_RX2] on B.Cu, length 11.5000 mm",
+                    "pos": {
+                        "x": 162.5,
+                        "y": 87.0
+                    },
+                    "uuid": "496b8dca-c19c-525b-9cea-c42fc2a17a42"
+                },
+                {
+                    "description": "Via [BUZZER_CTRL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 171.0875,
+                        "y": 86.0
+                    },
+                    "uuid": "9a39bb60-43a5-5318-b9ba-c041aa331a99"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 97.08
+                    },
+                    "uuid": "21b413aa-6af3-5ff0-9acd-d3c20b81a2b7"
+                },
+                {
+                    "description": "Track [RELAY_CTRL] on B.Cu, length 2.0000 mm",
+                    "pos": {
+                        "x": 137.5,
+                        "y": 94.5
+                    },
+                    "uuid": "f7af5c80-a0d0-5551-a906-8c4888bf0116"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.2000 mm; actual 0.0169 mm)",
+            "items": [
+                {
+                    "description": "Track [CAM_RX2] on B.Cu, length 0.2154 mm",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 86.92
+                    },
+                    "uuid": "988b1b19-fee9-5572-90bc-d78e7737fea5"
+                },
+                {
+                    "description": "Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "a7fc36e0-11ee-533c-882c-8b644eaeef62"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 86.92
+                    },
+                    "uuid": "2b40e64e-2b18-5425-bdab-dc48a76c7ffd"
+                },
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 23.0000 mm",
+                    "pos": {
+                        "x": 162.5,
+                        "y": 110.0
+                    },
+                    "uuid": "56fc24f9-fe9e-53b1-8ce2-64991b2f7cc8"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Items shorting two nets (nets +5V and RFID_ENTRY_MISO)",
+            "items": [
+                {
+                    "description": "Track [+5V] on B.Cu, length 53.7526 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 109.78
+                    },
+                    "uuid": "0ad45972-f64b-5d95-a8f6-c0c03059ca9d"
+                },
+                {
+                    "description": "PTH pad 25 [RFID_ENTRY_MISO] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 97.08
+                    },
+                    "uuid": "6969acb6-fd64-484c-87c0-1c3a4bf897fd"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [RFID_EXIT_SCK] on B.Cu, length 71.8875 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 99.62
+                    },
+                    "uuid": "12e5ed06-5c6a-5766-bafd-50b3aa45b505"
+                },
+                {
+                    "description": "Track [RFID_ENTRY_MOSI] on B.Cu, length 65.0000 mm",
+                    "pos": {
+                        "x": 139.5,
+                        "y": 110.0
+                    },
+                    "uuid": "618e9edb-c156-52a1-a613-7e55f477126a"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [+5V] on B.Cu, length 53.7526 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 109.78
+                    },
+                    "uuid": "0ad45972-f64b-5d95-a8f6-c0c03059ca9d"
+                },
+                {
+                    "description": "Track [CAM_RX2] on B.Cu, length 82.0000 mm",
+                    "pos": {
+                        "x": 174.0,
+                        "y": 87.0
+                    },
+                    "uuid": "60bf5cd1-aaf5-568e-83a6-a12e619f0b86"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 86.92
+                    },
+                    "uuid": "2b40e64e-2b18-5425-bdab-dc48a76c7ffd"
+                },
+                {
+                    "description": "PTH pad 7 [US_TRIG] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "77dc8c4c-2ed3-4d0f-afac-748f0e5f12bd"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_ECHO_3V3] on B.Cu, length 66.4884 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 86.92
+                    },
+                    "uuid": "2b40e64e-2b18-5425-bdab-dc48a76c7ffd"
+                },
+                {
+                    "description": "PTH pad 8 [BUZZER_CTRL] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "1e39a2c6-519b-4b33-bc54-b0abd9beabd1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [+5V] on B.Cu, length 53.7526 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 109.78
+                    },
+                    "uuid": "0ad45972-f64b-5d95-a8f6-c0c03059ca9d"
+                },
+                {
+                    "description": "PTH pad 25 [RFID_ENTRY_MISO] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 97.08
+                    },
+                    "uuid": "6969acb6-fd64-484c-87c0-1c3a4bf897fd"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [BUZZER_CTRL] on B.Cu, length 34.3161 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "a7fc36e0-11ee-533c-882c-8b644eaeef62"
+                },
+                {
+                    "description": "PTH pad 21 [CAM_RX2] of U1",
+                    "pos": {
+                        "x": 162.7,
+                        "y": 86.92
+                    },
+                    "uuid": "5280fb94-f4ae-4f58-9c81-cbd780864069"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 1 [+5V] of J6",
+                    "pos": {
+                        "x": 142.0,
+                        "y": 152.0
+                    },
+                    "uuid": "5c6ac22c-1e06-4b3a-a56c-e11ced129b25"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 8 [BUZZER_CTRL] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 92.0
+                    },
+                    "uuid": "1e39a2c6-519b-4b33-bc54-b0abd9beabd1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 9 [RELAY_CTRL] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 94.54
+                    },
+                    "uuid": "f65c3eee-d10a-4fc5-a225-a2934d18a0b3"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 10 [RFID_ENTRY_RST] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 97.08
+                    },
+                    "uuid": "7ae296ba-767b-4750-b8d6-d79bc896bcc0"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 11 [RFID_EXIT_SCK] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 99.62
+                    },
+                    "uuid": "2a258afa-313b-4640-a759-ca0576c5a69f"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 12 [<no net>] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 102.16
+                    },
+                    "uuid": "131784f6-fa12-43d7-8f0a-7a54c323c057"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [US_TRIG] on B.Cu, length 65.2495 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 89.46
+                    },
+                    "uuid": "fba93985-f745-508a-8b69-cc19e261d57e"
+                },
+                {
+                    "description": "PTH pad 13 [RFID_EXIT_MOSI] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 104.7
+                    },
+                    "uuid": "7234be2d-5661-4299-942b-f0450ed1aff5"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 97.08
+                    },
+                    "uuid": "21b413aa-6af3-5ff0-9acd-d3c20b81a2b7"
+                },
+                {
+                    "description": "PTH pad 8 [+3V3] of J3",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 57.78
+                    },
+                    "uuid": "69c0fd41-949d-47c1-84ed-af5a8cc3c01f"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Track [RFID_ENTRY_RST] on B.Cu, length 45.6670 mm",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 97.08
+                    },
+                    "uuid": "21b413aa-6af3-5ff0-9acd-d3c20b81a2b7"
+                },
+                {
+                    "description": "PTH pad 9 [RELAY_CTRL] of U1",
+                    "pos": {
+                        "x": 137.3,
+                        "y": 94.54
+                    },
+                    "uuid": "f65c3eee-d10a-4fc5-a225-a2934d18a0b3"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Footprint 'ESP32-DevKitV1-30P_Socket' not found in library 'Module'",
+            "items": [
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 150.0,
+                        "y": 92.0
+                    },
+                    "uuid": "fb613938-8da0-51c1-9067-61793d2c4fcd"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x02_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J1",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 162.0
+                    },
+                    "uuid": "0a7ac3f3-234b-57d7-99a9-c1b5eba7bc90"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x08_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 40.0
+                    },
+                    "uuid": "cbab4ac7-88d0-5ccd-a56d-3715289d973f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x08_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J4",
+                    "pos": {
+                        "x": 181.0,
+                        "y": 40.0
+                    },
+                    "uuid": "5e3516c9-c878-55a2-874c-7ed74c95d890"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x04_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J5",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 108.0
+                    },
+                    "uuid": "249db507-632c-566b-872e-957719495707"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R4",
+                    "pos": {
+                        "x": 128.0,
+                        "y": 104.0
+                    },
+                    "uuid": "16318662-344a-55f5-8436-f304746a8f17"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R5",
+                    "pos": {
+                        "x": 128.0,
+                        "y": 111.0
+                    },
+                    "uuid": "ab8d69e8-9ddb-52f0-841d-2bf142825844"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x04_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6",
+                    "pos": {
+                        "x": 142.0,
+                        "y": 152.0
+                    },
+                    "uuid": "0b4807d3-0b63-5c67-ab6d-ae8f2c8461e0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R6",
+                    "pos": {
+                        "x": 150.0,
+                        "y": 152.0
+                    },
+                    "uuid": "33e1da57-4bd3-502f-a1f9-84717ebe3e6d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R7",
+                    "pos": {
+                        "x": 150.0,
+                        "y": 159.0
+                    },
+                    "uuid": "2a2bd796-4077-5313-8b9e-f2c44e5963b4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x04_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J7",
+                    "pos": {
+                        "x": 119.0,
+                        "y": 140.0
+                    },
+                    "uuid": "c061d119-7c5e-5281-ac4c-5c8721de7667"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'R_0805_2012Metric' does not match copy in library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R8",
+                    "pos": {
+                        "x": 172.0,
+                        "y": 86.0
+                    },
+                    "uuid": "fc2862d3-4856-51ee-9620-42091b2ef6b4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'SOT-23' does not match copy in library 'Package_TO_SOT_SMD'",
+            "items": [
+                {
+                    "description": "Footprint Q1",
+                    "pos": {
+                        "x": 178.0,
+                        "y": 86.0
+                    },
+                    "uuid": "00b4033d-4a14-5ee1-9f2d-0555da7338af"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x02_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J9",
+                    "pos": {
+                        "x": 185.0,
+                        "y": 85.0
+                    },
+                    "uuid": "d94b30de-0e6c-5c3f-821e-72db38229790"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinHeader_1x03_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J8",
+                    "pos": {
+                        "x": 172.0,
+                        "y": 162.0
+                    },
+                    "uuid": "71d1fba5-366b-58cf-a695-cbe691beb8fc"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Copper sliver (B.Cu)",
+            "items": [],
+            "severity": "warning",
+            "type": "copper_sliver"
+        }
+    ]
+}

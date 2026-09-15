@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-14T22:03:28",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/f9153e7e-0217-57ea-a817-b67bfa150562",
+            "violations": [
+                {
+                    "description": "Footprint 'ESP32-DevKitV1-30P_Socket' not found in library 'Module'",
+                    "items": [
+                        {
+                            "description": "Symbol U1 [ESP32DEVKIT]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 1.1938
+                            },
+                            "uuid": "90bb9f17-cb98-56a2-825c-5703bf28efe2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                }
+            ]
+        }
+    ],
+    "source": "mainboard.kicad_sch"
+}
