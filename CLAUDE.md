@@ -4,6 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 คำแนะนำสำหรับ Claude Code เมื่อทำงานกับโค้ดในโปรเจกต์นี้
 
+> **สถานะฮาร์ดแวร์ปัจจุบัน:** การทำ PCB และตรวจ GPIO ต้องยึด
+> `pooh:firmware/esp32-main/src/esp_main/full-main_test.ino` ไม่ใช่ `config.h`
+> หรือสถาปัตยกรรม UART รุ่นเก่า ESP32 main ต่อ Wi-Fi/HTTP ไป backend โดยตรง
+> และสื่อสารกับ ESP32-CAM ด้วย ESP-NOW คู่มือทำบอร์ดอยู่ที่
+> `hardware/EASYEDA_FROM_ZERO_TH.md` และ `hardware/PCB_HANDMADE_FIX_GUIDE_TH.md`
+
 ## สถานะปัจจุบันของ repo (อัปเดต 2026-07-20)
 
 **ฝั่งซอฟต์แวร์ใช้งานได้ครบวงจรแล้ว** — backend ต่อ MySQL จริง, dashboard เรียลไทม์ใช้งานได้,
@@ -21,25 +27,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **สิ่งที่ยังไม่มีในระบบ:** HTTPS/TLS, CI, test ฝั่ง frontend, การทดสอบกับฮาร์ดแวร์จริง
 
-### ก่อนทดสอบฮาร์ดแวร์ครั้งแรก ต้องแก้ 3 อย่างนี้ก่อน
+### ก่อนทดสอบฮาร์ดแวร์ครั้งแรก
 
-ตรวจแล้วเมื่อ 2026-07-20 — `DEVICE_TOKEN` ใน `apps/backend/.env` กับ `secrets.h` **ตรงกันแล้ว**
-และ Nest bind `0.0.0.0` เรียกจาก LAN ได้จริง แต่:
-
-1. **`kWifiSsid` ยังเป็น `CHANGE_ME`** — CAM จะต่อ Wi-Fi ไม่ติด แล้วทุก request
-   จะคืน `RESULT:error` ทันที (ประตูไม่เปิด) โดยไม่มี log บอกสาเหตุ
-2. **`kServerUrl` ชี้ไป `192.168.1.100` ซึ่งไม่ใช่ IP ของเครื่องนี้** — ต้องแก้เป็น IP จริง
-   ของเครื่องที่รัน backend และควรเป็น IP ที่ไม่เปลี่ยน (จอง DHCP หรือตั้ง static)
-3. **ต้องให้ ESP32-CAM กับเครื่องที่รัน backend อยู่วงแลนเดียวกันที่คุยกันได้** —
-   เน็ตของสถาบัน/มหาวิทยาลัยมักเปิด client isolation ซึ่งบล็อกอุปกรณ์คุยกันเอง
-   ทดสอบครั้งแรกให้ใช้ hotspot มือถือหรือเราเตอร์ของตัวเองจะตัดปัญหานี้ไปได้เลย
+1. ตั้ง Wi-Fi, backend URL และ `DEVICE_TOKEN` ใน `full-main_test.ino` ให้ตรงกับ
+   backend โดย ESP32 main เป็นผู้เรียก `POST /access` โดยตรง
+2. ตั้ง Wi-Fi, `SERVER_BASE` และ token ใน `full-cam_test.ino` เพื่อให้ CAM ลงทะเบียน
+   IP และเปิดบริการ `GET /capture`
+3. อ่าน MAC address ของ ESP32-CAM จาก Serial Monitor แล้วใส่ใน `camMacAddress`
+   ของ ESP32 main; ทั้งสองบอร์ดต้องอยู่ Wi-Fi channel เดียวกันเพื่อใช้ ESP-NOW
+4. ควรย้าย SSID/password/token ออกจาก source ก่อนเผยแพร่หรือ commit
 
 อย่าลืมว่า Windows Firewall จะถามสิทธิ์ตอนมี inbound เข้าพอร์ต 3001 ครั้งแรกจากเครื่องอื่น
 (เรียกจากเครื่องตัวเองผ่านได้ ไม่ได้แปลว่าเครื่องอื่นจะเรียกได้)
 
-**เวลาไล่ปัญหา ให้ดู log ของ `npm run start:dev` เป็นหลัก** เพราะฝั่ง ESP32-CAM
-debug ไม่ได้ (UART0 คือสายที่ต่อไป ESP32 main) — request ไม่มาเลย = เน็ต/firewall,
-มาแล้วได้ 401 = token, มาแล้ว 200 = ไปดูฝั่ง firmware ที่ parse ผลลัพธ์
+เวลาไล่ปัญหาให้ดู Serial Monitor ของทั้งสองบอร์ดและ log ของ `npm run start:dev`:
+request ไม่มา = Wi-Fi/URL/firewall, 401 = token, ESP-NOW ส่งไม่ถึง = MAC/channel ผิด
 
 ---
 
@@ -58,17 +60,18 @@ Door/
 │   ├── esp32-main/        ← ESP32 main: RFID x2, ultrasonic, OLED, buzzer, relay
 │   │   ├── platformio.ini ← board=esp32dev, -I../shared
 │   │   └── src/
-│   │       ├── main.cpp   ← state machine เข้า/ออก
-│   │       ├── config.h   ← ขา GPIO ทั้งหมด (ยืนยันกับวงจรจริงแล้ว)
+│   │       ├── esp_main/full-main_test.ino ← ⭐ firmware/hardware mapping ปัจจุบันใน branch pooh
+│   │       ├── main.cpp + config.h         ← PlatformIO architecture รุ่นเดิม
 │   │       ├── rfid.{h,cpp}        ← RC522 สองตัว คนละ SPI bus (VSPI/HSPI)
 │   │       ├── ultrasonic.{h,cpp}  ← HY-SRF05
 │   │       ├── display.{h,cpp}     ← OLED SSD1306
 │   │       ├── buzzer.{h,cpp}      ← non-blocking
 │   │       └── relay.{h,cpp}       ← non-blocking, fail-secure
-│   └── esp32-cam/         ← ESP32-CAM: กล้อง + Wi-Fi + TFT
+│   └── esp32-cam/         ← ESP32-CAM: กล้อง + Wi-Fi + TFT + ESP-NOW receiver
 │       ├── platformio.ini ← board=esp32cam, huge_app.csv, -I../shared
 │       └── src/
-│           ├── main.cpp   ← รับคำสั่งทาง Serial แล้วยิง HTTP multipart
+│           ├── esp32-cam/full-cam_test.ino ← ⭐ firmware ESP-NOW ปัจจุบันใน branch pooh
+│           ├── main.cpp   ← PlatformIO/Serial architecture รุ่นเดิม
 │           ├── config.h   ← ขากล้อง AI-Thinker
 │           ├── secrets.example.h   ← ต้นแบบ (commit ได้)
 │           └── secrets.h  ← ⚠️ gitignored — ค่า Wi-Fi/URL จริง
@@ -138,8 +141,8 @@ Door/
 | frontend (Next.js) | 3000 | ค่า default ของ `next dev` |
 | backend (Nest.js) | 3001 | `apps/backend/src/main.ts` (override ด้วย env `PORT`) |
 
-ถ้าเปลี่ยนพอร์ต backend ต้องแก้ `kServerUrl` ใน `firmware/esp32-cam/src/secrets.h` ด้วย
-ไม่งั้น ESP32-CAM จะยิง HTTP ไปผิดพอร์ต
+ถ้าเปลี่ยนพอร์ต backend ต้องแก้ `SERVER_URL` ใน `full-main_test.ino` และ
+`SERVER_BASE` ใน `full-cam_test.ino` ให้ตรงกัน
 
 ### Backend (Nest.js) — จาก `apps/backend/`
 ```bash
@@ -302,13 +305,16 @@ Hardware & Camera / Hardware & IoT
 
 ```
 [RFID Reader 1 (เข้า)] ─┐
-[RFID Reader 2 (ออก)] ──┼──► [ESP32 (main)] ◄──Serial/UART──► [ESP32-CAM] ◄──Wi-Fi/HTTP──► [Nest.js API] ◄──► [MySQL]
-[Ultrasonic Sensor] ────┘         │                                                              ▲
-                                   ▼                                                              │
-                     [OLED] [TFT*] [Buzzer] [Relay→Solenoid Lock]                    [Next.js Dashboard]
+[RFID Reader 2 (ออก)] ──┼──► [ESP32 main] ──Wi-Fi/HTTP──► [Nest.js API] ◄──► [MySQL]
+[Ultrasonic Sensor] ────┘       │       │                              ▲
+                                │       └──ESP-NOW──► [ESP32-CAM/TFT]   │
+                                ▼                                      │
+                       [OLED] [Buzzer] [Relay]             [Next.js Dashboard]
 ```
 
-**สำคัญ:** `ESP32 (main)` **ไม่มี Wi-Fi module เป็นของตัวเอง** จุดเชื่อมต่อ Wi-Fi ของทั้งระบบมีอยู่ที่ `ESP32-CAM` เพียงจุดเดียวเท่านั้น ดังนั้นข้อมูลทุกอย่างที่ออกไปยังเซิร์ฟเวอร์ (ทั้งขาเข้าและขาออก) ต้องส่งผ่าน ESP32-CAM เสมอ โดยฝั่งขาออกจะไม่แนบไฟล์ภาพไปด้วย
+**สำคัญ:** firmware ปัจจุบันให้ ESP32 main เชื่อม Wi-Fi และส่งข้อมูล RFID ไป backend
+โดยตรง ส่วน ESP32-CAM รับคำสั่งเปิด/ปิด TFT ผ่าน ESP-NOW บอร์ดหลักจ่ายให้ CAM
+เฉพาะ `+5V/GND` ไม่มีสาย UART
 
 *TFT LCD ต่อกับ ESP32-CAM โดยตรง (แสดงภาพสด/สตรีมมิ่งจากกล้อง)
 
@@ -322,7 +328,7 @@ Hardware & Camera / Hardware & IoT
 
 **Processing:**
 - ESP32 Dev Board (main controller)
-- ESP32-CAM (ถ่ายภาพ + จุดเชื่อมต่อ Wi-Fi หลัก)
+- ESP32-CAM (กล้อง/TFT, WebServer `/capture`, รับคำสั่งผ่าน ESP-NOW)
 
 **Output:**
 - TFT LCD (แสดงภาพสด, ต่อกับ ESP32-CAM)
@@ -339,27 +345,29 @@ Hardware & Camera / Hardware & IoT
 
 ## ขา GPIO (ยืนยันกับวงจรจริงแล้ว)
 
-ค่าจริงอยู่ที่ `firmware/esp32-main/src/config.h` และ `firmware/esp32-cam/src/config.h` — **แก้ที่ไฟล์นั้น ไม่ใช่ตารางนี้**
+ค่าปัจจุบันสำหรับ PCB อยู่ที่
+`pooh:firmware/esp32-main/src/esp_main/full-main_test.ino` ห้ามใช้ `config.h`
+ของ branch `nongtee` ซึ่งเป็น mapping เก่า
 
 ### ESP32 (main)
 | อุปกรณ์ | ขา |
 |---|---|
-| RFID ขาเข้า (VSPI) | RST=27, SS=5, SCK=18, MISO=19, MOSI=23 |
-| RFID ขาออก (HSPI) | RST=2, SS=4, SCK=14, MISO=12, MOSI=13 |
-| Ultrasonic HY-SRF05 | Trig=33, Echo=32 |
-| Relay | 26 |
-| Buzzer | 25 |
+| RFID ขาเข้า (VSPI) | RST=4, SS=5, SCK=18, MISO=19, MOSI=23 |
+| RFID ขาออก (HSPI) | RST=2, SS=17, SCK=14, MISO=35, MOSI=13 |
+| Ultrasonic HY-SRF05 | Trig=26, Echo=27 หลังตัวแบ่ง 1k/2k |
+| Relay | 25 |
+| Buzzer module S/GND | S=33, GND=GND |
 | OLED (I2C) | SDA=21, SCL=22 |
-| UART2 → ESP32-CAM | TX2=17, RX2=16 |
+| ESP32-CAM | ESP-NOW; PCB ต่อเฉพาะ +5V/GND |
 
 ### ESP32-CAM
 | อุปกรณ์ | ขา |
 |---|---|
 | กล้อง | ชุดมาตรฐาน AI-Thinker |
-| TFT ST7735 | MOSI=13, SCLK=14, CS=15, DC=2 |
-| UART0 → ESP32 main | RX=3, TX=1 |
+| TFT ST7735 | MOSI=2, SCLK=14, CS=13, DC=12, RST→3.3V |
+| ลิงก์ ESP32 main | ESP-NOW; ไม่มีสาย TX/RX |
 
-### ผลที่ตามมา 2 ข้อที่ต้องรู้ก่อนแก้โค้ด
+### ผลที่ตามมาที่ต้องรู้ก่อนแก้โค้ด
 
 **1. หัวอ่าน RFID สองตัวอยู่คนละ SPI bus** (ขาเข้า=VSPI, ขาออก=HSPI)
 ทำให้ใช้ `miguelbalboa/MFRC522` v1.x **ไม่ได้** เพราะไลบรารีนั้นเรียก global `SPI`
@@ -372,13 +380,11 @@ SPIClass gSpiExit(HSPI);   MFRC522DriverSPI gDriverExit(gSsExit, gSpiExit);
 MFRC522v2 ไม่รับขา RST ทาง driver (ใช้ soft reset) แต่วงจรต่อ RST ไว้จริง
 `rfidBegin()` จึงดึงขา RST ขึ้น HIGH เองก่อนเรียก `PCD_Init()`
 
-**2. ลิงก์ฝั่ง ESP32-CAM คือ UART0 ซึ่งเป็นพอร์ตเดียวกับ USB-serial**
-⚠️ **ห้าม `Serial.print()` debug ในโค้ดฝั่ง ESP32-CAM เด็ดขาด** — ทุกไบต์จะวิ่งไปเข้า
-ESP32 (main) แล้วถูก parse เป็นคำสั่งมั่ว ใน `src/cam/main.cpp` จึงใช้แมโคร `LOGF/LOGLN`
-ที่คอมไพล์ทิ้งไปเลยโดยค่าเริ่มต้น ถ้าจำเป็นต้อง debug ให้ต่อ UART อีกชุดแล้ว build ด้วย
-`-DCAM_DEBUG=1` (จะส่งออก `HardwareSerial(1)` แทน)
+**2. GPIO17 ไม่ใช่ UART ใน PCB ปัจจุบัน** แต่เป็น `SS_OUT` ของ RFID ฝั่งออก
+การสื่อสารกับ ESP32-CAM ใช้ ESP-NOW จึงห้ามเพิ่มสาย TX/RX ตามแบบเก่า
 
-ฝั่ง ESP32 (main) ใช้ UART2 (16/17) แยกจาก USB จึง `Serial.print()` debug ได้ตามปกติ
+**3. ฮาร์ดแวร์ประกอบ:** buzzer เป็นโมดูล `S/GND` ต่อ GPIO33 โดยตรง, OLED ใช้
+pull-up บนโมดูล และ Echo ต้องผ่านตัวแบ่ง 1k/2k ก่อนเข้า GPIO27
 
 ---
 
@@ -386,18 +392,13 @@ ESP32 (main) แล้วถูก parse เป็นคำสั่งมั่
 
 ### ฝั่งทางเข้า (Entry — RFID Reader 1)
 
-1. Initialize: เปิดใช้งาน RFID, Ultrasonic, หน้าจอ, ลำโพง ที่ ESP32 / เปิด Wi-Fi + กล้องที่ ESP32-CAM
-2. วนลูปอ่านค่า Ultrasonic:
-   - ระยะ < 100 ซม.? **ไม่ใช่** → OLED แสดง "สแตนด์บาย", ปิดจอ TFT, กลับไปวนอ่านค่าใหม่
-   - **ใช่** → เปิดจอ TFT + เริ่มสตรีมภาพสด
-3. ระยะ < 45 ซม. (ประชิด)? **ใช่** → ถ่ายภาพนิ่งเก็บล่วงหน้า 1 ภาพ
-4. มีการทาบบัตร RFID1? **ไม่ใช่** → วนกลับไปอ่านค่าเซนเซอร์ใหม่
-5. **ใช่** → อ่านรหัส UID → สั่ง ESP32-CAM ถ่ายภาพซ้ำตอนสแกนบัตร
-6. ส่งข้อมูล `{ uid, direction: "in", image }` ผ่าน ESP32-CAM (HTTP POST) ไปเซิร์ฟเวอร์
-7. รอรับ JSON `{ status: "granted" | "denied" }`
-8. **granted:** OLED "อนุญาต" → buzzer สั้น (0.2s) → Relay ON → delay 5s → Relay OFF
-9. **denied:** OLED "ไม่อนุญาต" → buzzer ยาว (3s) → ประตูคงสถานะล็อกเดิม
-10. วนกลับไปข้อ 2
+1. ESP32 main ต่อ Wi-Fi, เริ่ม RFID สอง SPI bus, OLED, ultrasonic, buzzer และ relay
+2. ถ้าระยะไม่เกิน `WAKE_DISTANCE_CM` (ปัจจุบัน 30 cm) ให้ OLED พร้อมรับบัตรและ
+   ส่งคำสั่ง byte `1` ผ่าน ESP-NOW เพื่อเปิด TFT/ภาพสดฝั่ง CAM
+3. เมื่อพ้นระยะ ส่ง byte `0` ให้ CAM ปิด TFT และกลับสถานะ standby
+4. RFID ฝั่งเข้ารับบัตรเฉพาะตอนอยู่ในระยะ จากนั้น ESP32 main ส่ง JSON
+   `{ uid, direction: "in" }` ไป `POST /access` โดยตรง
+5. granted: buzzer สั้นและ relay เปิด 5 วินาที; denied: buzzerยาว 3 วินาทีและประตูคงล็อก
 
 ### ฝั่งทางออก (Exit — RFID Reader 2)
 
@@ -405,48 +406,32 @@ ESP32 (main) แล้วถูก parse เป็นคำสั่งมั่
 
 1. มีการทาบบัตร RFID2? **ไม่ใช่** → วนรอใหม่
 2. **ใช่** → อ่านรหัส UID (**ไม่ถ่ายภาพ**)
-3. ส่งข้อมูล `{ uid, direction: "out" }` ผ่าน ESP32-CAM (ไม่มีไฟล์ภาพแนบ) ไปเซิร์ฟเวอร์
+3. ESP32 main ส่ง `{ uid, direction: "out" }` ไป backend โดยตรง
 4. รอรับ JSON `{ status: "granted" | "denied" }`
 5. **granted:** buzzer ดัง 1 ครั้ง → ปลดล็อกประตู 5 วินาที → ล็อกกลับ
 6. **denied:** buzzer ดังยาว → ประตูไม่เปิด (คงสถานะล็อก)
 7. วนกลับไปข้อ 1
 
-### โปรโตคอลสื่อสาร ESP32 (main) ↔ ESP32-CAM
+### การสื่อสาร ESP32 main ↔ ESP32-CAM ปัจจุบัน
 
-**implement แล้ว** — ค่าคงที่ทั้งหมดอยู่ที่ `firmware/shared/protocol.h` ซึ่งถูกคอมไพล์เข้าไป
-ในทั้งสอง env เพื่อกันสตริงพิมพ์ผิดคนละฝั่ง **แก้โปรโตคอลต้องแก้ที่ไฟล์นี้ไฟล์เดียว**
-
-ESP32 main → ESP32-CAM:
-```
-IN:<uid>    → ถ่ายภาพ + POST {uid, direction:"in", image}
-OUT:<uid>   → POST {uid, direction:"out"} (ไม่ถ่ายภาพ)
-WAKE        → เปิด TFT + สตรีมภาพสด   (ระยะ < 100cm)
-SLEEP       → ปิด TFT กลับสแตนด์บาย
-PRECAP      → ถ่ายภาพนิ่งเก็บล่วงหน้า   (ระยะ < 45cm)
-```
-ESP32-CAM → ESP32 main:
-```
-RESULT:granted | RESULT:denied | RESULT:error
-```
-`error` = ต่อเซิร์ฟเวอร์ไม่ได้/timeout (10s) — ฝั่ง main ปฏิบัติเหมือน `denied` คือประตูคงล็อก
-
-การส่งข้อมูลจริงใช้ **multipart/form-data** (fields: `uid`, `direction`, ไฟล์ `image`)
-ไม่ใช่ JSON+base64 — endpoint ฝั่ง backend ต้องรับ multipart ให้ตรงกัน
-
-**ยังไม่ implement:** คำสั่ง `WAKE`/`SLEEP` ฝั่ง ESP32-CAM ยังเป็น stub เปล่า
-รุ่นจอยืนยันแล้วว่าเป็น ST7735 (ขา 13/14/15/2) แต่ยังไม่ได้เพิ่มไลบรารี TFT
-เข้า `platformio.ini` — ดู `handleCommand()` ใน `src/cam/main.cpp`
+- ใช้ ESP-NOW แบบไม่เข้ารหัส โดย ESP32 main เก็บ MAC ของ CAM ใน `camMacAddress`
+- payload byte `1` = เปิด TFT/สตรีมภาพ และ byte `0` = ปิด TFT/จอดำ
+- CAM เปิด `GET /capture` บน WebServer ของตนเอง และลงทะเบียน IP ที่
+  `POST /devices/cam/register`
+- ทั้งสองบอร์ดใช้ `WiFi.mode(WIFI_AP_STA)` เพื่อให้ Wi-Fi และ ESP-NOW ทำงานร่วมกัน
+- `firmware/shared/protocol.h` และคำสั่งข้อความ UART เป็นสถาปัตยกรรม PlatformIO รุ่นเดิม
+  ไม่ใช่ข้อกำหนดของ PCB ปัจจุบัน
 
 ---
 
 ## Backend (Nest.js + MySQL)
 
-**Endpoint หลัก:** `POST /access` — **ทำแล้ว** อยู่ที่ `apps/backend/src/access/`
-(ฝั่ง firmware ยิงไปที่ URL นี้ตาม `kServerUrl` ใน `firmware/esp32-cam/src/secrets.h`)
+**Endpoint หลัก:** `POST /access` — ESP32 main เรียกโดยตรงตาม `SERVER_URL`
+ใน `full-main_test.ino`
 
 | route | ใช้ทำอะไร |
 |---|---|
-| `POST /access` | รับ multipart จาก ESP32-CAM ตอบ `{ "status": "granted" \| "denied" }` |
+| `POST /access` | รับ JSON `{ uid, direction }` จาก ESP32 main ตอบสถานะ granted/denied |
 | `GET /access/recent` | ดู log 50 รายการล่าสุด |
 
 ### Authentication (`src/auth/`)
@@ -460,7 +445,7 @@ RESULT:granted | RESULT:denied | RESULT:error
 | session JWT (USER) | ผู้ชมที่ล็อกอิน | **ทุก route ยกเว้น `/users/*`** | 8 ชม. |
 | ตั๋ว WebSocket | เบราว์เซอร์ของคนที่ล็อกอินแล้ว | **ต่อ WebSocket ได้อย่างเดียว** | 60 วินาที |
 | `DASHBOARD_TOKEN` | สคริปต์/curl/เครื่องมือ dev | ทุก route (เทียบเท่า ADMIN) | ไม่หมดอายุ |
-| `DEVICE_TOKEN` | ESP32-CAM | **เฉพาะ** `POST /access` | ไม่หมดอายุ |
+| `DEVICE_TOKEN` | ESP32 main และ ESP32-CAM | route สำหรับอุปกรณ์ (`/access`, ลงทะเบียน CAM) | ไม่หมดอายุ |
 
 ```
 Authorization: Bearer <token>
@@ -517,9 +502,9 @@ route และไม่มีวันหมดอายุ) ตอนนี้
 - ข้อความ error ไม่แยกระหว่าง "token ผิด" กับ "สิทธิ์ไม่พอ" เพื่อไม่ให้ใช้ไล่เดา
 - เซิร์ฟเวอร์ **ไม่ยอมบูต** ถ้าไม่ได้ตั้ง `DASHBOARD_TOKEN`/`DEVICE_TOKEN`
   (กันการเผลอรันแบบเปิดโล่ง)
-- ฝั่งเฟิร์มแวร์เก็บ token ไว้ใน `firmware/esp32-cam/src/secrets.h` ซึ่ง gitignore ไว้
-  **ถ้าเปลี่ยน `DEVICE_TOKEN` ใน `.env` ต้อง flash ESP32-CAM ใหม่ด้วย**
-  ไม่งั้นจะได้ 401 แล้วฝั่ง firmware จะตีความเป็น `RESULT:error` → ประตูไม่เปิด
+- firmware ปัจจุบันต้องให้ `DEVICE_TOKEN` ใน `full-main_test.ino` และ
+  `full-cam_test.ino` ตรงกับ backend และต้อง flash บอร์ดที่แก้ค่าใหม่
+- ค่า Wi-Fi/token ในไฟล์ทดสอบไม่ควรถูก commit; ควรย้ายไปไฟล์ secrets ที่ gitignore
 - **ถ้าเปลี่ยน `JWT_SECRET` ทุกคนจะหลุด session ต้องล็อกอินใหม่**
 
 ⚠️ **ที่ยังไม่ได้ทำ:**

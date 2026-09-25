@@ -9,13 +9,15 @@ This monorepo contains the software and firmware for a Security Door Lock system
 - **apps/backend**: NestJS + Prisma application for the API and WebSocket server.
 - **firmware/esp32-main**: PlatformIO firmware for the main ESP32 (RFID, Ultrasonic, Lock control).
 - **firmware/esp32-cam**: PlatformIO firmware for the ESP32-CAM (Face capture).
-- **firmware/shared**: `protocol.h` — the serial contract shared by both boards.
+- **firmware/shared**: `protocol.h` — สัญญารุ่น PlatformIO เดิม; ฮาร์ดแวร์ปัจจุบันใน branch `pooh` ใช้ ESP-NOW.
 - **docker**: MySQL init scripts used by `docker-compose.yml`.
 
 > `apps/backend` and `apps/frontend` each have their own `node_modules` and
 > `package-lock.json` — this is *not* an npm workspaces setup, so install in each folder.
 
-รายละเอียดทั้งหมด (สถาปัตยกรรม, สัญญาระหว่างสามฝั่ง, ขา GPIO, ระบบสิทธิ์) อยู่ใน **`CLAUDE.md`**
+รายละเอียดระบบอยู่ใน **`CLAUDE.md`** ส่วน GPIO และขั้นตอนทำ PCB ปัจจุบันให้ยึด
+`pooh:firmware/esp32-main/src/esp_main/full-main_test.ino` และคู่มือ
+`hardware/EASYEDA_FROM_ZERO_TH.md` / `hardware/PCB_HANDMADE_FIX_GUIDE_TH.md`
 
 ## Getting Started
 

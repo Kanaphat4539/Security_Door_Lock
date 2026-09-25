@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>คู่มือตำแหน่งต่อสายเพื่อบัดกรี — Security Door Lock (door-demo01)</title>
+<style>
+    body{font-family:"Leelawadee UI","Tahoma",sans-serif;font-size:12.5px;line-height:1.5;
+         margin:14mm 12mm;color:#111}
+    h1{font-size:19px;border-bottom:2px solid #333;padding-bottom:4px}
+    h2{font-size:16px;margin-top:18px;border-bottom:1px solid #bbb}
+    h3{font-size:14px;margin-top:14px;color:#0a5}
+    table{border-collapse:collapse;margin:6px 0 12px;width:100%}
+    th,td{border:1px solid #999;padding:3px 6px;text-align:left;vertical-align:top}
+    th{background:#eee}
+    code{background:#f3f3f3;padding:0 3px;font-family:Consolas,monospace}
+    blockquote{border-left:3px solid #0a5;margin:6px 0;padding:2px 8px;background:#f7fff9}
+    hr{border:none;border-top:1px dashed #999;margin:14px 0}
+    ul{margin:4px 0 8px 18px}
+    figure{margin:8px 0 14px}
+    figure img{width:100%;border:1px solid #ccc;background:#fff}
+    figcaption{font-size:11px;color:#555;margin-top:3px}
+    @media print{body{margin:10mm} h2{page-break-after:avoid} table{page-break-inside:avoid}
+                 figure{page-break-inside:avoid}}
+    </style>
+</head>
+<body>
+<h1>คู่มือตำแหน่งต่อสายเพื่อบัดกรี — บอร์ด Security Door Lock (door-demo01 / testPCB)</h1>
+<p><strong>ไฟล์บอร์ด:</strong> <code>PCB_demo_last_19-9.json</code> · ด้านเดียว (BottomLayer) · 88 × 148 mm · pad วงกลม 2.0 mm</p>
+<p>ไฟล์นี้ตอบคำถามเดียว: <strong>ตอนบัดกรี ต้องบัดกรีอะไรลงช่องไหน และลากสายไปเข้าขาไหนของโมดูล</strong></p>
+<p>ข้อมูลทุกบรรทัดดึงจากไฟล์บอร์ดจริง (pad + net + พิกัด) แล้วเทียบกับ <code>firmware/esp32-main/src/esp_main/full-main_test.ino</code> — ไม่ใช่การกะจากรูป</p>
+<blockquote>สร้างโดย <code>tools/gen_wiring_guide.py</code> — รันซ้ำได้เมื่อไฟล์บอร์ดเปลี่ยน (<code>python3 tools/gen_wiring_guide.py</code>)</blockquote>
+<h2>ผังภาพ (ดู 2 ภาพนี้ก่อน แล้วค่อยอ่านตาราง)</h2>
+<figure><img src="WIRING_MAP_CONNECT_TH.svg" alt="ผังการต่อสาย: ขา ESP32 ↔ ขั้วบนบอร์ด"><figcaption>ผังการต่อสาย: ขา ESP32 ↔ ขั้วบนบอร์ด</figcaption></figure>
+<figure><img src="WIRING_MAP_BOARD_TH.svg" alt="ผังตำแหน่งบนบอร์ด + สายจั้ม W1–W11"><figcaption>ผังตำแหน่งบนบอร์ด + สายจั้ม W1–W11</figcaption></figure>
+<hr>
+<h2>1. ระบบพิกัด (อ่านตารางให้ถูก)</h2>
+<ul>
+<li>ต้นกำเนิด (0, 0) = <strong>มุมซ้ายบนของบอร์ด</strong> หน่วยเป็นมิลลิเมตร วัดตาม <code>BLUEPRINT_COMPONENT_SIDE.svg</code> (ด้านอุปกรณ์ / ด้านที่บัดกรี)</li>
+<li>บอร์ดกว้าง 88 mm สูง 148 mm</li>
+<li>ทุกขั้วต่อเป็น <strong>JST-XH pitch 2.5 mm</strong> ส่วนขา ESP32 เป็น 2.54 mm (ระยะห่างขาที่ติดกัน = 2.5 / 2.54 mm)</li>
+<li>รูยึดบอร์ด M2 (2.3 mm) 4 รู: (5.97, 5.97) · (81.97, 5.97) · (5.97, 141.97) · (81.97, 141.97)</li>
+</ul>
+<h2>2. ชื่อ net บนบอร์ด ≠ ชื่อไฟ ⚠️ อ่านก่อนบัดกรี</h2>
+<p>EasyEDA ตั้งชื่อ net ตามชื่อ pad ปลายทาง จึงดูสับสน ของจริงเป็นแบบนี้:</p>
+<table>
+<tr><th>ชื่อ net ในไฟล์</th><th>= อะไรจริง ๆ</th></tr>
+<tr><td><code>5V_OUT_1</code></td><td><strong>+5V</strong> (ทั้งราง รวมขา VIN ของ ESP32)</td></tr>
+<tr><td><code>5V_OUT_2</code></td><td><strong>GND</strong> (กราวด์ร่วมทั้งบอร์ด)</td></tr>
+<tr><td><code>OLED1_1</code></td><td><strong>+3.3V</strong> (ทั้งราง รวมขา 3V3 ของ ESP32)</td></tr>
+<tr><td><code>RFID_IN1_n</code> / <code>RFID_OUT1_n</code></td><td>ขาที่ n ของขั้วหัวอ่านขาเข้า / ขาออก</td></tr>
+<tr><td><code>ESP32_n</code></td><td>ขาหมายเลข n ของ header ESP32 30 ขา (<strong>n = เลข pin บน PCB ไม่ใช่เลข GPIO</strong>)</td></tr>
+</table>
+<p>ตารางแปลงเลข pin → GPIO อยู่ข้อ 4 อย่าจำสลับกัน</p>
+<hr>
+<h2>3. ขั้วต่อทั้ง 8 ตัว — pin ไหน ต่ออะไร</h2>
+<p>พิกัด = ตำแหน่ง pad ของขานั้น วัดจากมุมซ้ายบนของบอร์ด (mm)</p>
+<h3>RFID_IN1 — JST-XH 8 ขา (B8B-XH-AM, pitch 2.5 mm)</h3>
+<p><em>หัวอ่านบัตรฝั่งเข้า (VSPI) — SS=5, SCK=18, MOSI=23, MISO=19, RST=4</em></p>
+<p><strong>pin 1 อยู่ซ้ายสุด (pin เพิ่มไปทางขวา)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(35.23, 11.16)</td><td><code>RFID_IN1_1</code></td><td>GPIO5 — SS (ขาเข้า)</td></tr>
+<tr><td>2</td><td>(37.73, 11.16)</td><td><code>RFID_IN1_2</code></td><td>GPIO18 — SCK (ขาเข้า)</td></tr>
+<tr><td>3</td><td>(40.23, 11.16)</td><td><code>RFID_IN1_3</code></td><td>GPIO23 — MOSI (ขาเข้า)</td></tr>
+<tr><td>4</td><td>(42.73, 11.16)</td><td><code>RFID_IN1_4</code></td><td>GPIO19 — MISO (ขาเข้า)</td></tr>
+<tr><td>5</td><td>(45.23, 11.16)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>6</td><td>(47.73, 11.16)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+<tr><td>7</td><td>(50.23, 11.16)</td><td><code>RFID_IN1_7</code></td><td>GPIO4 — RST (ขาเข้า)</td></tr>
+<tr><td>8</td><td>(52.73, 11.16)</td><td><code>OLED1_1</code></td><td>+3.3V (ราง 3V3)</td></tr>
+</table>
+<h3>RFID_OUT1 — JST-XH 8 ขา (B8B-XH-AM, pitch 2.5 mm)</h3>
+<p><em>หัวอ่านบัตรฝั่งออก (HSPI) — SS=17, SCK=14, MOSI=13, MISO=35, RST=2</em></p>
+<p><strong>pin 1 อยู่ซ้ายสุด (pin เพิ่มไปทางขวา)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(32.52, 126.24)</td><td><code>RFID_OUT1_1</code></td><td>GPIO17 — SS (ขาออก) *ผ่านสาย W2</td></tr>
+<tr><td>2</td><td>(35.03, 126.24)</td><td><code>RFID_OUT1_2</code></td><td>GPIO14 — SCK (ขาออก)</td></tr>
+<tr><td>3</td><td>(37.52, 126.24)</td><td><code>RFID_OUT1_3</code></td><td>GPIO13 — MOSI (ขาออก) *ผ่านสาย W10+W11</td></tr>
+<tr><td>4</td><td>(40.03, 126.24)</td><td><code>RFID_OUT1_4</code></td><td>GPIO35 — MISO (ขาออก) *ผ่านสาย W7</td></tr>
+<tr><td>5</td><td>(42.53, 126.24)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>6</td><td>(45.03, 126.24)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+<tr><td>7</td><td>(47.53, 126.24)</td><td><code>RFID_OUT1_7</code></td><td>GPIO2 — RST (ขาออก) *ผ่านสาย W1</td></tr>
+<tr><td>8</td><td>(50.03, 126.24)</td><td><code>OLED1_1</code></td><td>+3.3V (ราง 3V3)</td></tr>
+</table>
+<h3>OLED1 — JST-XH 4 ขา (B4B-XH-AM)</h3>
+<p><em>จอ OLED SH1106 1.3" I2C (ที่อยู่ 0x3C) — SDA=21, SCL=22</em></p>
+<p><strong>pin 1 อยู่บนสุด (pin เพิ่มลงล่าง)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(12.36, 29.32)</td><td><code>OLED1_1</code></td><td>+3.3V (ราง 3V3)</td></tr>
+<tr><td>2</td><td>(12.36, 31.86)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+<tr><td>3</td><td>(12.36, 34.4)</td><td><code>OLED1_3</code></td><td>GPIO22 — SCL</td></tr>
+<tr><td>4</td><td>(12.36, 36.94)</td><td><code>OLED1_4</code></td><td>GPIO21 — SDA</td></tr>
+</table>
+<h3>ULTRASONIC — JST-XH 4 ขา (B4B-XH-AM)</h3>
+<p><em>HY-SRF05 — TRIG=26, ECHO=27 ผ่านตัวแบ่ง 1k/2k บนบอร์ด</em></p>
+<p><strong>pin 1 อยู่บนสุด (pin เพิ่มลงล่าง)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(12.49, 89.78)</td><td><code>5V_OUT_1</code></td><td>+5V (ราง 5V)</td></tr>
+<tr><td>2</td><td>(12.49, 92.32)</td><td><code>ULTRASONIC_SENSOR1_2</code></td><td>GPIO26 — TRIG</td></tr>
+<tr><td>3</td><td>(12.49, 94.86)</td><td><code>R4_1</code></td><td>ECHO ดิบจากโมดูล (ก่อนตัวแบ่ง)</td></tr>
+<tr><td>4</td><td>(12.49, 97.4)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+</table>
+<h3>J_RELAY_CTRL — JST-XH 3 ขา (B3B-XH-A)</h3>
+<p><em>โมดูลรีเลย์ 5V (HIGH-trigger) — IN=25</em></p>
+<p><strong>pin 1 อยู่ล่างสุด (pin เพิ่มขึ้นบน)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(68.11, 108.44)</td><td><code>5V_OUT_1</code></td><td>+5V (ราง 5V)</td></tr>
+<tr><td>2</td><td>(68.11, 105.9)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+<tr><td>3</td><td>(68.11, 103.36)</td><td><code>ESP32_8</code></td><td>GPIO25 — สัญญาณ Relay (IN)</td></tr>
+</table>
+<h3>BUZZER1 — JST-XH 2 ขา (B2B-XH-AM)</h3>
+<p><em>Buzzer โมดูล S/GND (BZ-1295) — ขับตรงจาก GPIO33</em></p>
+<p><strong>pin 1 อยู่ล่างสุด (pin เพิ่มขึ้นบน)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(58.59, 107.81)</td><td><code>BUZZER1_1</code></td><td>GPIO33 — สัญญาณ buzzer</td></tr>
+<tr><td>2</td><td>(58.59, 105.27)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+</table>
+<h3>5V_IN — JST-XH 2 ขา (B2B-XH-AM)</h3>
+<p><em>ไฟเข้า 5V จาก USB/อะแดปเตอร์ 5V (pin1=+5V, pin2=GND)</em></p>
+<p><strong>pin 1 อยู่บนสุด (pin เพิ่มลงล่าง)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(76.5, 38.34)</td><td><code>5V_OUT_1</code></td><td>+5V (ราง 5V)</td></tr>
+<tr><td>2</td><td>(76.5, 40.88)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+</table>
+<h3>5V_OUT — JST-XH 2 ขา (B2B-XH-AM)</h3>
+<p><em>ไฟออก 5V ไปเลี้ยง ESP32-CAM (pin1=+5V, pin2=GND)</em></p>
+<p><strong>pin 1 อยู่บนสุด (pin เพิ่มลงล่าง)</strong> — ยึดเลขที่พิมพ์บนขั้ว JST เป็นหลัก</p>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>net</th><th>ต่อกับอะไร</th></tr>
+<tr><td>1</td><td>(76.12, 89.78)</td><td><code>5V_OUT_1</code></td><td>+5V (ราง 5V)</td></tr>
+<tr><td>2</td><td>(76.12, 92.32)</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+</table>
+<blockquote>พิกัดด้านบนคือ <strong>pad ทองแดงของขานั้น</strong> ใช้เทียบกับภาพ <code>BLUEPRINT_COPPER_SIDE.svg</code> (ด้านบัดกรี) และ <code>BLUEPRINT_COMPONENT_SIDE.svg</code> (ด้านอุปกรณ์) ได้โดยตรง</blockquote>
+<h3>5V_IN กับ 5V_OUT แยกกันยังไง</h3>
+<p>ทั้งสองขั้วเป็นของเหมือนกันเป๊ะ (pin1 = <code>5V_OUT_1</code> = +5V, pin2 = <code>5V_OUT_2</code> = GND) ต่างกันแค่ตำแหน่ง: ตัวหนึ่งอยู่ <strong>ขวาบน (y ≈ 39.6)</strong> อีกตัวอยู่ <strong>ขวากลาง (y ≈ 91.0)</strong> ให้ดูป้าย <code>5V_IN</code> / <code>5V_OUT</code> บนซิลค์สกรีนบอร์ด ถ้าสลับกันก็ยังใช้งานได้เหมือนเดิม เพราะเป็นรางเดียวกัน</p>
+<p>⚠️ <strong>จ่ายไฟทางเดียว</strong> — ใช้ USB หรือป้อน 5V ที่ขั้ว 5V_IN อย่างใดอย่างหนึ่ง อย่าจ่ายพร้อมกัน (เป็นรางเดียวกัน จะป้อนย้อนกลับเข้า USB)</p>
+<hr>
+<h2>4. ขา ESP32 (header 30 ขา) — pin ไหนคือ GPIO อะไร</h2>
+<ul>
+<li>แถว A = ขา 1–15 อยู่ที่ y = 81.29 mm (EN อยู่ซ้ายสุด, pin เพิ่มไปทางขวา)</li>
+<li>แถว B = ขา 16–30 อยู่ที่ y = 55.89 mm (GPIO23 อยู่ซ้ายสุด)</li>
+</ul>
+<table>
+<tr><th>pin</th><th>พิกัด (mm)</th><th>GPIO</th><th>net</th><th>ใช้ทำอะไร</th></tr>
+<tr><td>1</td><td>(25.54, 81.29)</td><td>EN</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>2</td><td>(28.08, 81.29)</td><td>GPIO36 (VP)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>3</td><td>(30.62, 81.29)</td><td>GPIO39 (VN)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>4</td><td>(33.16, 81.29)</td><td>GPIO34</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>5</td><td>(35.7, 81.29)</td><td>GPIO35</td><td><code>RFID_OUT1_4</code></td><td>GPIO35 — MISO (ขาออก) *ผ่านสาย W7</td></tr>
+<tr><td>6</td><td>(38.24, 81.29)</td><td>GPIO32</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>7</td><td>(40.78, 81.29)</td><td>GPIO33</td><td><code>BUZZER1_1</code></td><td>GPIO33 — สัญญาณ buzzer</td></tr>
+<tr><td>8</td><td>(43.32, 81.29)</td><td>GPIO25</td><td><code>ESP32_8</code></td><td>GPIO25 — สัญญาณ Relay (IN)</td></tr>
+<tr><td>9</td><td>(45.86, 81.29)</td><td>GPIO26</td><td><code>ULTRASONIC_SENSOR1_2</code></td><td>GPIO26 — TRIG</td></tr>
+<tr><td>10</td><td>(48.4, 81.29)</td><td>GPIO27</td><td><code>R4_2</code></td><td>GPIO27 — ECHO หลังตัวแบ่ง 1k/2k</td></tr>
+<tr><td>11</td><td>(50.94, 81.29)</td><td>GPIO14</td><td><code>RFID_OUT1_2</code></td><td>GPIO14 — SCK (ขาออก)</td></tr>
+<tr><td>12</td><td>(53.48, 81.29)</td><td>GPIO12</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>13</td><td>(56.02, 81.29)</td><td>GPIO13</td><td><code>RFID_OUT1_3</code></td><td>GPIO13 — MOSI (ขาออก) *ผ่านสาย W10+W11</td></tr>
+<tr><td>14</td><td>(58.56, 81.29)</td><td>GND</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+<tr><td>15</td><td>(61.1, 81.29)</td><td>VIN</td><td><code>5V_OUT_1</code></td><td>+5V (ราง 5V)</td></tr>
+<tr><td>16</td><td>(25.54, 55.89)</td><td>GPIO23</td><td><code>RFID_IN1_3</code></td><td>GPIO23 — MOSI (ขาเข้า)</td></tr>
+<tr><td>17</td><td>(28.08, 55.89)</td><td>GPIO22</td><td><code>OLED1_3</code></td><td>GPIO22 — SCL</td></tr>
+<tr><td>18</td><td>(30.62, 55.89)</td><td>GPIO1 (TX0)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>19</td><td>(33.16, 55.89)</td><td>GPIO3 (RX0)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>20</td><td>(35.7, 55.89)</td><td>GPIO21</td><td><code>OLED1_4</code></td><td>GPIO21 — SDA</td></tr>
+<tr><td>21</td><td>(38.24, 55.89)</td><td>GPIO19</td><td><code>RFID_IN1_4</code></td><td>GPIO19 — MISO (ขาเข้า)</td></tr>
+<tr><td>22</td><td>(40.78, 55.89)</td><td>GPIO18</td><td><code>RFID_IN1_2</code></td><td>GPIO18 — SCK (ขาเข้า)</td></tr>
+<tr><td>23</td><td>(43.32, 55.89)</td><td>GPIO5</td><td><code>RFID_IN1_1</code></td><td>GPIO5 — SS (ขาเข้า)</td></tr>
+<tr><td>24</td><td>(45.86, 55.89)</td><td>GPIO17 (TX2)</td><td><code>ESP32_24</code></td><td>GPIO17 — SS ขาออก (รอจั้ม W2)</td></tr>
+<tr><td>25</td><td>(48.4, 55.89)</td><td>GPIO16 (RX2)</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>26</td><td>(50.94, 55.89)</td><td>GPIO4</td><td><code>RFID_IN1_7</code></td><td>GPIO4 — RST (ขาเข้า)</td></tr>
+<tr><td>27</td><td>(53.48, 55.89)</td><td>GPIO2</td><td><code>ESP32_27</code></td><td>GPIO2 — RST ขาออก (รอจั้ม W1)</td></tr>
+<tr><td>28</td><td>(56.02, 55.89)</td><td>GPIO15</td><td><code>-</code></td><td>— (ไม่ได้ต่อ)</td></tr>
+<tr><td>29</td><td>(58.56, 55.89)</td><td>GND</td><td><code>5V_OUT_2</code></td><td>GND (กราวด์ร่วม)</td></tr>
+<tr><td>30</td><td>(61.1, 55.89)</td><td>3V3</td><td><code>OLED1_1</code></td><td>+3.3V (ราง 3V3)</td></tr>
+</table>
+<p><strong>ขาที่ปล่อยว่างไว้ (ห้ามบัดกรีสายต่อ):</strong> pin 1 (EN), pin 2 (GPIO36 (VP)), pin 3 (GPIO39 (VN)), pin 4 (GPIO34), pin 6 (GPIO32), pin 12 (GPIO12), pin 18 (GPIO1 (TX0)), pin 19 (GPIO3 (RX0)), pin 25 (GPIO16 (RX2)), pin 28 (GPIO15)</p>
+<p>⚠️ <code>GPIO12</code> เป็น strapping pin — คุมแรงดัน flash ตอนบูต <strong>ห้ามดึงลง GND/ต่ออะไร</strong> และ <code>GPIO2</code> (RST ของหัวอ่านขาออก) ต้องลอย HIGH ตอนเปิดเครื่อง อย่าใส่ pull-down</p>
+<hr>
+<h2>5. สายจั้ม 11 เส้น (W1–W11)</h2>
+<p>บอร์ดเป็น <strong>ด้านเดียว ไม่มี via</strong> สายที่ต้องข้ามลายทองแดงหรือคร่อมคนละมุมบอร์ด จึงต้องจั้มด้วยลวด — จุดจั้มมี pad 2.0 mm ฝังมาให้แล้วทุกจุด (ไม่ต้องหาขั้วเพิ่ม)</p>
+<table>
+<tr><th>สาย</th><th>หน้าที่</th><th>จาก (mm)</th><th>ไป (mm)</th><th>ระยะ</th><th>net ที่ตรวจในไฟล์</th></tr>
+<tr><td>W1</td><td>RST ขาออก GPIO2</td><td>(50.33, 71.87)</td><td>(47.54, 96.51)</td><td>24.8 mm</td><td><code>ESP32_27</code> ↔ <code>RFID_OUT1_7</code></td></tr>
+<tr><td>W2</td><td>SS ขาออก GPIO17</td><td>(4.56, 107.94)</td><td>(13.56, 107.94)</td><td>9.0 mm</td><td><code>ESP32_24</code> ↔ <code>RFID_OUT1_1</code></td></tr>
+<tr><td>W3</td><td>GND</td><td>(30.14, 26.4)</td><td>(37.25, 26.4)</td><td>7.1 mm</td><td><code>5V_OUT_2</code> ↔ <code>5V_OUT_2</code></td></tr>
+<tr><td>W4</td><td>+3.3V ไปหัวอ่านขาออก</td><td>(56.3, 122.03)</td><td>(61.0, 122.03)</td><td>4.7 mm</td><td><code>OLED1_1</code> ↔ <code>OLED1_1</code></td></tr>
+<tr><td>W5</td><td>+3.3V ไปหัวอ่านขาเข้า/ESP32</td><td>(55.16, 17.13)</td><td>(59.48, 17.13)</td><td>4.3 mm</td><td><code>OLED1_1</code> ↔ <code>OLED1_1</code></td></tr>
+<tr><td>W6</td><td>+3.3V ไปขั้ว OLED</td><td>(11.6, 16.75)</td><td>(16.68, 22.34)</td><td>7.6 mm</td><td><code>OLED1_1</code> ↔ <code>OLED1_1</code></td></tr>
+<tr><td>W7</td><td>MISO ขาออก GPIO35</td><td>(35.73, 73.52)</td><td>(40.17, 134.61)</td><td>61.3 mm</td><td><code>RFID_OUT1_4</code> ↔ <code>RFID_OUT1_4</code></td></tr>
+<tr><td>W8</td><td>+5V ด้านขวาล่าง</td><td>(73.19, 112.51)</td><td>(73.19, 125.34)</td><td>12.8 mm</td><td><code>5V_OUT_1</code> ↔ <code>5V_OUT_1</code></td></tr>
+<tr><td>W9</td><td>+5V ด้านซ้ายกลาง</td><td>(10.33, 77.58)</td><td>(17.19, 84.7)</td><td>9.9 mm</td><td><code>5V_OUT_1</code> ↔ <code>5V_OUT_1</code></td></tr>
+<tr><td>W10</td><td>MOSI ขาออก ช่วงล่าง</td><td>(42.46, 117.21)</td><td>(51.86, 117.21)</td><td>9.4 mm</td><td><code>RFID_OUT1_3</code> ↔ <code>RFID_OUT1_3</code></td></tr>
+<tr><td>W11</td><td>MOSI ขาออก ช่วงกลาง</td><td>(51.86, 97.65)</td><td>(51.86, 88.51)</td><td>9.1 mm</td><td><code>RFID_OUT1_3</code> ↔ <code>RFID_OUT1_3</code></td></tr>
+</table>
+<p>ไฟล์บอร์ดมี pad ลอยทั้งหมด 20 จุด = 10 คู่ (W1, W3–W11) บวกขั้ว <code>W2</code> ที่เป็น footprint JUMPER WIRE 2 ขา — รวม 11 เส้นตรงกับคู่มือพิมพ์</p>
+<p>วิธีจั้ม:</p>
+<ul>
+<li>สายสัญญาณ (W1, W2, W7, W10, W11) ใช้ลวดเส้นเล็ก 0.3–0.5 mm</li>
+<li>สายไฟ (W3–W6, W8, W9) ใช้เส้น 0.5 mm ขึ้นไป</li>
+<li><strong>W7 ยาวสุด 61 mm</strong> ลากชิดขอบบอร์ดหรือใช้สายหุ้มฉนวน กันไปแตะลายอื่น</li>
+<li>บัดกรีทีละเส้นแล้ววัดไม่แตะลายข้าง ๆ ก่อนไปเส้นถัดไป</li>
+</ul>
+<p><strong>ทำไมต้องมีสายจั้ม 2 กลุ่มนี้</strong> (จะได้ไม่งงว่าทำไมลายไม่ถึง):</p>
+<p>1. <strong>รางไฟถูกแบ่งเป็นเกาะ</strong> — +3.3V มี 3 เกาะ (W4, W5, W6), +5V มี 2 เกาะ (W8, W9), GND มี 1 เกาะ (W3)</p>
+<p>2. <strong>สัญญาณหัวอ่านขาออก (HSPI)</strong> SS / RST / MISO / MOSI ถูกส่งไปคนละมุมบอร์ด จึงต้องจั้ม W1, W2, W7, W10+W11 — ซีกขา enter (VSPI) ลากลายตรงถึงกันหมดแล้ว</p>
+<hr>
+<h2>6. อุปกรณ์รอบข้าง (R, C)</h2>
+<table>
+<tr><th>ตัว</th><th>ค่า</th><th>พิกัดขา (mm)</th><th>ต่อกับ</th></tr>
+<tr><td>R 1k (1/4W)</td><td>1 kΩ</td><td>(25.57, 102.98) และ (25.57, 95.36)</td><td>ขา 1 → ECHO ของ HY-SRF05 · ขา 2 → จุดกลางตัวแบ่ง</td></tr>
+<tr><td>R 2k (1/2W)</td><td>2 kΩ</td><td>(28.85, 92.82) และ (41.85, 92.82)</td><td>ขา 1 → จุดกลางตัวแบ่ง · ขา 2 → GND</td></tr>
+<tr><td>C 100nF ×2</td><td>100 nF</td><td>(66.46, 37.07)/(66.46, 42.15) และ (75.61, 102.35)/(80.69, 102.35)</td><td>คร่อม +5V กับ GND (ไม่มีขั้ว)</td></tr>
+<tr><td>C 470uF ×2</td><td>470 µF 10V</td><td>(57.07, 37.83)/(57.07, 40.37) และ (77.13, 111.11)/(79.67, 111.11)</td><td>คร่อม +5V กับ GND — <strong>มีขั้ว</strong></td></tr>
+</table>
+<p><strong>ตัวแบ่งแรงดัน ECHO (R 1k + R 2k):</strong> ขา 3 ของขั้ว ULTRASONIC → R 1k → จุดกลาง → R 2k → GND และจุดกลางเข้า pin 10 (GPIO27) — ECHO ของ HY-SRF05 เป็น 5V <strong>ห้ามต่อตรงเข้า GPIO27 เด็ดขาด</strong> ตัวแบ่งนี้อยู่บนบอร์ดแล้ว (5V × 2k/(1k+2k) ≈ 3.33V)</p>
+<p><strong>C 470uF มีขั้ว:</strong> ขาที่ต่อ <code>5V_OUT_1</code> (+5V) = ขั้วบวก ส่วนอีกขาเข้า GND — ก่อนบัดกรีดูแถบสี/เครื่องหมายลบบนตัวถังและเครื่องหมายที่ซิลค์สกรีนให้ตรงกัน ใส่กลับขั้วแล้วจะบวม/ระเบิดตอนจ่ายไฟ</p>
+<hr>
+<h2>7. ลำดับการบัดกรี + ตรวจก่อนจ่ายไฟ</h2>
+<p>1. <strong>ตัวเตี้ยก่อน:</strong> R 1k → R 2k → C 100nF ×2 → C 470uF ×2 (ระวังขั้วของ 470uF)</p>
+<p>2. <strong>ขั้วต่อ JST-XH ทั้ง 8 ตัว</strong> — อย่าลืมว่าขั้ว 8 ขา ขา 1 อยู่ด้านซ้ายตามตารางข้อ 3</p>
+<p>3. <strong>หัว ESP32:</strong> บัดกรีหัว female 2×15 (แนะนำ — ถอดเปลี่ยนบอร์ดได้) หรือบัดกรีตัว DevKit ลงไปตรง ๆ (รู ≈ 1.0 mm รับขา 0.64 mm ได้)</p>
+<p>4. <strong>จั้มสาย W1–W11</strong> ทีละเส้นตามตารางข้อ 5 (ทำท้ายสุด เพราะจะบังจุดอื่น)</p>
+<p>5. <strong>วัด short ก่อนจ่ายไฟ</strong> (โหมดต่อเนื่อง/โอห์ม): +5V ↔ GND · +3.3V ↔ GND · +5V ↔ +3.3V → ต้องไม่ต่อถึงกัน (ถ้าแตะกันให้หาสะพานบัดกรีก่อน ห้ามจ่ายไฟ)</p>
+<p>6. <strong>จ่ายไฟ 5V</strong> ที่ขั้ว 5V_IN (อย่าเสียบ USB พร้อมกัน) แล้ววัด: ขา 1 ของ 5V_OUT ได้ 5V · ขา 1 ของ OLED1 (หรือ pin 30 ของ ESP32) ได้ 3.3V</p>
+<p>7. <strong>ตรวจความต่อเนื่องทีละ net</strong> ตามตารางข้อ 8 (วัดจาก pad ขั้ว ไป pad ขาของ ESP32)</p>
+<p>8. เสียบ USB → เปิด Serial Monitor 115200 → flash <code>full-main_test.ino</code> → ทาบบัตร</p>
+<h2>8. ตารางตรวจความต่อเนื่อง (วัดจริงด้วยมิเตอร์)</h2>
+<table>
+<tr><th>จาก</th><th>ไป</th><th>ผ่าน</th></tr>
+<tr><td>RFID_IN1 pin 1</td><td>ESP32 pin 23 (GPIO5)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_IN1 pin 2</td><td>ESP32 pin 22 (GPIO18)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_IN1 pin 3</td><td>ESP32 pin 16 (GPIO23)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_IN1 pin 4</td><td>ESP32 pin 21 (GPIO19)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_IN1 pin 6</td><td>GND (ยืนยันกับ pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_IN1 pin 7</td><td>ESP32 pin 26 (GPIO4)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_IN1 pin 8</td><td>ESP32 pin 30 (3V3)</td><td>ผ่าน W5</td></tr>
+<tr><td>RFID_OUT1 pin 1</td><td>ESP32 pin 24 (GPIO17)</td><td>ผ่าน W2</td></tr>
+<tr><td>RFID_OUT1 pin 2</td><td>ESP32 pin 11 (GPIO14)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_OUT1 pin 3</td><td>ESP32 pin 13 (GPIO13)</td><td>ผ่าน W10 + W11</td></tr>
+<tr><td>RFID_OUT1 pin 4</td><td>ESP32 pin 5 (GPIO35)</td><td>ผ่าน W7</td></tr>
+<tr><td>RFID_OUT1 pin 7</td><td>ESP32 pin 27 (GPIO2)</td><td>ผ่าน W1</td></tr>
+<tr><td>RFID_OUT1 pin 6</td><td>GND (pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>RFID_OUT1 pin 8</td><td>ESP32 pin 30 (3V3)</td><td>ผ่าน W4</td></tr>
+<tr><td>OLED1 pin 1</td><td>ESP32 pin 30 (3V3)</td><td>ผ่าน W6</td></tr>
+<tr><td>OLED1 pin 2</td><td>GND (pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>OLED1 pin 3</td><td>ESP32 pin 17 (GPIO22)</td><td>ลายทองแดง</td></tr>
+<tr><td>OLED1 pin 4</td><td>ESP32 pin 20 (GPIO21)</td><td>ลายทองแดง</td></tr>
+<tr><td>ULTRASONIC pin 1</td><td>ESP32 pin 15 (VIN / +5V)</td><td>ลายทองแดง</td></tr>
+<tr><td>ULTRASONIC pin 2</td><td>ESP32 pin 9 (GPIO26)</td><td>ลายทองแดง</td></tr>
+<tr><td>ULTRASONIC pin 3</td><td>ขา 1 ของ R 1k</td><td>ลายทองแดง</td></tr>
+<tr><td>ULTRASONIC pin 4</td><td>GND (pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>ขา 2 ของ R 1k</td><td>ESP32 pin 10 (GPIO27) + ขา 1 ของ R 2k</td><td>จุดกลางตัวแบ่ง</td></tr>
+<tr><td>ขา 2 ของ R 2k</td><td>GND (pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>BUZZER1 pin 1</td><td>ESP32 pin 7 (GPIO33)</td><td>ลายทองแดง</td></tr>
+<tr><td>BUZZER1 pin 2</td><td>GND (pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>J_RELAY_CTRL pin 1</td><td>+5V (pin 15)</td><td>ลายทองแดง</td></tr>
+<tr><td>J_RELAY_CTRL pin 2</td><td>GND (pin 14)</td><td>ลายทองแดง</td></tr>
+<tr><td>J_RELAY_CTRL pin 3</td><td>ESP32 pin 8 (GPIO25)</td><td>ลายทองแดง</td></tr>
+<tr><td>5V (ทั้งราง)</td><td>pin 15 (VIN) + ULTRASONIC pin 1 + RELAY pin 1 + 5V_OUT pin 1</td><td>ผ่าน W8 + W9</td></tr>
+<tr><td>3V3 (ทั้งราง)</td><td>pin 30 + OLED1 pin 1 + RFID_IN1 pin 8 + RFID_OUT1 pin 8</td><td>ผ่าน W4 + W5 + W6</td></tr>
+</table>
+<h2>9. ต่อสายจากบอร์ดไปโมดูล — ทำสายให้ตรง</h2>
+<p>ขั้วบนบอร์ดเป็น JST-XH 2.5 mm แต่โมดูลทั่วไปเป็นขา 2.54 mm ต้องทำสาย 2 ด้าน (JST-XH ↔ ดูปองท์) โดยยึด <strong>ป้ายบนโมดูล</strong> เป็นหลัก:</p>
+<ul>
+<li><strong>RC522:</strong> โมดูลเรียงขาไม่เหมือนกันในแต่ละร้าน (มักเป็น <code>SDA/SS · SCK · MOSI · MISO · IRQ · GND · RST · 3.3V</code> แต่มีรุ่นสลับหัวท้าย) → ดูชื่อขาบนตัวโมดูลแล้วทำสายให้ตรงกับ ตารางข้อ 3 ของขั้วนั้น · <strong>ใช้ไฟ 3.3V เท่านั้น</strong> ต่อ 5V แล้วชิปไหม้ทันที</li>
+<li><strong>OLED (SH1106 1.3"):</strong> ขั้วบนบอร์ดเรียง <code>1=3.3V · 2=GND · 3=SCL · 4=SDA</code> ถ้าโมดูลเรียงเป็น <code>GND/VCC</code> ให้สลับตามป้าย ไม่ใช่ตามตำแหน่ง</li>
+<li><strong>HY-SRF05:</strong> ขั้วบนบอร์ดเรียง <code>1=+5V · 2=TRIG · 3=ECHO · 4=GND</code> — โมดูลส่วนใหญ่เป็น <code>VCC/TRIG/ECHO/GND</code> ตรงกันอยู่แล้ว</li>
+<li><strong>โมดูลรีเลย์:</strong> ขั้วบนบอร์ด <code>1=+5V · 2=GND · 3=IN(สัญญาณ)</code> — ตั้งโมดูลเป็น <strong>HIGH-trigger</strong> เพราะเฟิร์มแวร์สั่ง HIGH = ปลดล็อก ขั้วโซลินอยด์ 12V ต่อที่สกรู <code>COM/NO</code> บนตัวโมดูล (ไม่อยู่บนบอร์ดนี้)</li>
+<li><strong>Buzzer:</strong> บอร์ดขับจาก GPIO33 ตรง ๆ (ไม่มีทรานซิสเตอร์บนบอร์ด) → ใช้ buzzer <strong>โมดูล S/GND (BZ-1295)</strong> ที่กินกระแสต่ำเท่านั้น</li>
+<li><strong>ESP32-CAM:</strong> ต่อแค่ +5V/GND จากขั้ว 5V_OUT ไม่มีสายสัญญาณ (สั่งงานผ่าน ESP-NOW ระยะต้องตรงกับ <code>camMacAddress</code> ในโค้ด)</li>
+</ul>
+<h2>10. เช็กลิสต์สุดท้ายก่อนเปิดเครื่อง</h2>
+<ul>
+<li>[ ] R 1k / R 2k บัดกรีถูกค่า (วัดด้วยโอห์มมิเตอร์: 1.0 kΩ และ 2.0 kΩ)</li>
+<li>[ ] C 470uF ทั้งสองตัวใส่ขั้วถูก (+ เข้า +5V)</li>
+<li>[ ] สายจั้ม W1–W11 ครบ 11 เส้น (ไล่ตามตารางข้อ 5 ทีละเส้น)</li>
+<li>[ ] ไม่มีสะพานบัดกรี: +5V ↔ GND · +3.3V ↔ GND · +5V ↔ +3.3V</li>
+<li>[ ] pin 12 (GPIO12) ไม่มีอะไรต่อ และ pin 27 (GPIO2) ไม่ถูกดึงลง GND</li>
+<li>[ ] จ่ายไฟ 5V แล้วได้ 5V ที่ขั้ว 5V_OUT และ 3.3V ที่ OLED1 pin 1</li>
+<li>[ ] ตรวจความต่อเนื่องตามตารางข้อ 8 ครบทุกบรรทัด</li>
+</ul>
+<hr>
+<h2>โหมดทดลองก่อนบัดกรี (บนบอร์ดทดลอง/breadboard)</h2>
+<p>ถ้ายังไม่กล้าบัดกรี ใช้ตารางข้อ 3–4 เป็นผังต่อบนบอร์ดทดลองได้เลย: คอลัมน์ net/ต่อกับอะไร คือขา GPIO ที่ต้องจั้มหาขาโมดูล — สิ่งที่ห้ามลืมคือ <strong>ECHO ต้องผ่านตัวแบ่ง 1k/2k</strong> (บนบอร์ดทดลองต้องต่อเอง) และ <strong>ห้ามใช้ไฟ 5V กับ RC522 / OLED</strong></p>
+</body>
+</html>

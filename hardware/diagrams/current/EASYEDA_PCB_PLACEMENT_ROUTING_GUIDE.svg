@@ -1,0 +1,306 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <title>EasyEDA single-layer placement and routing guide v2</title>
+  <desc>Current pooh-design top-view placement guide for a 148 by 88 mm hand-etched PCB, including relay-module mounting area, capacitor references, no-connect marks, and route corridors.</desc>
+  <defs>
+    <pattern id="grid5" width="35" height="35" patternUnits="userSpaceOnUse">
+      <path d="M35 0H0V35" fill="none" stroke="#d7dde5" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.2"/>
+    </filter>
+    <g id="ncMark"><path d="M-0.75-0.75L0.75 0.75M0.75-0.75L-0.75 0.75" fill="none" stroke="#27ae60" stroke-width="0.45" vector-effect="non-scaling-stroke"/></g>
+    <style>
+      .title{font:700 28px Arial,sans-serif;fill:#16202a}
+      .subtitle{font:16px Arial,sans-serif;fill:#425466}
+      .panel-title{font:700 20px Arial,sans-serif;fill:#16202a}
+      .body{font:14px Arial,sans-serif;fill:#283747}
+      .small{font:11px Arial,sans-serif;fill:#34495e}
+      .tiny{font:9px Arial,sans-serif;fill:#34495e}
+      .board{fill:url(#grid5);stroke:#16202a;stroke-width:3}
+      .comp{fill:#f7f9fb;stroke:#34495e;stroke-width:1.5;vector-effect:non-scaling-stroke}
+      .conn{fill:#fff9dc;stroke:#8a6d00;stroke-width:1.5;vector-effect:non-scaling-stroke}
+      .cap{fill:#eef7ff;stroke:#0066a1;stroke-width:1.5;vector-effect:non-scaling-stroke}
+      .module{fill:#eaf2f8;fill-opacity:.82;stroke:#2874a6;stroke-width:1.8;stroke-dasharray:5 3;vector-effect:non-scaling-stroke}
+      .pad{fill:#f2c94c;stroke:#7a5b00;stroke-width:1;vector-effect:non-scaling-stroke}
+      .hole{fill:#fff;stroke:#2c3e50;stroke-width:1.5;vector-effect:non-scaling-stroke}
+      .keepout{fill:#ffe8e8;stroke:#c0392b;stroke-width:1.5;stroke-dasharray:5 3;vector-effect:non-scaling-stroke}
+      .sig{fill:none;stroke:#009b55;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+      .p5{fill:none;stroke:#d7263d;stroke-width:4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+      .p33{fill:none;stroke:#7b2cbf;stroke-width:3;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+      .gnd{fill:none;stroke:#1473e6;stroke-width:3;stroke-dasharray:2 2;vector-effect:non-scaling-stroke}
+      .jumper{fill:none;stroke:#e67e22;stroke-width:3;stroke-dasharray:8 5;stroke-linecap:round;vector-effect:non-scaling-stroke}
+      .route-label{font:700 1.45px Arial,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:.45px;fill:#145a32}
+      .part-label{font:700 1.75px Arial,sans-serif;fill:#17202a;text-anchor:middle}
+      .part-sub{font:1.25px Arial,sans-serif;fill:#34495e;text-anchor:middle}
+      .pin-label{font:1.05px Arial,sans-serif;fill:#1b2631}
+      .warn{fill:#fff4e6;stroke:#e67e22;stroke-width:2}
+      .ok{fill:#eafaf1;stroke:#1e8449;stroke-width:2}
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="#eef2f6"/>
+  <text x="30" y="38" class="title">ตำแหน่งวางอุปกรณ์และแนวลากสาย V2 — PCB กัดมือหน้าเดียว</text>
+  <text x="30" y="64" class="subtitle">อัปเดตตาม Schematic ล่าสุด · มุมมองด้านอุปกรณ์ · บอร์ด 148 × 88 mm · USB ของ ESP32 หันลง</text>
+
+  <!-- Board, scaled at 7 px/mm -->
+  <g id="board" transform="translate(30 95) scale(7)">
+    <rect x="0" y="0" width="148" height="88" rx="1" class="board" filter="url(#shadow)"/>
+
+    <!-- Mounting holes -->
+    <circle cx="4" cy="4" r="1.2" class="hole"/>
+    <circle cx="144" cy="4" r="1.2" class="hole"/>
+    <circle cx="4" cy="84" r="1.2" class="hole"/>
+    <circle cx="144" cy="84" r="1.2" class="hole"/>
+
+    <!-- Antenna keepout -->
+    <rect x="56" y="5" width="36" height="16" rx="1" class="keepout"/>
+    <text x="74" y="10" class="part-label" fill="#a93226">ESP32 ANTENNA KEEPOUT</text>
+    <text x="74" y="13" class="part-sub">ห้ามทองแดง / jumper / อุปกรณ์</text>
+
+    <!-- GND pour indication -->
+    <path d="M3 17 H54 M94 17 H145 M3 65 H24 M53 65 H95 M121 65 H145" class="gnd"/>
+    <text x="4" y="16" class="pin-label" fill="#1473e6">GND copper pour (BottomLayer)</text>
+
+    <!-- +5V trunk -->
+    <path d="M60 82 V76 H55 V60 H57.8 M60 76 H18 V11 H24 M60 76 H47 V70 M60 76 H103 V82 M103 76 H119 V72" class="p5"/>
+    <text x="20" y="74.6" class="route-label" fill="#b71c2c">+5V trunk 1.5 mm</text>
+
+    <!-- +3V3 trunk -->
+    <path d="M89 21 H96 V15 H110 M96 15 H130 V57 M96 15 H16 V57" class="p33"/>
+    <text x="96" y="14" class="route-label" fill="#6c3483">+3V3 trunk 1.2 mm</text>
+
+    <!-- Signal routes: Ultrasonic -->
+    <path d="M59 41.32 H49 V19 H31 V12" class="sig"/>
+    <text x="47" y="38" class="route-label">TRIG26</text>
+    <path d="M59 43.86 H52 V18 H49" class="sig"/>
+    <path d="M49 18 H40 V12" class="sig"/>
+    <text x="46" y="20" class="route-label">ECHO→1k→GPIO27</text>
+
+    <!-- Signal routes: buzzer and relay -->
+    <path d="M59 36.24 H57 V61 H58" class="sig"/>
+    <text x="46" y="55.5" class="route-label">BUZZER S / GPIO33</text>
+    <path d="M59 38.78 H55 V70" class="sig"/>
+    <text x="55.5" y="65" class="route-label">RELAY IN25</text>
+
+    <!-- Signal routes: OLED -->
+    <path d="M89 46.4 H98 V18 H126 V12" class="sig"/>
+    <path d="M89 54.02 H94 V16 H118 V12" class="sig"/>
+    <text x="99" y="19.5" class="route-label">SDA21 / SCL22</text>
+
+    <!-- RFID IN direct right-side routes -->
+    <path d="M89 38.78 H126 V23 H135" class="sig"/>
+    <path d="M89 41.32 H123 V28 H135" class="sig"/>
+    <path d="M89 56.56 H120 V33 H135" class="sig"/>
+    <path d="M89 43.86 H117 V38 H135" class="sig"/>
+    <path d="M89 31.16 H114 V53 H135" class="sig"/>
+    <text x="121" y="44" class="route-label">RFID IN: 5/18/23/19/4</text>
+
+    <!-- RFID OUT direct left-side routes -->
+    <path d="M59 46.4 H32 V28 H13" class="sig"/>
+    <path d="M59 51.48 H35 V33 H13" class="sig"/>
+    <path d="M59 31.16 H38 V38 H13" class="sig"/>
+    <text x="31" y="43" class="route-label">RFID OUT: SCK14/MOSI13/MISO35</text>
+
+    <!-- RFID OUT jumpers from right row -->
+    <path d="M89 36.24 H108 V64 H24 V23 H13" class="jumper"/>
+    <path d="M89 28.62 H111 V67 H21 V53 H13" class="jumper"/>
+    <circle cx="108" cy="64" r="1" class="pad"/><circle cx="24" cy="23" r="1" class="pad"/>
+    <circle cx="111" cy="67" r="1" class="pad"/><circle cx="21" cy="53" r="1" class="pad"/>
+    <text x="63" y="63" class="route-label" fill="#a04000">JP1 SS17 · JP2 RST2 (สายหุ้มฉนวนด้านบน)</text>
+
+    <!-- CAM capacitor connections -->
+    <path d="M103 82 H118 V72" class="p5"/>
+    <path d="M108 82 H124 V72" class="gnd"/>
+
+    <!-- Relay capacitor connections -->
+    <path d="M47 70 V77 H46" class="p5"/>
+    <path d="M51 70 V80 H53" class="gnd"/>
+
+    <!-- ESP32 body -->
+    <rect x="59" y="17" width="30" height="56" rx="1.5" class="comp"/>
+    <rect x="62" y="7" width="24" height="14" rx="1" fill="#f8d7da" stroke="#c0392b" stroke-width=".25"/>
+    <text x="74" y="18.8" class="part-label">ESP32 DEVKIT V1</text>
+    <text x="74" y="22" class="part-sub">30 pin · USB ↓</text>
+    <rect x="68" y="73" width="12" height="7" rx="1" fill="#c5ccd3" stroke="#566573" stroke-width=".25"/>
+    <text x="74" y="77.2" class="part-sub">USB</text>
+
+    <!-- ESP32 left pads and labels -->
+    <g id="left-pins">
+      <circle cx="59" cy="21" r=".65" class="pad"/><text x="57.8" y="21.35" class="pin-label" text-anchor="end">EN</text>
+      <circle cx="59" cy="23.54" r=".65" class="pad"/><text x="57.8" y="23.9" class="pin-label" text-anchor="end">VP</text>
+      <circle cx="59" cy="26.08" r=".65" class="pad"/><text x="57.8" y="26.43" class="pin-label" text-anchor="end">VN</text>
+      <circle cx="59" cy="28.62" r=".65" class="pad"/><text x="57.8" y="28.97" class="pin-label" text-anchor="end">D34</text>
+      <circle cx="59" cy="31.16" r=".65" class="pad"/><text x="57.8" y="31.51" class="pin-label" text-anchor="end">D35</text>
+      <circle cx="59" cy="33.70" r=".65" class="pad"/><text x="57.8" y="34.05" class="pin-label" text-anchor="end">D32</text>
+      <circle cx="59" cy="36.24" r=".65" class="pad"/><text x="57.8" y="36.59" class="pin-label" text-anchor="end">D33</text>
+      <circle cx="59" cy="38.78" r=".65" class="pad"/><text x="57.8" y="39.13" class="pin-label" text-anchor="end">D25</text>
+      <circle cx="59" cy="41.32" r=".65" class="pad"/><text x="57.8" y="41.67" class="pin-label" text-anchor="end">D26</text>
+      <circle cx="59" cy="43.86" r=".65" class="pad"/><text x="57.8" y="44.21" class="pin-label" text-anchor="end">D27</text>
+      <circle cx="59" cy="46.40" r=".65" class="pad"/><text x="57.8" y="46.75" class="pin-label" text-anchor="end">D14</text>
+      <circle cx="59" cy="48.94" r=".65" class="pad"/><text x="57.8" y="49.29" class="pin-label" text-anchor="end">D12</text>
+      <circle cx="59" cy="51.48" r=".65" class="pad"/><text x="57.8" y="51.83" class="pin-label" text-anchor="end">D13</text>
+      <circle cx="59" cy="54.02" r=".65" class="pad"/><text x="57.8" y="54.37" class="pin-label" text-anchor="end">GND</text>
+      <circle cx="59" cy="56.56" r=".65" class="pad"/><text x="57.8" y="56.91" class="pin-label" text-anchor="end">VIN</text>
+    </g>
+
+    <!-- ESP32 right pads and labels -->
+    <g id="right-pins">
+      <circle cx="89" cy="21" r=".65" class="pad"/><text x="90.2" y="21.35" class="pin-label">3V3</text>
+      <circle cx="89" cy="23.54" r=".65" class="pad"/><text x="90.2" y="23.9" class="pin-label">GND</text>
+      <circle cx="89" cy="26.08" r=".65" class="pad"/><text x="90.2" y="26.43" class="pin-label">D15</text>
+      <circle cx="89" cy="28.62" r=".65" class="pad"/><text x="90.2" y="28.97" class="pin-label">D2</text>
+      <circle cx="89" cy="31.16" r=".65" class="pad"/><text x="90.2" y="31.51" class="pin-label">D4</text>
+      <circle cx="89" cy="33.70" r=".65" class="pad"/><text x="90.2" y="34.05" class="pin-label">RX2</text>
+      <circle cx="89" cy="36.24" r=".65" class="pad"/><text x="90.2" y="36.59" class="pin-label">TX2/D17</text>
+      <circle cx="89" cy="38.78" r=".65" class="pad"/><text x="90.2" y="39.13" class="pin-label">D5</text>
+      <circle cx="89" cy="41.32" r=".65" class="pad"/><text x="90.2" y="41.67" class="pin-label">D18</text>
+      <circle cx="89" cy="43.86" r=".65" class="pad"/><text x="90.2" y="44.21" class="pin-label">D19</text>
+      <circle cx="89" cy="46.40" r=".65" class="pad"/><text x="90.2" y="46.75" class="pin-label">D21</text>
+      <circle cx="89" cy="48.94" r=".65" class="pad"/><text x="90.2" y="49.29" class="pin-label">RX0</text>
+      <circle cx="89" cy="51.48" r=".65" class="pad"/><text x="90.2" y="51.83" class="pin-label">TX0</text>
+      <circle cx="89" cy="54.02" r=".65" class="pad"/><text x="90.2" y="54.37" class="pin-label">D22</text>
+      <circle cx="89" cy="56.56" r=".65" class="pad"/><text x="90.2" y="56.91" class="pin-label">D23</text>
+    </g>
+
+    <!-- No-connect marks from the latest schematic -->
+    <g aria-label="No-connect flags">
+      <use href="#ncMark" x="59" y="21"/><use href="#ncMark" x="59" y="23.54"/><use href="#ncMark" x="59" y="26.08"/>
+      <use href="#ncMark" x="59" y="28.62"/><use href="#ncMark" x="59" y="33.70"/><use href="#ncMark" x="59" y="48.94"/>
+      <use href="#ncMark" x="89" y="26.08"/><use href="#ncMark" x="89" y="33.70"/><use href="#ncMark" x="89" y="48.94"/><use href="#ncMark" x="89" y="51.48"/>
+      <use href="#ncMark" x="13" y="43"/><use href="#ncMark" x="135" y="43"/>
+    </g>
+
+    <!-- Ultrasonic connector -->
+    <rect x="20" y="6" width="30" height="7" rx="1" class="conn"/>
+    <text x="35" y="8.1" class="part-label">J_US · HY-SRF05</text>
+    <text x="35" y="10.1" class="part-sub">5V · TRIG · ECHO · GND</text>
+    <circle cx="24" cy="12" r=".65" class="pad"/><circle cx="31" cy="12" r=".65" class="pad"/>
+    <circle cx="40" cy="12" r=".65" class="pad"/><circle cx="47" cy="12" r=".65" class="pad"/>
+
+    <!-- Echo divider -->
+    <rect x="47" y="15" width="8" height="3" rx=".5" class="comp"/>
+    <text x="51" y="17.1" class="part-sub">R4 1k</text>
+    <rect x="50" y="20" width="3" height="8" rx=".5" class="comp"/>
+    <text x="54" y="24" class="part-sub" text-anchor="start">R3 2k → GND</text>
+
+    <!-- OLED connector -->
+    <rect x="98" y="6" width="34" height="7" rx="1" class="conn"/>
+    <text x="115" y="8.1" class="part-label">J_OLED</text>
+    <text x="115" y="10.1" class="part-sub">GND · 3V3 · SCL · SDA</text>
+    <circle cx="102" cy="12" r=".65" class="pad"/><circle cx="110" cy="12" r=".65" class="pad"/>
+    <circle cx="118" cy="12" r=".65" class="pad"/><circle cx="126" cy="12" r=".65" class="pad"/>
+
+    <!-- RFID OUT connector -->
+    <rect x="5" y="19" width="8" height="43" rx="1" class="conn"/>
+    <text x="9" y="21" class="part-label" transform="rotate(-90 9 21)" text-anchor="end">J_RFID_OUT</text>
+    <g><circle cx="13" cy="23" r=".65" class="pad"/><circle cx="13" cy="28" r=".65" class="pad"/>
+      <circle cx="13" cy="33" r=".65" class="pad"/><circle cx="13" cy="38" r=".65" class="pad"/>
+      <circle cx="13" cy="43" r=".65" class="pad"/><circle cx="13" cy="48" r=".65" class="pad"/>
+      <circle cx="13" cy="53" r=".65" class="pad"/><circle cx="13" cy="58" r=".65" class="pad"/></g>
+    <text x="14.2" y="23.4" class="pin-label">SS17</text><text x="14.2" y="28.4" class="pin-label">SCK14</text>
+    <text x="14.2" y="33.4" class="pin-label">MOSI13</text><text x="14.2" y="38.4" class="pin-label">MISO35</text>
+    <text x="14.2" y="43.4" class="pin-label">IRQ-NC</text><text x="14.2" y="48.4" class="pin-label">GND</text>
+    <text x="14.2" y="53.4" class="pin-label">RST2</text><text x="14.2" y="58.4" class="pin-label">3V3</text>
+
+    <!-- RFID IN connector -->
+    <rect x="135" y="19" width="8" height="43" rx="1" class="conn"/>
+    <text x="139" y="21" class="part-label" transform="rotate(90 139 21)" text-anchor="start">J_RFID_IN</text>
+    <g><circle cx="135" cy="23" r=".65" class="pad"/><circle cx="135" cy="28" r=".65" class="pad"/>
+      <circle cx="135" cy="33" r=".65" class="pad"/><circle cx="135" cy="38" r=".65" class="pad"/>
+      <circle cx="135" cy="43" r=".65" class="pad"/><circle cx="135" cy="48" r=".65" class="pad"/>
+      <circle cx="135" cy="53" r=".65" class="pad"/><circle cx="135" cy="58" r=".65" class="pad"/></g>
+    <text x="133.8" y="23.4" class="pin-label" text-anchor="end">SS5</text><text x="133.8" y="28.4" class="pin-label" text-anchor="end">SCK18</text>
+    <text x="133.8" y="33.4" class="pin-label" text-anchor="end">MOSI23</text><text x="133.8" y="38.4" class="pin-label" text-anchor="end">MISO19</text>
+    <text x="133.8" y="43.4" class="pin-label" text-anchor="end">IRQ-NC</text><text x="133.8" y="48.4" class="pin-label" text-anchor="end">GND</text>
+    <text x="133.8" y="53.4" class="pin-label" text-anchor="end">RST4</text><text x="133.8" y="58.4" class="pin-label" text-anchor="end">3V3</text>
+
+    <!-- Buzzer -->
+    <rect x="44" y="57" width="14" height="8" rx="1" class="conn"/>
+    <text x="51" y="59.3" class="part-label">J_BUZZ</text>
+    <text x="51" y="62" class="part-sub">GND · S33</text>
+    <circle cx="46" cy="61" r=".65" class="pad"/><circle cx="58" cy="61" r=".65" class="pad"/>
+
+    <!-- Relay module mechanical reservation and control connector -->
+    <rect x="3" y="53" width="40" height="31" rx="1.5" class="module"/>
+    <text x="23" y="57" class="part-label">RELAY MODULE 5V</text>
+    <text x="23" y="59.8" class="part-sub">พื้นที่สำรอง 40 × 31 mm · วัดของจริง</text>
+    <rect x="4.5" y="63" width="7" height="14" rx=".8" fill="#d6eaf8" stroke="#2874a6" stroke-width=".25"/>
+    <text x="8" y="66" class="part-sub">NC</text><text x="8" y="70" class="part-sub">COM</text><text x="8" y="74" class="part-sub">NO</text>
+    <circle cx="6" cy="55.5" r="1" class="hole"/><circle cx="40" cy="81.5" r="1" class="hole"/>
+    <text x="24" y="82.5" class="part-sub">รูยึดเป็นตัวอย่าง—วัดโมดูลจริงก่อนเจาะ</text>
+    <rect x="45" y="66" width="12" height="8" rx="1" class="conn"/>
+    <text x="51" y="67.8" class="part-label">J_RELAY_CTRL</text>
+    <text x="51" y="69.5" class="part-sub">B3B-XH 3P · P2.5</text>
+    <text x="51" y="72" class="part-sub">5V · GND · IN25</text>
+    <circle cx="47" cy="70" r=".65" class="pad"/><circle cx="51" cy="70" r=".65" class="pad"/><circle cx="55" cy="70" r=".65" class="pad"/>
+    <path d="M45 68 H41 V63" class="jumper"/>
+    <text x="31" y="62.5" class="part-sub">สาย JST ไป + / − / S ของโมดูล</text>
+
+    <!-- Power input -->
+    <rect x="54" y="78" width="20" height="8" rx="1" class="conn"/>
+    <text x="64" y="80.5" class="part-label">J_PWR</text>
+    <text x="64" y="83.5" class="part-sub">5V · GND</text>
+    <circle cx="60" cy="82" r=".65" class="pad"/><circle cx="68" cy="82" r=".65" class="pad"/>
+
+    <!-- CAM power and capacitors -->
+    <rect x="97" y="78" width="19" height="8" rx="1" class="conn"/>
+    <text x="106.5" y="80.5" class="part-label">J_CAM</text>
+    <text x="106.5" y="83.5" class="part-sub">5V · GND</text>
+    <circle cx="103" cy="82" r=".65" class="pad"/><circle cx="111" cy="82" r=".65" class="pad"/>
+    <circle cx="119" cy="70" r="4" class="cap"/>
+    <text x="119" y="69.3" class="part-label">C2</text><text x="119" y="71.5" class="part-sub">470uF</text>
+    <text x="116" y="66.4" class="part-sub">+</text><text x="122" y="66.4" class="part-sub">−</text>
+    <rect x="124" y="68" width="5" height="4" rx=".5" class="cap"/>
+    <text x="126.5" y="67" class="part-sub">C1 100nF</text>
+
+    <!-- Relay caps, matching current schematic -->
+    <circle cx="46" cy="80" r="3" class="cap"/>
+    <text x="46" y="79.4" class="part-sub">C4</text><text x="46" y="81.2" class="part-sub">470uF</text>
+    <rect x="50" y="78" width="3.5" height="3" rx=".5" class="cap"/>
+    <text x="52" y="77" class="part-sub">C3 100nF</text>
+
+    <!-- Board dimensions -->
+    <path d="M0 90 H148 M0 88 V92 M148 88 V92" fill="none" stroke="#34495e" stroke-width=".25"/>
+    <text x="74" y="92" class="part-label">148 mm</text>
+    <path d="M150 0 V88 M148 0 H152 M148 88 H152" fill="none" stroke="#34495e" stroke-width=".25"/>
+    <text x="153" y="44" class="part-label" transform="rotate(90 153 44)">88 mm</text>
+  </g>
+
+  <!-- Right-side instructions and coordinates -->
+  <g transform="translate(1090 95)">
+    <rect x="0" y="0" width="475" height="820" rx="12" fill="#fff" stroke="#cbd5df" stroke-width="2"/>
+    <text x="22" y="34" class="panel-title">วิธีใช้ภาพนี้ใน EasyEDA</text>
+    <text x="22" y="64" class="body">1. ตั้ง Board Outline = 148 × 88 mm</text>
+    <text x="22" y="89" class="body">2. วาง ESP32 ตามพิกัดและหัน USB ลง</text>
+    <text x="22" y="114" class="body">3. วัด footprint/รูยึดของอุปกรณ์จริง</text>
+    <text x="22" y="139" class="body">4. วาง C2/C1 ชิด J_CAM และ C4/C3 ชิด Relay</text>
+    <text x="22" y="164" class="body">5. ลากไฟก่อน แล้วลากสัญญาณตามแนวสีเขียว</text>
+    <text x="22" y="189" class="body">6. เส้นสีส้มเป็น jumper หุ้มฉนวนด้านบน</text>
+
+    <text x="22" y="230" class="panel-title">พิกัดอ้างอิง (X,Y mm จากมุมซ้ายบน)</text>
+    <text x="22" y="258" class="body">ESP32 (59,17), ขนาดประมาณ 30 × 56</text>
+    <text x="22" y="282" class="body">J_US (20,6) · J_OLED (98,6)</text>
+    <text x="22" y="306" class="body">RFID_OUT (5,19) · RFID_IN (135,19)</text>
+    <text x="22" y="330" class="body">Relay module reserve (3,53), 40 × 31</text>
+    <text x="22" y="354" class="body">J_RELAY_CTRL (45,66) · J_PWR (54,78)</text>
+    <text x="22" y="378" class="body">J_CAM (97,78) · C2/C1 รอบ (119,70)</text>
+    <text x="22" y="402" class="body">B3B-XH clone: C54444769, pitch 2.50 mm</text>
+
+    <text x="22" y="445" class="panel-title">สีและสัญลักษณ์</text>
+    <line x1="25" y1="470" x2="95" y2="470" stroke="#009b55" stroke-width="4"/><text x="110" y="475" class="body">แนว BottomLayer signal</text>
+    <line x1="25" y1="500" x2="95" y2="500" stroke="#d7263d" stroke-width="7"/><text x="110" y="505" class="body">+5V track 1.5 mm</text>
+    <line x1="25" y1="530" x2="95" y2="530" stroke="#7b2cbf" stroke-width="6"/><text x="110" y="535" class="body">+3V3 track 1.2 mm</text>
+    <line x1="25" y1="560" x2="95" y2="560" stroke="#1473e6" stroke-width="5" stroke-dasharray="5 4"/><text x="110" y="565" class="body">GND copper pour</text>
+    <line x1="25" y1="590" x2="95" y2="590" stroke="#e67e22" stroke-width="5" stroke-dasharray="10 6"/><text x="110" y="595" class="body">สาย jumper ด้านบน</text>
+    <path d="M55 612L67 624M67 612L55 624" stroke="#27ae60" stroke-width="3"/><text x="110" y="623" class="body">No-Connect จาก Schematic ล่าสุด</text>
+
+    <rect x="20" y="650" width="435" height="140" rx="8" class="warn"/>
+    <text x="38" y="680" class="panel-title" fill="#a04000">ก่อนใช้เป็นแบบกัด</text>
+    <text x="38" y="707" class="body">• เส้นในภาพเป็น route corridor ไม่ใช่ไฟล์ทองแดงสำเร็จ</text>
+    <text x="38" y="732" class="body">• รูยึด Relay เป็นตัวอย่าง ต้องวัดโมดูลจริง</text>
+    <text x="38" y="757" class="body">• ทุก track อยู่ BottomLayer; ห้ามใช้ via</text>
+    <text x="38" y="782" class="body">• DRC=0, Unrouted=0, พิมพ์ 1:1 และตรวจ mirror</text>
+  </g>
+
+  <text x="30" y="950" class="subtitle">V2 · Source: pooh/full-main_test.ino + Schematic ล่าสุด · Relay module บนบอร์ด, J_RELAY_CTRL 3P, ไม่มี J_LOCK · C2/C4=470uF · C1/C3=100nF</text>
+</svg>

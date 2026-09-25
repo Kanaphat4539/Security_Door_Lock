@@ -1,601 +1,340 @@
-# คู่มือทำ PCB ด้วย EasyEDA (ฉบับออนไลน์) ตั้งแต่ศูนย์ — บอร์ดหลัก Security Door Lock
+# EasyEDA Standard ตั้งแต่ศูนย์ — บอร์ด `pooh` แบบกัดลายมือชั้นเดียว
 
-เขียนคู่กับ `hardware/PCB_FROM_ZERO_TH.md` (ฉบับ KiCad)
-**วงจร ขา เน็ต และชิ้นส่วนเหมือนไฟล์ KiCad เป๊ะ — ต่างกันแค่เครื่องมือและชื่อเมนู**
+คู่มือนี้ใช้สำหรับทำ carrier board ของ Security Door Lock ด้วย **EasyEDA Standard** (`https://easyeda.com/editor`) แล้วพิมพ์ลาย **BottomLayer เพียงด้านเดียวเพื่อกัดแผ่นทองแดงเอง** อุปกรณ์อยู่ด้านบน และใช้สายจัมเปอร์หุ้มฉนวนเมื่อเส้นจำเป็นต้องข้ามกัน
 
-ใช้กับ: EasyEDA Standard ที่ https://easyeda.com/editor  (ไม่ต้องติดตั้งอะไร ใช้ในเบราว์เซอร์)
-เป้าหมายสุดท้าย: ได้ไฟล์ Gerber (zip) → สั่งบอร์ดเปล่าที่ JLCPCB 2 ชั้น 1.6 mm 88 × 148 mm
-เวลาที่ใช้: 3–6 ชั่วโมงครั้งแรก
+> **คำเตือน Source of Truth**
+> การต่อขาในเอกสารนี้ยึดไฟล์ `pooh:firmware/esp32-main/src/esp_main/full-main_test.ino` เท่านั้น ตรวจต้นฉบับได้ด้วย
+> `git show pooh:firmware/esp32-main/src/esp_main/full-main_test.ino`
+> อย่าคัดลอกขาจาก `config.h`, แผนผังเก่า หรือคู่มือเวอร์ชัน UART หากแก้ `#define` ในไฟล์นี้ ต้องแก้ตารางขา สกีมาติก และ PCB **ก่อนกัดบอร์ดใหม่**
 
-> หมายเหตุ: EasyEDA Standard คือตัวคลาสสิก (easyeda.com) **ไม่ใช่ EasyEDA Pro/prodocs.easyeda.com**
-> เมนู/ปุ่มในไฟล์นี้เขียนตามหน้าจอของ Standard ทั้งหมด
+วงจรปัจจุบันมีเงื่อนไขสำคัญดังนี้
 
-สารบัญ
-  0. EasyEDA ต่างจาก KiCad ตรงไหน (อ่านก่อน 5 นาที)
-  1. สร้างโปรเจกต์ + เข้าใจหน้าจอ
-  2. คำศัพท์ (ตารางเทียบ KiCad)
-  3. อุปกรณ์ + คำค้นในไลบรารี + เบอร์ LCSC
-  4. Pin map ESP32 DevKit V1 (30 ขา) — เหมือนไฟล์ KiCad
-  5. ขั้น 1 — วางสัญลักษณ์ใน Schematic
-  6. ขั้น 2 — ต่อ net ด้วย NetLabel / NetFlag + No-Connect (พร้อม "เฉลย")
-  7. ขั้น 3 — ตรวจวงจร (Design Manager) + ตรวจ footprint (Footprint Manager)
-  8. ขั้น 4 — Convert to PCB
-  9. ขั้น 5 — ขอบบอร์ด + รูยึด + วางอุปกรณ์ (มีพิกัดให้)
- 10. ขั้น 6 — Design Rule + ลากลายทองแดง
- 11. ขั้น 7 — Copper Area (GND) ทั้ง 2 ด้าน + กันทองแดงใต้เสาอากาศ
- 12. ขั้น 8 — ตรวจ DRC
- 13. ขั้น 9 — Gerber + สั่ง JLCPCB
- 14. เช็คลิสต์ก่อนสั่งผลิต + วิธีให้ผมตรวจงานคุณ
- ภาคผนวก A — ปุ่มลัด EasyEDA
- ภาคผนวก B — ปัญหาที่พบบ่อย
- ภาคผนวก C — คำเตือนที่ยกมาจากไฟล์ KiCad + การ import ไฟล์ KiCad เดิม
+- ESP32-CAM คุยด้วย ESP-NOW: มีสายจากบอร์ดหลักแค่ `5V` และ `GND` ไม่มี UART
+- buzzer เป็นโมดูลที่รับ `S/GND`: GPIO33 ต่อ `S` โดยตรง และกราวด์ร่วม ไม่ใช้ทรานซิสเตอร์หรือตัวต้านทานขับ
+- OLED module มี pull-up I2C อยู่แล้ว: ไม่ใส่ตัวต้านทาน pull-up เพิ่ม
+- ECHO ของ ultrasonic ต้องผ่าน 1 kΩ อนุกรม แล้วมี 2 kΩ จากจุดรับ GPIO27 ลง GND
+- กราวด์ฝั่งแรงดันต่ำทุกชุดต้องร่วมกัน
+- ขั้วโหลดรีเลย์ใช้ `COM/NO`; คู่มือนี้ไม่ออกแบบสำหรับไฟบ้าน
 
 ---
 
-## 0. EasyEDA ต่างจาก KiCad ตรงไหน (อ่านก่อน 5 นาที)
+## 0. แบบที่จะสร้าง
 
-| เรื่อง | KiCad | EasyEDA Standard |
-|--------|-------|------------------|
-| ติดตั้ง | ลงโปรแกรม | เปิดเบราว์เซอร์ ไม่ต้องลง (ต้องสมัคร/login) |
-| ไฟล์ | ไฟล์ .kicad_sch/.kicad_pcb อยู่บนเครื่อง | เก็บบนคลาวด์ของ EasyEDA (มี Save/History) |
-| ไลบรารี | โหลด lib มาตรฐานในเครื่อง | ค้นจากหน้าเว็บ: System / Commonly / LCSC / LCSC Assembled |
-| ผูก symbol ↔ footprint | assign ทีหลัง (Assign Footprints) | **ผูกมาให้ตั้งแต่ตอนวาง** ถ้าใช้ชิ้นส่วนที่มี footprint อยู่แล้ว |
-| ตรวจวงจร (ERC) | มี ERC dialog | **ไม่มี ERC แยก** → ดูที่ Design Manager (เน็ตที่ต่อไม่ครบจะขึ้นแดง) |
-| สร้างบอร์ด | File → Update PCB (`F8`) | ปุ่ม **Convert to PCB** บน toolbar (แก้ทีหลังใช้ Design → Import Changes) |
-| ขอบบอร์ด | วาดเองบน Edge.Cuts | EasyEDA **สร้างขอบมาให้อัตโนมัติ** (ต้องลบ/แก้) หรือใช้ Tools → Set Board Outline |
-| เททองแดง GND | เติมอัตโนมัติ (กด `B`) | **ไม่เติมสด** → ต้องกด `Shift+B` (Rebuild Copper Area) ทุกครั้งหลังแก้ |
-| ต่อเน็ตด้วยชื่อ | Global label | NetLabel (`N`) และ NetFlag (`Ctrl+G`/`Ctrl+Q`) |
-| PWR_FLAG | ต้องมี ไม่งั้น ERC error | **ไม่ต้องมี** (ไม่มีแนวคิดนี้) |
-| ต้องมีเบอร์ LCSC | ไม่ต้อง | ไม่ต้อง (แต่ใส่ได้ → สั่งของ/JLCPCB ง่ายขึ้น) |
-| สั่งผลิต | ออก Gerber ผ่าน kicad-cli | กด Generate Fabrication File(Gerber) ในโปรแกรมเลย |
+- แผ่นทองแดงด้านเดียว: ใช้เฉพาะ `BottomLayer`
+- อุปกรณ์ through-hole อยู่ด้านบน: ESP32 DevKit บน socket, pin header/terminal block, R แบบ axial, C แบบ radial
+- จุดตัดที่หลบไม่ได้: ใช้ wire link/สายจัมเปอร์หุ้มฉนวนด้านบน แล้วบัดกรีปลายลงรูสองจุด
+- ห้ามใช้ via เพราะแผ่นกัดเองไม่มี plated through hole
+- ESP32-CAM รับไฟจาก connector 2 ขา พร้อม C 470 µF และ C 100 nF ชิด connector
+- relay ที่ใช้คือโมดูล 1 ช่อง 5V รุ่น SRD-05VDC-SL-C แบบ High-level trigger มีขั้วสกรู `NC/COM/NO` บนโมดูลอยู่แล้ว carrier board ต่อเฉพาะ `VCC/GND/IN` และไม่ต้องมี J_LOCK
 
-สรุปสั้น ๆ: **วงจรเดียวกัน แต่ "ปุ่ม" คนละชุด** — อ่านหัวข้อ 1–13 แล้วทำตาม จะได้บอร์ดเหมือนไฟล์ KiCad
+EasyEDA Standard ไม่ใช่ EasyEDA Pro เมนูในคู่มือนี้อ้างอิง Standard เท่านั้น
 
 ---
 
-## 1. สร้างโปรเจกต์ + เข้าใจหน้าจอ
+## 1. สร้างโปรเจกต์และตั้งหน้าจอ
 
-  1. เปิด https://easyeda.com/editor → login (Google/อีเมล) — เปิดทิ้งไว้ได้เลย
-  2. เมนูบนสุด: **File → New → Create a new project**
-       Owner: ตัวคุณเอง · Title: `Security_Door_Lock_PCB` · Path: (ปล่อยว่าง/ชื่อโฟลเดอร์)
-       Description: บอร์ด carrier บอร์ดเดียวกับไฟล์ KiCad
-  3. คลิกขวาที่โปรเจกต์ในแถบซ้าย (**Navigation Panel**) → **New → Schematic**
-       (หรือ File → New → Schematic) จะได้ไฟล์ `Schematic1` — เปลี่ยนชื่อเป็น `door_lock_sch`
-  4. แถบซ้ายสำคัญ 3 อัน (จำไว้):
-       **Project**      = ไฟล์ทั้งหมดในโปรเจกต์ (sch + pcb)
-       **Design Manager** (`Ctrl+D`) = รายการอุปกรณ์ + รายการเน็ต (ตัวช่วยตรวจวงจร)
-       **Library** (`Shift+F`) = ที่ค้นหาอุปกรณ์
-  5. **ตั้งหน่วยเป็นมิลลิเมตร**: กด `Q` สลับหน่วย (มุมขวาล่าง/panel ขวาบอกหน่วยปัจจุบัน) — ให้เห็น mm
-  6. ตั้ง snap ตอนวางของ: `Alt` + `+` / `Alt` + `-` (Snap Size) — ใช้ 0.5 mm ตอนวาง, 0.254 mm ตอนลากลาย
+1. เปิด `https://easyeda.com/editor` และ login
+2. เลือก **File → New → Create a new project** ตั้งชื่อ `Security_Door_Lock_pooh_handetch`
+3. คลิกขวาโปรเจกต์ → **New → Schematic** ตั้งชื่อ `main_pooh`
+4. คลิกบน canvas ก่อนใช้ hotkey; `Shift+F` อาจไม่ทำงานหาก focus อยู่หน้า Start
+5. กด `Q` ให้หน่วยเป็น mm และกด `Ctrl+S` บ่อย ๆ
+6. ใช้ `Ctrl+D` เปิด Design Manager และ `Alt+F` เปิด Footprint Manager
 
-หน้าจอ 4 ส่วน: กลาง = ผืนวาด · ขวา = **Properties** (แก้ค่า/พิกัดของสิ่งที่เลือก) · ซ้าย = Navigation Panel · ล่างซ้าย = ข้อความเตือน
+หลักการค้นชิ้นส่วน: `Shift+F` → **Types = Symbol** แล้วเลือก symbol ที่มี footprint หากใช้ชิ้นส่วนจริงคนละรุ่น ให้ตรวจระยะขาและลำดับขาจากของจริงก่อนเลือก footprint
 
 ---
 
-## 2. คำศัพท์ (ตารางเทียบ KiCad)
+## 2. BOM และ connector ที่ต้องวาง
 
-| คำ | ความหมาย | ใน EasyEDA เรียกว่า |
-|----|-----------|---------------------|
-| Symbol | สัญลักษณ์ในวงจร | Symbol (Type = Symbol) |
-| Footprint | รูปทองแดง/รูบนบอร์ด | Footprint (Type = Footprint) |
-| Pad | จุดบัดกรี | Pad |
-| Net | กลุ่มจุดที่ต้องต่อถึงกัน | Net |
-| Global label | ป้ายชื่อ net | **NetLabel** / **NetFlag** / **NetPort** |
-| ERC | ตรวจวงจร | ดูที่ **Design Manager → Nets** (แดง = ผิด) |
-| Ratsnest | เส้นบางบอกว่ายังไม่ได้ต่อ | Ratline (เส้นสีฟ้า) |
-| Track / Via | ลายทองแดง / รูเชื่อมชั้น | Track / Via |
-| Zone (pour) | พื้นทองแดง | **Copper Area** |
-| F.Cu / B.Cu | ทองแดงหน้า/หลัง | **TopLayer** / **BottomLayer** |
-| Edge.Cuts | ขอบบอร์ด | **BoardOutLine** (L) |
-| Keepout | ห้ามทองแดงทับ | **Solid Region** ที่ Type = `No Solid` |
+เลข reference ด้านล่างเป็นชื่อแนะนำเพื่อให้ตรวจตามตารางได้ง่าย จะเปลี่ยนเลขได้ แต่ชื่อ net และลำดับขาต้องคงเดิม
 
-ปุ่มเปลี่ยนชั้นทองแดงตอนลากลาย: `T` = TopLayer · `B` = BottomLayer
+| Ref | จำนวน | อุปกรณ์/ค่า | คำค้นใน EasyEDA Standard | ข้อกำหนดงานกัดมือ |
+|---|---:|---|---|---|
+| U1 | 1 | ESP32 DevKit V1 30-pin | `DOIT ESP32 DEVKIT V1` | ใช้ socket female 1×15 สองแถว; ตรวจชื่อ pin ไม่เชื่อเลข pin ของ symbol โดยไม่ตรวจ |
+| J_PWR | 1 | ไฟเข้า 5V/GND 2P | `HDR-M-2.54_1X2` หรือ terminal 2P | ถ้าถอดบ่อยใช้ screw terminal 5.08 mm |
+| J_RFID_IN | 1 | RFID เข้า 1×8 | `HDR-M-2.54_1X8` | 2.54 mm THT |
+| J_RFID_OUT | 1 | RFID ออก 1×8 | `HDR-M-2.54_1X8` | 2.54 mm THT |
+| J_OLED | 1 | OLED 1×4 | `HDR-M-2.54_1X4` | ไม่มี R pull-up เพิ่ม |
+| J_US | 1 | Ultrasonic 1×4 | `HDR-M-2.54_1X4` | ตรวจลำดับ VCC/TRIG/ECHO/GND จากโมดูลจริง |
+| R_ECHO_SER | 1 | 1 kΩ | resistor axial THT | อนุกรม ECHO ก่อน GPIO27 |
+| R_ECHO_PD | 1 | 2 kΩ | resistor axial THT | จากจุด GPIO27 ลง GND |
+| J_BUZZ | 1 | Buzzer module 1×2 | `HDR-M-2.54_1X2` | pin 1 = S, pin 2 = GND; ต่อ GPIO33 ตรง |
+| J_CAM | 1 | ESP32-CAM power 1×2 | terminal/header 2P | pin 1 = 5V, pin 2 = GND; ไม่มี data |
+| C_CAM_BULK | 1 | 470 µF, อย่างน้อย 10 V | radial electrolytic THT | วางชิด J_CAM; ขั้ว `+` ไป 5V |
+| C_CAM_HF | 1 | 100 nF ceramic | ceramic THT | วางชิด J_CAM คร่อม 5V/GND |
+| J_RELAY_CTRL | 1 | Relay control 1×3 | `HDR-M-2.54_1X3` | pin 1 VCC, 2 GND, 3 IN |
+| JP1… | ตาม routing | insulated wire link | `WIRE LINK`, `0R`, axial resistor footprint | เพิ่มเมื่อเส้นต้องข้าม; ไม่ใช้ via |
+| H1–H4 | 4 | รูยึด | Hole | เลือกขนาดตามสกรูจริง |
 
----
+ต่อโหลด 12V เข้าที่ขั้วสกรู `COM/NO` ของ relay module โดยตรง ไม่ต้องลากกระแสโหลดผ่าน carrier PCB กัดมือ
 
-## 3. อุปกรณ์ + คำค้นในไลบรารี + เบอร์ LCSC
-
-ไลบรารีของ EasyEDA จะมี 2 โหมดค้น: **Type** (Symbol / Footprint / …) และ **Class** (Work Space / Commonly / System / LCSC / LCSC Assembled)
-เคล็ดลับ: อยากได้ **สัญลักษณ์ที่ผูก footprint ให้แล้ว** ให้ค้นด้วย Type = Symbol แล้วเลือกจากคลาส System/Commonly หรือ LCSC
-
-| Ref | สิ่งที่ใส่ | ค่า | ค้นใน Library (กด `Shift+F`) | เบอร์ LCSC (ถ้าจะสั่งของ) |
-|-----|-----------|-----|------------------------------|---------------------------|
-| U1 | **ESP32 DevKit V1 — ใช้เป็นโมดูลสำเร็จรูป (ทาง A)** | — | พิมพ์ `DOIT ESP32 DEVKIT V1` (Type = Symbol) | footprint ติดมาให้แล้ว: `ESP32-DEVKIT-V1-FOOTPRINT` (30 pad) |
-| U1+U2 | **หรือซ็อกเก็ตตัวเมีย 15 ขา 2 ตัว (ทาง B)** | — | `HDR-F-2.54` แล้วเลือก **1X15** (วาง 2 ตัว) | `female header 2.54 15P` → C2932676 |
-
-เลือกทางใดทางหนึ่ง (ตาราง net อันเดียวกันใช้ได้ทั้งสองทาง) — เทียบข้อดี/ข้อควรระวังที่หัวข้อ 4.1
-| J1 | ไฟเข้า 5V/GND | — | `HDR-M-2.54_1X2` | 1x2 male 2.54 |
-| J3 | RC522 ฝาเข้า 8 ขา | — | `HDR-M-2.54_1X8` | `pin header 2.54 8P` → C492407 |
-| J4 | RC522 ฝาออก 8 ขา | — | `HDR-M-2.54_1X8` | เหมือน J3 |
-| J5 | OLED SSD1306 4 ขา | — | `HDR-M-2.54_1X4` | — |
-| J6 | HY-SRF05 4 ขา | — | `HDR-M-2.54_1X4` | — |
-| J7 | สายไป ESP32-CAM 4 ขา | — | `HDR-M-2.54_1X4` | — |
-| J8 | Relay module (VCC/GND/IN) | — | `HDR-M-2.54_1X3` | — |
-| J9 | สายไป buzzer บนฝา | — | `HDR-M-2.54_1X2` | — |
-| R4 | pull-up I2C (SDA) | 4.7k | ค้น `4.7k 0805` (Class: LCSC) | **C17673** (0805W8F4701T5E) basic |
-| R5 | pull-up I2C (SCL) | 4.7k | `4.7k 0805` | C17673 |
-| R6 | ตัวแบ่งแรงดัน Echo (บน) | 1k | `1k 0805` | **C17513** (0805W8F1001T5E) basic |
-| R7 | ตัวแบ่งแรงดัน Echo (ล่าง) | 2k | `2k 0805` | **C17604** (0805W8F2001T5E) basic |
-| R8 | base resistor ขับ buzzer | 1k | `1k 0805` | C17513 |
-| Q1 | ทรานซิสเตอร์ขับ buzzer | S8050 / MMBT2222A | `S8050` หรือ `MMBT2222A` (Class: LCSC) | C181158 (S8050) · C181121 (MMBT2222A) |
-| H1–H4 | รูยึด M2 4 มุม | M2 | **ไม่ต้องมีสัญลักษณ์** → วางใน PCB ด้วยเครื่องมือ `Hole` (หรือค้น `MOUNTING HOLE M2 2.2MM`) | — |
-
-⚠️ **Q1 — ตรวจขาให้ดีก่อนเดินลาย** (บั๊กเดิมของโปรเจกต์นี้): ของจริง SOT-23 NPN = **ขา 1 = B, 2 = E, 3 = C**
-   สัญลักษณ์ที่ได้จากไลบรารี LCSC บางตัวเรียงขาไม่ตรง datasheet → เปิดดูชื่อขาในสัญลักษณ์ที่วาง (B/E/C) แล้ว
-   ต้องได้: `Q1_B` = ขา B · `GND` = ขา E · `BUZZ_LO` = ขา C (รายละเอียดภาคผนวก C ข้อ 1)
-
-ทำไมมีแค่นี้: relay module มีไดรเวอร์+ไดโอดในตัว · RC522/OLED มี pull-up/regulator ในตัว · buzzer เป็น active (มีวงจรกำเนิดเสียงในตัว)
-
-📋 ชื่ออุปกรณ์ในไลบรารี EasyEDA ที่ยืนยันแล้วทั้งหมด (คัดลอกไปค้นได้เลย) อยู่ที่ **ภาคผนวก D** ท้ายไฟล์
+> งานนักศึกษาที่กัดเองควรเลือก footprint THT และวัด pitch ของชิ้นส่วนจริงด้วยเวอร์เนียร์ก่อนวาง อย่าเลือก footprint จากชื่ออย่างเดียว
 
 ---
 
-## 4. Pin map ESP32 DevKit V1 (30 ขา) — เหมือนไฟล์ KiCad ทุกช่อง
+## 3. ตาราง GPIO ปัจจุบันจาก `pooh`
 
-แปลงเป็น EasyEDA ได้ 2 ทาง (ใช้ตาราง net อันเดียวกันทั้งคู่)
+| ฟังก์ชัน | ขา ESP32 | ทิศทาง/หมายเหตุ |
+|---|---:|---|
+| RFID_IN SS | GPIO5 (`D5`) | output, VSPI |
+| RFID_IN RST | GPIO4 (`D4`) | output |
+| RFID_IN SCK | GPIO18 (`D18`) | output, VSPI |
+| RFID_IN MISO | GPIO19 (`D19`) | input, VSPI |
+| RFID_IN MOSI | GPIO23 (`D23`) | output, VSPI |
+| RFID_OUT SS | GPIO17 (`TX2`) | output, HSPI; ชื่อ TX2 บนบอร์ดไม่ได้หมายความว่าใช้ UART |
+| RFID_OUT RST | GPIO2 (`D2`) | output |
+| RFID_OUT SCK | GPIO14 (`D14`) | output, HSPI |
+| RFID_OUT MISO | GPIO35 (`D35`) | input-only, HSPI |
+| RFID_OUT MOSI | GPIO13 (`D13`) | output, HSPI |
+| Relay IN | GPIO25 (`D25`) | output |
+| Ultrasonic TRIG | GPIO26 (`D26`) | output |
+| Ultrasonic ECHO | GPIO27 (`D27`) | input หลัง divider 1 kΩ/2 kΩ |
+| Buzzer module S | GPIO33 (`D33`) | output ต่อตรงเข้าขา S |
+| OLED SDA | GPIO21 (`D21`) | I2C |
+| OLED SCL | GPIO22 (`D22`) | I2C |
+| ESP32-CAM | ไม่มี GPIO | ESP-NOW; ต่อเพียง 5V/GND |
 
-  **ทาง A — ใช้โมดูล `DOIT ESP32 DEVKIT V1`** (สัญลักษณ์เดียว มีครบ 30 ขา + footprint ของบอร์ดจริง)
-      จับคู่ net **ตามชื่อขา** ในสัญลักษณ์ (คอลัมน์ "ป้ายบนบอร์ด" ในตารางข้างบน):
-      EN · VP · VN · D34 · D35 · D32 · D33 · D25 · D26 · D27 · D14 · D12 · D13 · GND · VIN
-      · 3V3 · GND · D15 · D2 · D4 · RX2 · TX2 · D5 · D18 · D19 · D21 · RX0 · TX0 · D22 · D23
-      ถ้าสัญลักษณ์เรียงเลขขา 1–30 ตามแถวจริง (1–15 = แถวหนึ่ง · 16–30 = อีกแถว) ก็ใช้เลข "ขา" ในตารางได้ตรง ๆ
-      ⚠️ ตรวจชื่อขาให้ครบก่อนเดินลาย — สัญลักษณ์ที่คนอื่นอัปโหลดไว้บางตัวตั้งชื่อขาผิด (เช่น D12/D13 สลับ)
-  **ทาง B — ใช้ซ็อกเก็ต 2 ตัว**: ขา 1–15 = U1 ขาที่ 1–15 · ขา 16–30 = U2 ขาที่ 1–15
-
-### 4.1 เลือกทาง A หรือทาง B
-
-  ทาง A (โมดูลสำเร็จรูป) — วางง่าย เห็นเป็นรูปบอร์ดจริงใน 3D
-      · footprint ของโมดูล = pad 30 จุดตรงตำแหน่งขาจริง → **ถ้าอยากถอด/เปลี่ยน DevKit ได้ ต้องบัดกรีซ็อกเก็ตตัวเมีย 2×15 ลงบน pad นั้น**
-        (ตำแหน่งตรงกันอยู่แล้ว) ไม่งั้นก็บัดกรี DevKit ตรงลงบอร์ด แต่จะถอดไม่ได้
-      · ต้องเช็คกับบอร์ดที่ซื้อจริง: 30 ขา · ระยะระหว่างแถว 2.54 mm · ตำแหน่งปลายเสาอากาศ
-  ทาง B (ซ็อกเก็ต 2 ตัว) — บอร์ดไม่ตาย เปลี่ยน DevKit ได้
-      · ต้องวาง 2 ตัวให้ห่างกันแนวนอน 25.4 mm เป๊ะ ไม่งั้นเสียบไม่ลง
-  ทั้งสองทาง: ปลายเสาอากาศหันออกขอบบอร์ด + ทำ keepout ใต้เสาอากาศตามหัวข้อ 11 เหมือนกัน
-
-| ขา | ป้ายบนบอร์ด | GPIO | net | ต่อไปที่ |
-|----|-------------|------|-----|----------|
-| 1 | EN | — | — | ว่าง (No-Connect) |
-| 2 | VP | 36 | — | ว่าง |
-| 3 | VN | 39 | — | ว่าง |
-| 4 | D34 | 34 | — | ว่าง |
-| 5 | D35 | 35 | RFID_EXIT_MISO | J4.4 |
-| 6 | D32 | 32 | US_ECHO_3V3 | R6.2 + R7.1 |
-| 7 | D33 | 33 | US_TRIG | J6.2 |
-| 8 | D25 | 25 | BUZZER_CTRL | R8.1 |
-| 9 | D26 | 26 | RELAY_CTRL | J8.3 |
-| 10 | D27 | 27 | RFID_ENTRY_RST | J3.7 |
-| 11 | D14 | 14 | RFID_EXIT_SCK | J4.2 |
-| 12 | D12 | 12 | — | **ห้ามใช้** (strapping pin ทำบอร์ดบูตค้าง) |
-| 13 | D13 | 13 | RFID_EXIT_MOSI | J4.3 |
-| 14 | GND | — | GND | — |
-| 15 | VIN | — | +5V | J1.1, J6.1, J7.1, J8.1, J9.1 |
-| 16 | 3V3 | — | +3V3 | J3.8, J4.8, J5.2, R4.1, R5.1 |
-| 17 | GND | — | GND | — |
-| 18 | D15 | 15 | — | ว่าง |
-| 19 | D2 | 2 | RFID_EXIT_RST | J4.7 |
-| 20 | D4 | 4 | RFID_EXIT_SS | J4.1 |
-| 21 | RX2 | 16 | CAM_RX2 | J7.4 |
-| 22 | TX2 | 17 | CAM_TX2 | J7.3 |
-| 23 | D5 | 5 | RFID_ENTRY_SS | J3.1 |
-| 24 | D18 | 18 | RFID_ENTRY_SCK | J3.2 |
-| 25 | D19 | 19 | RFID_ENTRY_MISO | J3.4 |
-| 26 | D21 | 21 | OLED_SDA | J5.4 + R4.2 |
-| 27 | RX0 | 3 | — | ว่าง |
-| 28 | TX0 | 1 | — | ว่าง |
-| 29 | D22 | 22 | OLED_SCL | J5.3 + R5.2 |
-| 30 | D23 | 23 | RFID_ENTRY_MOSI | J3.3 |
-
-ที่มา: `firmware/esp32-main/src/config.h` (ตรงกับไฟล์บอร์ดอ้างอิงทุกขา)
-
-ขา header ของโมดูล (ยึดลำดับขาของโมดูลจริงที่คุณซื้อเป็นหลัก)
-
-  J1 ไฟเข้า        1 = +5V          2 = GND
-  J3 RC522 เข้า    1 = SS  2 = SCK  3 = MOSI  4 = MISO  5 = ว่าง  6 = GND  7 = RST  8 = 3V3
-  J4 RC522 ออก     1 = SS  2 = SCK  3 = MOSI  4 = MISO  5 = ว่าง  6 = GND  7 = RST  8 = 3V3
-  J5 OLED          1 = GND 2 = 3V3  3 = SCL   4 = SDA
-  J6 HY-SRF05      1 = +5V 2 = TRIG 3 = ECHO  4 = GND
-  J7 ไป CAM        1 = +5V 2 = GND  3 = TX(ไป RX ของ CAM)  4 = RX(ไป TX ของ CAM)
-  J8 Relay module  1 = +5V (VCC)  2 = GND  3 = IN (RELAY_CTRL)
-  J9 Buzzer (ฝา)   1 = +5V  2 = BUZZ_LO (ผ่าน Q1 ลง GND)
+ห้ามย้าย ECHO ไป GPIO32, TRIG ไป GPIO33, relay ไป GPIO26 หรือ buzzer ไป GPIO25 ตามแผนผังเก่า
 
 ---
 
-## 5. ขั้น 1 — วางสัญลักษณ์ใน Schematic
+## 4. Pin table ของ connector
 
-### 5.1 รู้จัก 3 ที่ที่หาอุปกรณ์ได้ (เลือกให้ถูกตั้งแต่แรก)
+หัน connector ตามซิลค์สกรีนของบอร์ดและพิมพ์เลข `1` บน PCB ทุกตัว ลำดับในตารางคือคำตอบของ schematic
 
-  (ก) **Common Library** — แผงแถบซ้าย (อันที่ 2 ใต้ Project) = คลังอุปกรณ์สำเร็จรูปของ EasyEDA แบ่งหมวด
-       Supply Flag · Resistor · Capacitor · Inductor · Power Supply · Connector · Switch/Key · Diodes
-       · Transistor · Regulator · Display · Others
-       ของที่โปรเจกต์นี้ต้องใช้อยู่ในนี้: `HDR-M-2.54_1xN` (header ตัวผู้) · `HDR-F-2.54_1xN` (ซ็อกเก็ตตัวเมีย)
-       · `Screw-M2` (หมวด Others — ใช้เป็นรูยึดก็ได้) · `0.96OLED_4P` · `2N3904(SOT-23)`
-       → ต้องเปิดเอกสาร **Schematic** ค้างไว้ก่อน แล้วคลิกรายการในแผงเพื่อวาง
-  (ข) **หน้าต่าง Library** (กด `Shift+F`) — ตัวค้นหาจริง มี 3 อย่างให้เลือกก่อนพิมพ์:
-       **Search Engine**: `EasyEDA` (ไลบรารีของ EasyEDA/ผู้ใช้) หรือ `LCSC Electronics` (ของจริงที่มีขาย)
-       **Types**: `Symbol` ← **เลือกอันนี้ = ได้ "อุปกรณ์"** · Footprint · Spice Symbol · SCH Module · PCB Module · 3D Model
-       **Classes**: `LCSC` · `JLCPCB Assembled` · `System` (ตอน login จะเห็น `Work Space` ของตัวเองเพิ่ม)
-       พิมพ์คำค้น **อย่างน้อย 3 ตัวอักษร** → ดับเบิลคลิกแถว หรือเลื่อนไปที่แถวแล้วกดปุ่ม `Place`
-  (ค) **LCSC Parts** — แผงแถบซ้าย ไว้หาของจริงตามสเปก/เบอร์ Cxxxxx แล้วกด `Apply New Part` เก็บเข้าไลบรารีตัวเอง
+| Connector | Pin 1 | Pin 2 | Pin 3 | Pin 4 | Pin 5 | Pin 6 | Pin 7 | Pin 8 |
+|---|---|---|---|---|---|---|---|---|
+| J_PWR | P5V | GND | — | — | — | — | — | — |
+| J_RFID_IN | RFIDINSS | RFIDINSCK | RFIDINMOSI | RFIDINMISO | NC/IRQ | GND | RFIDINRST | P3V3 |
+| J_RFID_OUT | RFIDOUTSS | RFIDOUTSCK | RFIDOUTMOSI | RFIDOUTMISO | NC/IRQ | GND | RFIDOUTRST | P3V3 |
+| J_OLED | GND | P3V3 | OLEDSCL | OLEDSDA | — | — | — | — |
+| J_US | P5V | USTRIG | USECHO5V | GND | — | — | — | — |
+| J_BUZZ | BUZZERS | GND | — | — | — | — | — | — |
+| J_CAM | P5V | GND | — | — | — | — | — | — |
+| J_RELAY_CTRL | P5V | GND | RELAYIN | — | — | — | — | — |
 
-  ❗ ความเข้าใจผิดที่พบบ่อย: ถ้าเลือก Types = `Footprint` จะได้แค่ลาย PCB ไม่มีวงจร
-     "อุปกรณ์" ที่เอาไปวางใน Schematic ต้องเป็น `Symbol` — สัญลักษณ์ของ EasyEDA/LCSC **ผูก footprint มาให้แล้ว**
-     ดูคอลัมน์ `Footprint` ในผลการค้นหา: ถ้ามีชื่อ footprint อยู่ = เป็นอุปกรณ์ครบชุด (ดูรูปคู่กันได้ที่ View → Preview Window)
-
-ปุ่มที่ใช้ตลอดขั้นนี้: `W` = Wire · `N` = NetLabel · `Ctrl+G` = NetFlag GND · `Ctrl+Q` = NetFlag VCC
-`Space` = หมุน · `Delete` = ลบ · `Esc` = ออกโหมด · `Ctrl+S` = Save (กดบ่อย ๆ)
-
-หลักการ (เหมือนฉบับ KiCad): **ไม่วาดวงจรภายในของโมดูล** — ทำแค่ header + ป้ายชื่อ net
-
-  1. กด `Shift+F` เปิด Library → เลือก **Type = Symbol** → พิมพ์คำค้นตามตารางหัวข้อ 3 → Enter
-       - เอาเมาส์ไปวางบนรูป จะมีปุ่ม **Place / Edit / More** โผล่มา → กด **Place**
-       - **ห้ามลากวาง** — ให้คลิกซ้าย 1 ครั้งที่ตำแหน่งที่ต้องการ (จะวางแล้ววางอีกถ้าคลิกอีก) → คลิกขวา/`Esc` ออก
-       - อยากดูตัวอย่างก่อนวาง: **View → Preview Window**
-  2. วางให้ครบตามทางที่เลือก (วาง U1 ไว้กลางจอก่อน แล้วค่อยจัด J รอบ ๆ)
-       ทาง A (โมดูล): `U1` + J1, J3–J9, R4–R8, Q1 = **15 ตัว**
-       ทาง B (ซ็อกเก็ต): `U1`, `U2` + J1, J3–J9, R4–R8, Q1 = **16 ตัว**
-  3. ตั้งค่าแต่ละตัว: คลิกตัวอุปกรณ์ → panel ขวา (Properties) แก้ช่อง **Value / Name** ตามตารางหัวข้อ 3
-       (R4/R5 = 4.7k · R6/R8 = 1k · R7 = 2k · J3 = RC522_IN · J4 = RC522_OUT ฯลฯ)
-  4. ตัวอักษร/ป้ายชื่อ (Designator) Untitled: EasyEDA ตั้ง R1, R2, J1… ให้เอง — ไม่ต้องแก้ให้ตรงกับเอกสาร
-       แต่ **ควรตั้งชื่อให้สื่อความหมาย** (RC522_IN / RC522_OUT / OLED ฯลฯ) เพราะใช้ตรวจใน Design Manager
+RC522 บางบอร์ดพิมพ์ `SDA` ที่ขา chip-select; ในตารางนี้ `SDA` ของ RC522 หมายถึง `SS` ไม่ใช่ I2C
 
 ---
 
-## 6. ขั้น 2 — ต่อ net ด้วย NetLabel / NetFlag + No-Connect (พร้อม "เฉลย")
+## 5. Net answer key — ต้องตรงทุกจุด
 
-> 📄 ถ้าคุณวาดสัญลักษณ์เป็น *โมดูลสำเร็จรูป* (Module RC522 / DOIT ESP32 / ULTRASONIC / OLED 1.3 I2C / RELAY / BUZZER)
-> ให้ใช้ตารางต่อสายฉบับเฉพาะไฟล์นั้น: **`hardware/PINOUT_TH.md`** (ตารางขาครบชุด รวม J1 · Q1+R8 · R6+R7 ที่ต้องเพิ่ม)
-> และอ่านเหตุผล/ข้อควรระวังของแต่ละข้อที่ **`hardware/WIRING_MAP_TH.md`**
+ใช้ชื่อ ASCII ด้านล่างเพื่อหลีกเลี่ยงปัญหาชื่อ net ใน EasyEDA Standard
 
-วิธีที่ง่ายสุดสำหรับมือใหม่: **ไม่ลากเส้นยาว** — ใช้ป้ายชื่อ net อย่างเดียว
+| Net | จุดที่ต้องอยู่ใน net เดียวกัน |
+|---|---|
+| P5V | U1 VIN, J_PWR.1, J_US.1, J_CAM.1, J_RELAY_CTRL.1, C_CAM_BULK(+), C_CAM_HF.1 |
+| P3V3 | U1 3V3, J_RFID_IN.8, J_RFID_OUT.8, J_OLED.2 |
+| GND | U1 GND ทั้งสองขา, J_PWR.2, J_RFID_IN.6, J_RFID_OUT.6, J_OLED.1, J_US.4, R_ECHO_PD.2, J_BUZZ.2, J_CAM.2, C_CAM_BULK(−), C_CAM_HF.2, J_RELAY_CTRL.2 |
+| RFIDINSS | U1 GPIO5, J_RFID_IN.1 |
+| RFIDINRST | U1 GPIO4, J_RFID_IN.7 |
+| RFIDINSCK | U1 GPIO18, J_RFID_IN.2 |
+| RFIDINMISO | U1 GPIO19, J_RFID_IN.4 |
+| RFIDINMOSI | U1 GPIO23, J_RFID_IN.3 |
+| RFIDOUTSS | U1 GPIO17, J_RFID_OUT.1 |
+| RFIDOUTRST | U1 GPIO2, J_RFID_OUT.7 |
+| RFIDOUTSCK | U1 GPIO14, J_RFID_OUT.2 |
+| RFIDOUTMISO | U1 GPIO35, J_RFID_OUT.4 |
+| RFIDOUTMOSI | U1 GPIO13, J_RFID_OUT.3 |
+| RELAYIN | U1 GPIO25, J_RELAY_CTRL.3 |
+| USTRIG | U1 GPIO26, J_US.2 |
+| USECHO5V | J_US.3, R_ECHO_SER.1 |
+| USECHO3V3 | R_ECHO_SER.2, R_ECHO_PD.1, U1 GPIO27 |
+| BUZZERS | U1 GPIO33, J_BUZZ.1 |
+| OLEDSDA | U1 GPIO21, J_OLED.4 |
+| OLEDSCL | U1 GPIO22, J_OLED.3 |
 
-  1. กด `W` แล้วลากเส้นสั้น ๆ จากขา header ออกมา (ยาว ~5 mm) พอให้ติดป้ายได้
-  2. กด `N` → พิมพ์ชื่อ net (ตามตารางหัวข้อ 4) → Enter → คลิกที่ปลายเส้นลม ๆ นั้น
-       ชื่อเดียวกัน = ต่อถึงกันทั้งบอร์ด ไม่ต้องลากเส้นเชื่อมกันจริง
-  3. ไฟเลี้ยงใช้ **NetFlag** (หน้าตาเป็นกราวด์/ลูกศร) แทน NetLabel:
-       `Ctrl+G` = NetFlag GND · `Ctrl+Q` = NetFlag VCC (แล้วเปลี่ยนชื่อใน panel ขวาเป็น `+3V3`)
-       ในพาเลต Wiring Tools มี NetFlag ให้เลือก: Digital GND / Analog GND / VCC / +5V
-       → ใช้ **GND** กับ **+5V** ของที่ให้มา และสำหรับ 3.3V ให้วาง VCC แล้วเปลี่ยนชื่อเป็น `+3V3`
-  4. ขาที่ไม่ใช้ ติด **No Connect Flag** (อยู่ในพาเลต Wiring Tools, หน้าตาเป็นกากบาท)
-       ต้องติด: ขา 1, 2, 3, 4, 12, 18, 27, 28 ของ DevKit และขา 5 ของ J3/J4
-       (ถ้าไม่ติด → Design Manager จะขึ้นแดงว่าเน็ตนั้นมีขาเดียว)
-  5. ⚠️ ชื่อ net ของ EasyEDA รับเฉพาะ **อังกฤษ a–z, A–Z และตัวเลข 0–9**
-       ถ้าพิมพ์แล้วโปรแกรมไม่ยอมรับ/เตือน ให้เปลี่ยนเป็นอังกฤษล้วน เช่น `RFID_ENTRY_SS` → `RFIDENTRYSS`
-       แล้ว **แก้ให้ตรงกันทั้งบอร์ดและแก้ตาราง "เฉลย" ข้างล่างตามไปด้วย** (ห้ามมีอักษรไทย เว้นวรรค หรือ "+" ในชื่อที่สร้างเอง)
-
-"เฉลย" — net ไหนต้องมีจุดต่ออะไรบ้าง (ตรวจทีละบรรทัดในหัวข้อ 7)
-"ขา n" = ขาที่ n ของ DevKit (ขา 1–15 = U1 ขาที่ 1–15 · ขา 16–30 = U2 ขาที่ 1–15)
-
-| net | ต้องมีจุดเหล่านี้ครบ |
-|-----|---------------------|
-| +5V | ขา 15, J1.1, J6.1, J7.1, J8.1, J9.1 |
-| +3V3 | ขา 16, J3.8, J4.8, J5.2, R4.1, R5.1 |
-| GND | ขา 14, ขา 17, J1.2, J3.6, J4.6, J5.1, J6.4, J7.2, J8.2, R7.2, Q1.E(ขา 2) |
-| BUZZER_CTRL | ขา 8, R8.1 |
-| Q1_B | R8.2, Q1.B(ขา 1) |
-| BUZZ_LO | Q1.C(ขา 3), J9.2 |
-| RELAY_CTRL | ขา 9, J8.3 |
-| US_TRIG | ขา 7, J6.2 |
-| US_ECHO_5V | J6.3, R6.1 |
-| US_ECHO_3V3 | ขา 6, R6.2, R7.1 |
-| OLED_SDA | ขา 26, J5.4, R4.2 |
-| OLED_SCL | ขา 29, J5.3, R5.2 |
-| CAM_RX2 | ขา 21, J7.4 |
-| CAM_TX2 | ขา 22, J7.3 |
-| RFID_ENTRY_SS / SCK / MOSI / MISO / RST | ขา 23 / 24 / 30 / 25 / 10 กับ J3.1 / J3.2 / J3.3 / J3.4 / J3.7 |
-| RFID_EXIT_SS / SCK / MOSI / MISO / RST | ขา 20 / 11 / 13 / 5 / 19 กับ J4.1 / J4.2 / J4.3 / J4.4 / J4.7 |
+ขา IRQ ของ RC522 ทั้งสองตัวเป็น No-Connect ไม่มี UART ระหว่าง main board กับ CAM และไม่มีอุปกรณ์ pull-up เพิ่มบน SDA/SCL
 
 ---
 
-## 7. ขั้น 3 — ตรวจวงจร (Design Manager) + ตรวจ footprint (Footprint Manager)
+## 6. วาด schematic ใน EasyEDA
 
-**EasyEDA Standard ไม่มี ERC แยกแบบ KiCad** — ตัวที่ทำหน้าที่แทนคือ Design Manager
+1. วาง U1 และ connector ทั้งหมดจากตาราง BOM
+2. วาง R_ECHO_SER 1 kΩ และ R_ECHO_PD 2 kΩ เป็นรูป divider:
 
-  1. กด `Ctrl+D` เปิด **Design Manager** → แท็บ **Nets**
-       - ดูทีละ net เทียบกับตาราง "เฉลย" หัวข้อ 6 (คลิกชื่อ net แล้วเส้นในวงจรจะไฮไลต์)
-       - ไอคอน ⚠️ / 🔴 = เน็ตยังต่อไม่ครบ 2 ขา หรือมี NetLabel ลอยที่ไม่ต่อกับอะไร → แก้ให้หมด
-         (สาเหตุที่พบบ่อยสุด: ลืมติด No-Connect Flag ที่ขาที่ไม่ใช้)
-  2. แท็บ **Components** → ไล่ดูว่าครบ 16 ตัว และทุกตัวมี **Footprint** อยู่ในช่อง (ห้ามว่าง)
-  3. `Alt+F` เปิด **Footprint Manager** → ตรวจว่าทุกตัวมี footprint ที่ถูกต้อง
-       จุดที่ต้องระวัง: **เลข pad ของ footprint ต้องตรงกับเลข pin ของสัญลักษณ์** (ตัวพิมพ์เล็ก/ใหญ่มีผล)
-  4. กด `Ctrl+S` Save
+```text
+J_US.ECHO ── 1k ──●── GPIO27
+                  │
+                  2k
+                  │
+                 GND
+```
 
----
-
-## 8. ขั้น 4 — Convert to PCB
-
-  1. กดปุ่ม **Convert to PCB** (ไอคอน PCB บน toolbar, อยู่ใกล้ ๆ ปุ่ม Save) — หรือเมนู Design
-  2. ถ้ามีปัญหา จะเด้งหน้าต่างตรวจ footprint: **แถวสีแดง = EasyEDA หา footprint ที่สัญลักษณ์เรียกไม่เจอ**
-       → คลิกแถวนั้น แก้ footprint ใน Footprint Manager แล้วกด Convert to PCB อีกครั้ง
-  3. สำเร็จแล้ว EasyEDA จะเปิดเอกสาร PCB ให้ พร้อมวางอุปกรณ์มากองกลางจอ + มี **ratline (เส้นฟ้า)** บอกว่าต้องต่ออะไรถึงอะไร
-  4. EasyEDA จะ **สร้างขอบบอร์ดมาให้เอง** (สี่เหลี่ยมใหญ่กว่าของจริง) — เราจะลบทิ้งในขั้นถัดไป
-  5. หลังจากนี้ ถ้ากลับไปแก้ Schematic (วางของ/เปลี่ยนชื่อ net) → กลับมาที่ PCB แล้ว **Design → Import Changes → Apply Change**
-       (ถ้าอยากให้ net ของลายเดิมอัปเดตตาม ให้ติ๊ก `Also update track's net`)
+3. วาง C 470 µF และ 100 nF ขนานระหว่าง P5V/GND ชิด J_CAM ใน schematic และภายหลังชิด connector จริงบน PCB
+4. กด `W` ลาก wire สั้นจาก pin แล้วกด `N` วาง NetLabel ตาม Net answer key
+5. ใช้ `Ctrl+G` สำหรับ GND; หาก power flag ที่เลือกสร้างชื่อไม่ตรง ให้ใช้ NetLabel `P5V`/`P3V3` อย่างสม่ำเสมอ
+6. ใส่ No-Connect Flag ที่ขา ESP32 ที่ไม่ใช้และ IRQ ของ RC522
+7. **อย่าวาง** วงจร transistor สำหรับ buzzer, resistor อนุกรม buzzer หรือ pull-up 4.7 kΩ ของ OLED
+8. กด `Ctrl+D` → **Nets** ตรวจสมาชิกทุก net ตามตารางข้อ 5
+9. กด `Alt+F` ตรวจ footprint และเลข pad ให้ตรง pin symbol
+10. Save ด้วย `Ctrl+S`
 
 ---
 
-## 9. ขั้น 5 — ขอบบอร์ด + รูยึด + วางอุปกรณ์
+## 7. Convert to PCB และกำหนดบอร์ด
 
-### 9.1 ขอบบอร์ด 88 × 148 mm
-  1. ลบขอบที่ EasyEDA สร้างให้ก่อน: คลิกเส้นขอบ (ชั้น **BoardOutLine**) → `Delete` ทุกเส้นจนเกลี้ยง
-  2. ใช้ตัวช่วย: **Tools → Set Board Outline** → เลือก **Rectangular** → ใส่ Width = **88**, Height = **148** mm → OK
-     (ถ้าอยากวาดเอง: เลือกชั้น BoardOutLine เป็นชั้นทำงาน แล้วกด `W` ลากเส้น 4 เส้นปิดกรอบให้สนิท)
-  3. กติกาเหล็ก: **ขอบต้องปิดสนิทและห้ามเส้นซ้อนทับกัน** ไม่งั้นตอนออก Gerber จะ error และทองแดง GND จะไม่ขึ้น
-
-### 9.2 รูยึด M2 (4 มุม)
-  1. เปิดพาเลต **PCB Tools** → เครื่องมือ **Hole**
-  2. วางรู 4 มุม: ห่างขอบเข้ามา ~2.25 mm → พิกัด **(2.25, 2.25) · (85.75, 2.25) · (85.75, 145.75) · (2.25, 145.75)**
-       ตั้ง Hole(D)/ขนาดรู = **2.2 mm** (ตรงกับ M2 ของบอร์ดอ้างอิง)
-  3. พิกัดแก้ให้เป๊ะได้ที่ช่อง **Center-X / Center-Y** ใน panel ขวา (ใช้ได้กับทุกอย่างบนบอร์ด)
-
-### 9.3 วางอุปกรณ์ (ใช้ Center-X / Center-Y ใน panel ขวา)
-สมมติให้มุมซ้ายบนของขอบบอร์ด (เส้นเขต) อยู่ที่ **(0, 0)** ของ canvas — ถ้าที่คุณได้ไม่ใช่ 0 ให้บวก/ลบตามผลต่างของขอบบอร์ดคุณ
-
-| Ref | Center-X, Center-Y (mm) | เหตุผล |
-|-----|-------------------------|--------|
-| U1 — ทาง A (โมดูล DevKit) | (44, 74) | กลางบอร์ด · แถวขาจะอยู่ที่ x ≈ 31.3 และ 56.7 mm (ระยะแถว 25.4 mm) |
-| U1 / U2 — ทาง B (ซ็อกเก็ตซ้าย/ขวา) | (31.3, 74) · (56.7, 74) | กลางบอร์ด · **ห่างกันแนวนอน 25.4 mm** |
-| J3 (RC522 เข้า) | (13, 14) ซ้ายบน | หันขาออกด้านบน (ฝาเข้า) |
-| J4 (RC522 ออก) | (75, 14) ขวาบน | ฝาออก |
-| J5 (OLED) | (13, 82) ซ้ายกลาง | หน้าจอ |
-| J7 (ไป CAM) | (13, 114) ซ้ายล่าง | สายออกซ้าย |
-| J1 (ไฟเข้า) | (13, 136) ซ้ายล่าง | สายไฟเข้า |
-| J6 (HY-SRF05) | (36, 126) ล่างกลาง | หันลงขอบล่าง |
-| R6 (1k) · R7 (2k) | (44, 126) · (44, 133) | ตัวแบ่ง Echo ชิดขา J6.3 |
-| J8 (relay) | (66, 136) ขวาล่าง | ห่างจาก ESP32/กล้อง |
-| Q1 · R8 | (72, 60) · (66, 60) ขวากลาง | ชุดขับ buzzer (R8 อยู่ระหว่างขา 8 กับ Q1) |
-| J9 (ไป buzzer ฝา) | (79, 59) ขอบขวา | สายไป buzzer |
-| R4 (4.7k) · R5 (4.7k) | (22, 78) · (22, 85) | pull-up I2C ชิด J5 |
-
-พิกัดนี้คือพิกัดอ้างอิงชุดเดียวกับไฟล์ KiCad (แปลงจากกรอบอ้างอิงเดิมลบ (106, 26))
-**ถ้าองค์ประกอบของคุณมีจุดกำเนิดไม่กลางตัว** ให้ยึด "ระยะห่างระหว่างกัน" ในตารางเป็นหลัก อย่ายึดเลข Center-X/Y อย่างเดียว
-
-กฎการวางที่ต้องจำ
-  1. อุปกรณ์ที่ต่อกัน → วางใกล้กัน (R ชิด header ที่มันเกี่ยว) ลากลายง่ายมาก
-  2. header ที่มีสายออกนอกกล่อง → หันออกขอบบอร์ด (J1/J6/J8/J9 ด้านล่าง-ขวา)
-  3. **เสาอากาศ ESP32**: ให้ปลายด้านเสาอากาศของ DevKit หันออกขอบบอร์ด และ **ห้ามมีทองแดงใต้เสาอากาศ** (ทำในหัวข้อ 11)
-  4. relay module (ขดลวด + สวิตช์ 220V) อยู่ไกลจาก ESP32 แล้ว — รักษาระยะไว้
-  5. `Space` = หมุน · `D` = ย้าย (Drag) · `Delete` = ลบ · ตั้ง snap 0.5 mm ตอนวาง
+1. กด **Convert to PCB**; แถวแดงหมายถึง footprint หายหรือเลข pad ไม่ตรง
+2. EasyEDA สร้าง outline อัตโนมัติ ให้ลบแล้วสร้างของจริงด้วย **Tools → Set Board Outline**
+3. หากต้องใช้ขนาดเดิมของกล่อง ให้ใช้ 88 × 148 mm; ถ้างานจริงเปลี่ยน ให้ยึดกล่องและตำแหน่งรูจริง
+4. วางรูยึดด้วย PCB Tools → **Hole**; พิมพ์แบบ 1:1 ตรวจทาบกล่องก่อนกัด
+5. หลังแก้ schematic ใช้ **Design → Import Changes → Apply Change** และเลือก update net ของ track เมื่อจำเป็น
 
 ---
 
-## 10. ขั้น 6 — Design Rule + ลากลายทองแดง
+## 8. Placement สำหรับแผ่นชั้นเดียว
 
-### 10.1 ตั้ง Design Rule (ทำครั้งเดียว)
-**Tools → Design Rule…** (หรือคลิกขวาที่ผืนวาดก็ได้) — หน่วยในกล่องนี้ตามหน่วย canvas (ถ้าเห็นเป็น mil ให้กด `Q` เป็น mm ก่อน)
+วางเพื่อให้ ratsnest ตัดกันน้อยที่สุด แทนการบังคับพิกัดเก่าของบอร์ดสองชั้น
 
-  - **Track Width** = **0.3 mm** · **Clearance** = **0.2 mm** · **Via Diameter** = 0.6 mm · **Via Drill** = 0.3 mm
-  - ติ๊ก **Realtime DRC** (เส้นที่เดินชนจะขึ้นกากบาท X ทันที) · ติ๊ก **Check Object to Copper Area**
-  - ติ๊ก **Apply Design Rule while Routing and Placing Via** (ลากลายแล้วได้ความกว้างตามกฎอัตโนมัติ)
-  - **ตั้งกฎแยกให้เน็ตไฟ**: กด **New** ตั้งชื่อ `POWER` → Track Width = **0.6 mm** → เลือกเน็ต `+5V` และ `+3V3`
-    (คลิกแรก + กด `Ctrl` ค้างเพื่อเลือกหลายเน็ต) → กด **apply** → **Settings**
-  - ค่า 0.3/0.2 mm ปลอดภัยกับ JLCPCB (ต่ำสุดที่เขารับคือ 0.2/0.2) — อย่าต่ำกว่านี้
-  - เส้นไฟ 0.6 mm รับกระแสได้ ~1.4 A (พอสำหรับโปรเจกต์นี้) · GND ไม่ต้องลาก ใช้ Copper Area ในหัวข้อ 11
+1. U1 กลางบอร์ดและหันเสาอากาศออกขอบ; เว้นพื้นที่ใต้/หน้าเสาอากาศจากทองแดงและสาย
+2. J_RFID_IN/J_RFID_OUT อยู่คนละฝั่งใกล้ชุด GPIO ของตน
+3. J_US และ divider 1 kΩ/2 kΩ อยู่ชิดกัน; จุด `USECHO3V3` ต้องสั้น
+4. J_CAM กับ C ทั้งสองตัวอยู่ชิดกัน; ลาย 5V/GND สั้นและกว้าง
+5. J_OLED อยู่ใกล้ GPIO21/22
+6. J_BUZZ อยู่ใกล้ GPIO33/GND
+7. J_RELAY_CTRL อยู่ริมบอร์ดและใกล้ GPIO25 เพื่อให้ลากสาย 3 เส้นไป relay module ได้สั้น
+8. J_PWR อยู่ริมบอร์ด ใช้ terminal ที่รับกระแสได้
+9. วาง silkscreen ชื่อทุก pin และเครื่องหมายขั้ว `+` ของ electrolytic
 
-### 10.2 ลากลาย (หัวใจของงาน)
-  1. กด `W` (Track) → **คลิก 1 ครั้ง** ที่ pad ต้นทาง → เลื่อนเมาส์ (คลิกเพื่อล็อกมุม) → **คลิกขวา 1 ครั้ง** จบเส้น
-       ดับเบิลคลิกขวาอีกที = ออกจากโหมดลาก
-  2. **เจอทางตัน: กด `B` ระหว่างลาก** → EasyEDA หย่อน via ให้ + เดินต่อบนชั้นล่างทันที (`T` = กลับขึ้นชั้นบน)
-       นี่คือท่าไม้ตายของ EasyEDA — ใช้บ่อยมาก
-  3. ปรับความกว้างระหว่างลาก: `+` / `-` (หรือ `Tab` เปิดกล่องใส่ตัวเลข)
-  4. เปลี่ยนมุมเส้น: `L` (90°/45°/arc) · สลับทิศหักมุม: `Space`
-  5. ลบเส้นที่เพิ่งลาก: `Delete` (ระหว่างลาก) · ลบเส้นที่ลากแล้ว: คลิกเส้นแล้ว `Shift` + ดับเบิลคลิก
-  6. เน็ตไหนไฮไลต์ดูง่าย: คลิกที่ pad/เส้น แล้วกด `H`
-  7. **ลากให้ "ratline หายหมด"** — เส้นฟ้าที่เหลือ = ยังไม่ได้ต่อ (ยกเว้น GND ที่จะหายเองตอนเททองแดง)
-
-### 10.3 ลำดับที่ควรลาก (จากง่ายไปยาก)
-  1) ไฟก่อน (เส้นอ้วน ตอนบอร์ดยังว่าง) — กฎ `POWER` 0.6 mm
-     +5V   → ขา 15 ↔ J1.1 ↔ J6.1 ↔ J7.1 ↔ J8.1 ↔ J9.1
-     +3V3  → ขา 16 ↔ J3.8 ↔ J4.8 ↔ J5.2 ↔ R4.1 ↔ R5.1
-  2) SPI ของ RFID ทั้งสองชุด
-     RFID_ENTRY_SS ขา 23 ↔ J3.1        RFID_EXIT_SS ขา 20 ↔ J4.1
-     RFID_ENTRY_SCK ขา 24 ↔ J3.2       RFID_EXIT_SCK ขา 11 ↔ J4.2
-     RFID_ENTRY_MOSI ขา 30 ↔ J3.3      RFID_EXIT_MOSI ขา 13 ↔ J4.3
-     RFID_ENTRY_MISO ขา 25 ↔ J3.4      RFID_EXIT_MISO ขา 5  ↔ J4.4
-     RFID_ENTRY_RST ขา 10 ↔ J3.7       RFID_EXIT_RST ขา 19 ↔ J4.7
-  3) I2C + ตัวประกอบ
-     OLED_SDA ขา 26 ↔ J5.4 ↔ R4.2 · OLED_SCL ขา 29 ↔ J5.3 ↔ R5.2
-     US_TRIG ขา 7 ↔ J6.2 · US_ECHO_5V J6.3 ↔ R6.1 · US_ECHO_3V3 ขา 6 ↔ R6.2 ↔ R7.1
-     BUZZER_CTRL ขา 8 ↔ R8.1 · Q1_B R8.2 ↔ Q1 ขา B · BUZZ_LO Q1 ขา C ↔ J9.2 · Q1 ขา E ↔ GND
-     RELAY_CTRL ขา 9 ↔ J8.3
-  4) UART ไปกล้อง (ไขว้ตามที่ระบุ)
-     CAM_TX2 ขา 22 ↔ J7.3 · CAM_RX2 ขา 21 ↔ J7.4
-  5) GND — ไม่ลาก ทำเป็น Copper Area ในหัวข้อ 11
-
-ทางเลือก: EasyEDA มี **Route → Auto Router** ให้อัตโนมัติ — **ไม่แนะนำให้ใช้ทั้งบอร์ด**
-ถ้าจะลอง ให้ลากไฟ (ข้อ 1) ด้วยมือก่อน แล้วใช้ auto เฉพาะที่เหลือ จากนั้น **ตรวจและแก้เองทุกเส้น**
+ตัว socket ESP32 สองแถวต้องวัดระยะจาก DevKit จริง บอร์ด 30-pin หลายยี่ห้อมีความกว้างไม่เท่ากัน พิมพ์ footprint 1:1 แล้วเสียบของจริงก่อนกัด
 
 ---
 
-## 11. ขั้น 7 — Copper Area (GND) ทั้ง 2 ด้าน + กันทองแดงใต้เสาอากาศ
+## 9. Design Rule สำหรับกัดลายมือ
 
-EasyEDA **ไม่เททองแดงแบบสด ๆ** — ต้องสั่ง Rebuild ทุกครั้งหลังแก้บอร์ด
+ไปที่ **Tools → Design Rule…** และตั้งค่าตามความสามารถจริงของวิธี transfer/กัด ไม่ใช้ค่าจิ๋วแบบโรงงานเป็นค่าเริ่มต้น
 
-  1. กด `E` (หรือปุ่ม **Copper Area** ในพาเลต PCB Tools) → วาดกรอบคลุมทั้งบอร์ด (ปิดกรอบ) → **คลิกขวาจบ**
-  2. คลิกที่ **เส้นขอบของ Copper Area** (ต้องคลิกที่เส้น ไม่ใช่เนื้อทองแดง — EasyEDA ไม่ให้คลิกที่เนื้อทองแดง) แล้วตั้งใน panel ขวา:
-       **Layer** = `BottomLayer` · **Net** = `GND` · **Clearance** = 0.2 mm
-       **Pad Connection** = `Spoke` (ต่อแบบกากบาท = บัดกรีง่าย ไม่ดูดความร้อนหมด)
-       **Keep Island** = `No` · **Improve Fabrication** = `Yes`
-  3. ทำซ้ำอีกอันบน `TopLayer` (ได้ ground ทั้งสองด้าน)
-  4. **กันทองแดงใต้เสาอากาศ ESP32**: วาด **Solid Region** คลุมบริเวณใต้เสาอากาศ (ทั้งบนและล่าง) → ตั้ง
-       **Layer** = TopLayer/BottomLayer · **Net** = เน็ตอะไรก็ได้ที่ **ไม่ใช่ GND** · **Type** = `No Solid`
-       → มันจะ "ตัด" ทองแดงบริเวณนั้นออก (ต้องตั้ง net ให้ต่างจาก copper area ไม่งั้นไม่ตัด)
-  5. กด **`Shift+B`** = Rebuild All Copper Area (ทองแดงจะเทใหม่ทั้งบอร์ด)
-       - ทองแดงไม่ขึ้น? → ขอบบอร์ดไม่ปิด หรือยังไม่ได้ตั้ง Net = GND → แก้แล้วกด `Shift+B` อีกครั้ง
-  6. อยากลากลายต่อโดยไม่รกตา: กด `Shift+M` (ซ่อนเนื้อทองแดง) แล้ว `Shift+B` กลับมาตอนจะดูผล
+ค่าตั้งต้นที่ทำมือได้ง่าย:
 
----
+- signal track: 0.8–1.0 mm
+- 5V/3.3V/GND: 1.2–1.5 mm
+- CAM 5V/GND และ relay-control power: 1.5 mm ถ้าพื้นที่พอ
+- ไม่ลากกระแสโหลด 12V ผ่าน carrier PCB; ต่อที่ COM/NO ของ relay module โดยตรง
+- clearance: 0.8 mm; บริเวณโหลดให้ 1.0 mm ขึ้นไป
+- pad annular ring ใหญ่พอเจาะมือ; รู header ปกติประมาณ 1.0 mm แต่ต้องวัดขาจริง
+- เปิด Realtime DRC และ Check Object to Board Outline
 
-## 12. ขั้น 8 — ตรวจ DRC
-
-  1. **Design → Check DRC** (หรือ Design Manager → แท็บ **DRC Error** → กดไอคอน refresh)
-  2. เป้าหมาย: **ไม่มี error** (กากบาท X บนผืนวาดต้องหายหมด) และ **ratline ต้องไม่เหลือ**
-       - `Clearance` = ของสองเน็ตใกล้กันเกินกฎ → ขยับเส้น หรือลด Clearance เหลือ 0.2 mm
-       - `Track Width` = เส้นเล็กกว่ากฎ → เปลี่ยนความกว้าง (คลิกเส้น → panel ขวา → Width)
-  3. ตรวจซ้ำหลัง `Shift+B` ทุกครั้ง (ทองแดงเทใหม่แล้วกฎอาจเปลี่ยน)
-  4. ถ้าไฟล์ใหญ่/ทองแดงเยอะ DRC จะใช้เวลาสักพัก — รอให้ขึ้นผลครบก่อนอ่าน
+บอร์ดนี้สำหรับแรงดันต่ำเท่านั้น ห้ามนำ clearance ชุดนี้ไปใช้กับ 220/230 VAC
 
 ---
 
-## 13. ขั้น 9 — Gerber + สั่ง JLCPCB
+## 10. เดินลาย BottomLayer และทำ insulated jumper
 
-  1. **กด `Shift+B` เททองแดงครั้งสุดท้ายก่อนเสมอ**
-  2. **File → Generate PCB Fabrication File(Gerber)** (หรือ Fabrication → PCB Fabrication File(Gerber))
-  3. ในหน้าต่าง Gerber:
-       - **Gerber View** = เปิดดูพรีวิว → **ต้องตรวจก่อนสั่งทุกครั้ง**: ขอบปิดครบ · ทองแดงไม่ล้นขอบ · มี silkscreen ชื่อขา
-       - ไฟล์ที่ได้จะเป็น **zip** ดาวน์โหลดผ่านเบราว์เซอร์ (ให้สิทธิ์ดาวน์โหลดถ้าเบราว์เซอร์ถาม)
-  4. ตรวจรายการไฟล์ใน zip (ครบไหม): `Gerber_BoardOutline.GKO` · `Gerber_TopLayer.GTL` · `Gerber_BottomLayer.GBL`
-     · `Gerber_TopSilkLayer.GTO` · `Gerber_BottomSilkLayer.GBO` · `Gerber_TopSolderMaskLayer.GTS`
-     · `Gerber_BottomSolderMaskLayer.GBS` · `Drill_PTH_Through.DRL` · `Drill_NPTH_Through.DRL`
-  5. สั่งบอร์ด ทำได้ 2 ทาง:
-       - **ทางลัด**: ในหน้าต่าง Gerber กด **SAVE TO CART** → ระบบพาไป JLCPCB แล้วใส่ตะกร้าให้เลย
-       - **ทางปรกติ**: เข้า https://jlcpcb.com/quote → login ด้วยบัญชี EasyEDA → อัปโหลดไฟล์ zip → ตั้งค่า
-  6. ตั้งค่าในหน้า JLCPCB: **Layers = 2** · **Thickness = 1.6 mm** · ที่เหลือปล่อย default → ตรวจพรีวิว → จ่ายเงิน
-       (บอร์ดนี้ไม่มี SMT — สั่ง "บอร์ดเปล่า" อย่างเดียว ไม่ต้องติ๊ก assembly)
+1. เลือก `BottomLayer` เป็น active layer แล้วกด `W` เดิน track
+2. เดิน P5V/GND และจุด CAM ก่อน ตามด้วย relay load, SPI, I2C และสัญญาณอื่น
+3. ใช้มุม 45°; หลีกเลี่ยงคอขวดระหว่าง pad
+4. ห้ามกด `V` และห้ามเปลี่ยนไป TopLayer เพื่อสร้าง via
+5. เมื่อเส้นต้องข้ามกัน ให้ย้อนกลับไป schematic แล้วเพิ่ม `Wire Link/0R` เป็น `Jn` เพื่อแยก net สองฝั่ง เช่น `RFIDINSCKA` และ `RFIDINSCKB`; update PCB แล้ววาง footprint แบบ axial ระยะพอข้ามลาย
+   Schematic ปัจจุบันมี jumper 5 เส้น: `J1` = RFID_OUT RST, `J2` = RFID_OUT SS,
+   `J3` = Buzzer, `J4` = Relay IN และ `J5` = Ultrasonic TRIG
+   (ใช้ ref J1–J5 ไม่ใช่ JP1–JP5); สายที่เพิ่มใหม่ให้ใช้ `J6` ขึ้นไป
+6. บนของจริง ใช้สายแกนเดี่ยวหุ้มฉนวนพาดด้านอุปกรณ์ บัดกรีปลายที่ pad ของ JPn ด้านทองแดง
+7. อย่าใช้ลวดเปลือยข้ามเหนือ pad/ขาโลหะอื่น และอย่าวาง jumper ผ่านใต้เสาอากาศ ESP32
+8. ใส่ silkscreen `J1`–`J5` และบันทึกตารางว่า jumper แต่ละเส้นเชื่อม net ใด
 
----
+หากไม่ต้องการแก้ schematic สามารถใช้ pad THT สองจุดสำหรับ jumper ได้ แต่ DRC/netlist จะตรวจการต่อให้ไม่ได้ วิธีใส่ Wire Link ใน schematic จึงปลอดภัยกว่า
 
-## 14. เช็คลิสต์ก่อนสั่งผลิต + วิธีให้ผมตรวจงานคุณ
-
-ทำเองก่อน (ติ๊กทีละข้อ)
-  [ ] Design Manager → Nets: ไม่มีเน็ตขึ้นเตือน/แดง และตรงกับ "เฉลย" หัวข้อ 6 ทุกบรรทัด
-  [ ] ขาที่ไม่ใช้ติด No-Connect Flag ครบ (ขา 1,2,3,4,12,18,27,28 + J3.5, J4.5)
-  [ ] DRC: 0 error (กด Check DRC หลัง Shift+B ครั้งสุดท้าย)
-  [ ] Q1: `Q1_B` = ขา B · `GND` = ขา E · `BUZZ_LO` = ขา C (ห้ามสลับ — ดูภาคผนวก C)
-  [ ] ลำดับขาของโมดูลจริง (RC522 / OLED / HY-SRF05) ตรงกับ header บนบอร์ด — ดูซิลค์สกรีนโมดูลจริงของคุณ
-  [ ] ไฟเข้า J1 = 5V ที่ขา 1, GND ที่ขา 2 (ต่อกลับขั้วบอร์ดจะไหม้)
-  [ ] ขอบบอร์ด 88 × 148 mm ปิดสนิท ไม่มีเส้นซ้อน/ขาด
-  [ ] รูยึด 2.2 mm 4 รูตรงกับที่เจาะของจริง
-  [ ] กด Shift+B ครั้งสุดท้ายแล้ว + ดู Gerber View แล้ว
-  [ ] ทั้งโปรเจกต์กด Ctrl+S แล้ว (EasyEDA เก็บบนคลาวด์)
-
-ให้ผมช่วยตรวจได้ (เลือกวิธีที่สะดวก)
-  - **ส่งไฟล์ netlist มาให้ผมเทียบกับ "เฉลย"**: ที่ Schematic → **Export NetList** (มีเมนูอยู่ในแถบขวา)
-    แล้วส่งไฟล์มา — บอกได้เลย ผมเขียนตัวตรวจ netlist ของ EasyEDA เทียบทีละบรรทัดให้ (แบบเดียวกับ `hardware/tools/check_board.py`)
-  - **ส่ง BOM**: Export BOM → ตรวจว่าครบ 16 ตัว และมี footprint ครบ
-  - **แชร์ลิงก์โปรเจกต์**: คลิกขวาที่โปรเจกต์ → Share → ส่งลิงก์มาให้ผมเปิดดู schematic/PCB
-  - ⚠️ สคริปต์เดิม `hardware/tools/check_board.py` ใช้กับ EasyEDA **ไม่ได้** (มันอ่านไฟล์ `.kicad_sch`/`.kicad_pcb` ของ KiCad เท่านั้น)
+GND plane ไม่จำเป็นสำหรับบอร์ดกัดมือ หากเท copper ให้ใช้ **Copper Area เฉพาะ BottomLayer, Net=GND**, clearance อย่างน้อย 0.8 mm, Keep Island=No แล้วกด `Shift+B` ทุกครั้งหลังแก้ ห้ามสร้าง TopLayer copper area
 
 ---
 
-## ภาคผนวก A — ปุ่มลัด EasyEDA
+## 11. ตรวจ DRC และตรวจ net ก่อนพิมพ์
 
-| ปุ่ม | ทำอะไร |
-|------|--------|
-| `Shift+F` | เปิด Library (ค้นอุปกรณ์) |
-| `Ctrl+D` | Design Manager (อุปกรณ์ + เน็ต) |
+1. กด `Shift+B` ถ้ามี copper area
+2. **Design → Check DRC** ให้เหลือ 0 error
+3. ตรวจ ratline ต้องไม่มี ยกเว้นรายการที่ตั้งใจและบันทึกไว้ชัดเจน
+4. `Ctrl+D` ตรวจ net กับตารางข้อ 5 ทีละแถว
+5. ตรวจ continuity เชิงตรรกะ:
+   - GPIO26 ถึง TRIG; GPIO27 อยู่ฝั่งหลัง 1 kΩ
+   - GPIO25 ถึง relay IN; GPIO33 ถึง buzzer S
+   - CAM มีเพียง P5V/GND และ C สองตัว
+   - OLED ไม่มี pull-up เพิ่ม
+   - GND ของทุกโมดูลต่อร่วมกัน
+   - J_RELAY_CTRL มีเพียง P5V/GND/RELAYIN; ไม่มี COM/NO บน carrier PCB
+6. พิมพ์ assembly/footprint 1:1 ลงกระดาษ เจาะรูทดลองบางจุดแล้วทาบ ESP32, terminal และกล่อง
+
+---
+
+## 12. ส่งออกลายสำหรับ toner transfer/กัด
+
+1. ซ่อน TopLayer, silkscreen และ layer อื่น เหลือ BottomLayer, pad และ BoardOutLine ตามวิธี export ที่ใช้
+2. Export/Print ที่สเกล **100% หรือ 1:1** ปิด Fit to page
+3. ใส่เส้นวัด 100 mm หรือระยะ header หลายช่วง แล้ววัดกระดาษก่อน transfer
+4. เรื่อง mirror ขึ้นกับว่าโปรแกรม/viewer แสดง BottomLayer จากด้านใดและวิธีวางกระดาษ toner อย่าเดา: ใช้ connector ที่ไม่สมมาตรและตัวอักษร `BOT` เป็น test mark แล้วทาบแผ่นใส/กระดาษกับตำแหน่งอุปกรณ์ด้านบนก่อนกัด
+5. หลัง transfer ตรวจ track ขาด/ติดกันด้วยแว่นขยายและแต้มแก้ด้วยปากกากันกรด
+6. กัด ล้าง เจาะ แล้วตรวจด้วย multimeter ก่อนบัดกรี: ทุก net ต้องต่อ, net ข้างเคียงต้องไม่ short
+7. บัดกรีของเตี้ยไปสูง: jumper/resistor → header/socket → capacitor/terminal
+8. ยังไม่เสียบ ESP32/โมดูล ให้จ่ายไฟและวัด P5V, P3V3, polarity และ short ก่อน
+
+Gerber ยังสร้างได้ที่ **File → Generate PCB Fabrication File (Gerber)** เพื่อเก็บอ้างอิง แต่ถ้าส่งโรงงานต้องแจ้ง/เลือก 1-layer ตามความสามารถผู้ผลิต และตรวจว่าไม่มี TopLayer copper
+
+---
+
+## 13. ต่อโหลด relay และทดสอบ
+
+สำหรับโซลินอยด์ 12V DC ตัวอย่างการต่อคือ `+12V → COM`, `NO → solenoid +`, `solenoid − → 12V−` หาก 5V มาจาก buck ที่รับ 12V ก้อนเดียวกัน ให้ 12V−/buck GND/ESP32 GND เป็น common ground ฝั่งควบคุม
+
+- ใส่ flyback diode ที่โซลินอยด์ DC ตามขั้ว: cathode ไปด้านบวก, anode ไปด้านลบ
+- contact COM/NO เป็นวงจรสวิตช์ ไม่ผูกเข้ากับ GND บน PCB โดยอัตโนมัติ
+- ทดสอบ relay ด้วยโหลด 12V กระแสต่ำก่อน
+- ห้ามใช้แผ่นกัดมือนี้กับไฟบ้าน
+
+ลำดับทดสอบ: power rails → OLED → ultrasonic/divider → RFID_IN → RFID_OUT → buzzer module → relay control → CAM power/ESP-NOW → โหลดจริง
+
+---
+
+## 14. Checklist ก่อนกัด
+
+- [ ] ขาทั้งหมดตรงกับ `pooh:.../full-main_test.ino`
+- [ ] RFID_IN = SS5/RST4/SCK18/MISO19/MOSI23
+- [ ] RFID_OUT = SS17/RST2/SCK14/MISO35/MOSI13
+- [ ] relay GPIO25, TRIG GPIO26, ECHO GPIO27 ผ่าน 1 kΩ + 2 kΩ ลง GND
+- [ ] buzzer module S = GPIO33 และอีกขา = GND
+- [ ] OLED SDA21/SCL22 และไม่มี pull-up เพิ่ม
+- [ ] CAM มีเฉพาะ 5V/GND พร้อม 470 µF + 100 nF ชิด connector
+- [ ] GND ทุกโมดูลร่วมกัน
+- [ ] โหลดต่อที่ COM/NO บน relay module โดยตรง และ carrier PCB มีเพียง J_RELAY_CTRL 3 ขา
+- [ ] ทุก track อยู่ BottomLayer; ไม่มี via/TopLayer copper
+- [ ] jumper ทุกเส้นเป็นสายหุ้มฉนวนและมี reference
+- [ ] DRC 0 error, ratline 0, พิมพ์ 1:1 ทาบของจริงแล้ว
+- [ ] ตรวจ mirror ด้วยชิ้นส่วนไม่สมมาตรก่อนกัด
+- [ ] continuity/short test ผ่านก่อนเสียบ ESP32
+
+---
+
+## ภาคผนวก A — Hotkey ที่ใช้จริง
+
+| ปุ่ม | หน้าที่ |
+|---|---|
+| `Shift+F` | Library; ต้องให้ canvas มี focus |
+| `Ctrl+D` | Design Manager: Components/Nets/DRC |
 | `Alt+F` | Footprint Manager |
-| `W` | Schematic: ลากเส้น Wire · PCB: ลากลาย Track |
-| `N` | วาง NetLabel |
-| `Ctrl+G` / `Ctrl+Q` | NetFlag GND / NetFlag VCC |
-| `Space` | หมุนสิ่งที่เลือก |
-| `D` | ย้าย (Drag) |
-| `Q` | สลับหน่วย (mil ↔ mm) |
-| `K` | ย่อ/ขยายให้พอดีจอ (Fit Window) |
-| `A` / `Z` | Zoom in / out |
-| `Ctrl+S` | Save (EasyEDA ไม่ save ให้เองตอนปิด) |
-| `E` | วาง Copper Area (PCB) |
-| `V` | วาง Via (PCB) |
-| `T` / `B` | เปลี่ยนไปชั้น TopLayer / BottomLayer |
-| `+` / `-` | เพิ่ม/ลดความกว้างเส้น (ตอนลากลาย) |
-| `L` | เปลี่ยนมุมเส้น (90/45/arc) |
-| `H` | ไฮไลต์เน็ต (กดซ้ำ = ยกเลิก) |
-| `Shift+B` | Rebuild All Copper Area (จำเป็นมาก!) |
-| `Shift+M` | ซ่อน/แสดงเนื้อทองแดง |
-| `Shift+W` | เลือกความกว้างเส้นที่ใช้บ่อย (ตอนลากลาย) |
-| `Shift` + ดับเบิลคลิก | ลบเส้นที่เลือก |
-| `Ctrl+Z` / `Ctrl+Y` | Undo / Redo |
-| `Alt` `+` / `-` | เพิ่ม/ลด Snap size |
+| `W` | schematic wire / PCB track |
+| `N` | NetLabel |
+| `Ctrl+G` / `Ctrl+Q` | GND / VCC NetFlag |
+| `Space` | หมุน |
+| `D` | drag |
+| `Q` | mil/mm |
+| `K` | fit window |
+| `H` | highlight net |
+| `L` | เปลี่ยนมุม routing |
+| `+` / `-` | เปลี่ยนความกว้างระหว่าง route |
+| `E` | Copper Area |
+| `Shift+B` | rebuild copper area |
+| `Shift+M` | ซ่อน/แสดง copper fill |
+| `Ctrl+S` | save |
 
----
+`B`, `T`, `V` เป็น hotkey ที่มีประโยชน์กับบอร์ดโรงงานหลายชั้น แต่ในงานกัดชั้นเดียวนี้ **อย่าใช้ระหว่าง routing** เพราะจะสร้าง TopLayer/via
 
 ## ภาคผนวก B — ปัญหาที่พบบ่อย
 
-| อาการ | วิธีแก้ |
-|-------|--------|
-| Design Manager ขึ้นแดงที่เน็ต | เน็ตมีขาเดียว (ลืมต่อ/ลืม NetLabel) → ต่อให้ครบ 2 ขา หรือติด No-Connect Flag |
-| วางอุปกรณ์ไม่ได้ / วางผิดไฟล์ | ต้องคลิกแท็บเอกสารให้เป็นไฟล์ที่ต้องการก่อน (EasyEDA เปิดหลายไฟล์พร้อมกันได้) |
-| Convert to PCB แล้วขึ้นแถวแดง | footprint ที่สัญลักษณ์เรียกหาไม่มี/เลข pad ไม่ตรง → แก้ใน Footprint Manager (Alt+F) |
-| แก้ schematic แล้วบอร์ดไม่เปลี่ยน | PCB → **Design → Import Changes → Apply Change** |
-| ลากลายไม่ได้ ขึ้น X ตลอด | เปิด Realtime DRC อยู่ + ชนกฎ → กด `B` มุดไปชั้นล่าง หรือขยับของ |
-| Copper Area ไม่ขึ้นเนื้อทองแดง | ยังไม่ได้ตั้ง Net = GND · ขอบบอร์ดไม่ปิด · ยังไม่กด `Shift+B` |
-| คลิกเลือก Copper Area ไม่ได้ | ต้องคลิกที่ **เส้นขอบ** ของมัน (ไม่ใช่เนื้อทองแดง) — หรือกด `Shift+M` ให้เห็นแต่เส้นขอบ |
-| อยากตัดทองแดงใต้เสาอากาศ | วาด Solid Region → **Type = No Solid** + ตั้ง Net ให้ต่างจาก GND → `Shift+B` |
-| Gerber error เรื่องขอบบอร์ด | ขอบไม่ปิด หรือเส้นขอบซ้อนทับกัน (ลบเส้นซ้ำออก) |
-| Gerber ไม่มีขอบบอร์ดเลย | ยังไม่ได้วาดบนชั้น **BoardOutLine** |
-| ไฟล์เปิดช้า/เบราว์เซอร์หนัก | `Shift+M` ซ่อนทองแดงตอนลากลาย · กด `Ctrl+S` บ่อย ๆ · ปิดแท็บอื่น |
-| ตั้งชื่อ net ไม่ผ่าน | ใช้ a–z, 0–9 เท่านั้น (อังกฤษล้วน ไม่มี "+" เว้นวรรค หรืออักษรไทย) |
-| เสียบ DevKit ไม่แน่น | ใช้ `HDR-F` (ตัวเมีย) ไม่ใช่ `HDR-M` |
-| บอร์ดบูตค้าง / แฟลชพัง | มีอะไรต่อกับ **GPIO12** → GPIO12 ต้องไม่ต่ออะไรเลย |
-
----
-
-## ภาคผนวก C — คำเตือนที่ยกมาจากไฟล์ KiCad + การ import ไฟล์เดิม
-
-### C1. ⚠️ ขา Q1 ห้ามสลับ (บั๊กจริงที่มีในไฟล์บอร์ดเก่าของโปรเจกต์)
-ของจริง SOT-23 NPN (S8050 / MMBT2222A / BC817) ขา **1 = B, 2 = E, 3 = C**
-สัญลักษณ์จากไลบรารี LCSC บางตัวตั้งเลขขาตามดวง ไม่ตรง datasheet → **ตรวจชื่อขา B/E/C ในสัญลักษณ์ก่อนเดินลาย**
-ต้องได้: `Q1_B` → ขา B · `GND` → ขา E · `BUZZ_LO` → ขา C
-ถ้าสลับ → วงจรขับ buzzer ไม่ทำงาน (ตรวจแล้วผ่านบอร์ด แต่ของจริงเงียบ)
-
-### C2. ลำดับขาของโมดูลจริง — ดูซิลค์สกรีนก่อนสั่งผลิต
-  - RC522: บางรุ่นเรียง SDA, SCK, MOSI, MISO, IRQ, GND, RST, 3.3V (ตามไกด์นี้) — บางรุ่นสลับ
-  - OLED SSD1306 4 ขา: มักเป็น GND, VCC, SCL, SDA
-  - HY-SRF05: ถ้าของคุณเป็นรุ่น 5 ขา (เพิ่ม OUT) ต้องเปลี่ยน J6 เป็น 5 ขา และต่อ GND ให้ถูกตำแหน่ง
-  - เปลี่ยนลำดับขา = ต้องแก้ NetLabel ใน Schematic ให้ตรง แล้ว Import Changes เข้า PCB
-
-### C3. Buzzer BZ-1295 (active buzzer)
-  - เป็น active 3–5 VDC → ใช้กับโค้ด `digitalWrite(HIGH/LOW)` ได้เลย (ไม่ต้อง tone()/PWM)
-  - ต้องขับผ่าน Q1 (กระแส 10–30 mA) · ขั้ว: ขายาว (+) → J9.1 (+5V) · ขาสั้น (−) → J9.2 (ผ่าน Q1 ลง GND)
-  - ถ้าซื้อแบบ magnetic (มีขดลวด) ให้เพิ่มไดโอด 1N4148 คร่อมขา buzzer
-
-### C4. ถ้าอยากย้ายบอร์ด KiCad เดิมเข้ามาใน EasyEDA
-Import ได้ (Import → KiCAD) แต่ต้องรู้ข้อจำกัดก่อนตัดสินใจ:
-  - ต้อง **zip** ไฟล์ KiCad ก่อน (PCB อย่างเดียวก็ได้ · ถ้าเอา schematic ต้อง zip schematic + symbol library มาด้วย)
-  - **Design rule ไม่ถูก import** → ต้องตั้ง Design Rule ใหม่เองตามหัวข้อ 10.1
-  - PWR_FLAG จะกลายเป็นสัญลักษณ์ธรรมดา (ลบทิ้งได้) · Copper Area จะถูกสร้างใหม่และ**ผลไม่เหมือนเดิม** → ต้องตรวจ/แก้ (กด `Shift+B`)
-  - ⚠️ ไฟล์บอร์ดเก่าของโปรเจกต์มีบั๊กขา Q1 (ข้อ C1) → ถ้า import ตรง ๆ บั๊กจะติดมาด้วย
-  **คำแนะนำ: ทำใหม่ตามไกด์นี้จะสะอาดกว่า (16 ชิ้น ใช้เวลาไม่นาน) และใช้สัญลักษณ์ที่ขาถูกตั้งแต่ต้น**
-
----
-
-## ภาคผนวก D — ชื่ออุปกรณ์ในไลบรารี EasyEDA (คัดลอกไปวางในช่องค้นหาได้เลย)
-
-วิธีค้น: `Shift+F` → **Types = `Symbol`** → **Search Engine** = `EasyEDA` (ของในไลบรารี EasyEDA/ผู้ใช้)
-หรือ `LCSC Electronics` (ของที่มีขายจริง มีเบอร์ Cxxxxx) → พิมพ์คำค้น (≥3 ตัวอักษร) → ดับเบิลคลิกแถว หรือกด `Place`
-
-| Ref | อุปกรณ์ | พิมพ์ค้น | คลาส / ที่เจอ | หมายเหตุ |
-|-----|---------|----------|----------------|----------|
-| U1 | ESP32 DevKit V1 (30 ขา) — ทาง A | `DOIT ESP32 DEVKIT V1` | EasyEDA library | footprint ติดมาให้: `ESP32-DEVKIT-V1-FOOTPRINT` (30 pad) |
-| U1+U2 | ซ็อกเก็ตตัวเมีย 1×15 ×2 — ทาง B | `HDR-F-2.54_1x15` | EasyEDA library | มีอยู่จริงในไลบรารี (เจอ 2 รายการ) |
-| J1, J9 | header ตัวผู้ 1×2 | `HDR-M-2.54_1X2` | Common Library → Connector | ยืนยันแล้วว่ามี |
-| J8 | header ตัวผู้ 1×3 | `HDR-M-2.54_1X3` | Common Library | ยืนยันแล้ว |
-| J5, J6, J7 | header ตัวผู้ 1×4 | `HDR-M-2.54_1X4` | Common Library | ยืนยันแล้ว |
-| J3, J4 | header ตัวผู้ 1×8 | `HDR-M-2.54_1X8` | Common Library | ยืนยันแล้ว |
-| R4, R5 | R 4.7k 0805 | `4.7k 0805` | Class `LCSC` → เลือก **C17673** | basic part (0805W8F4701T5E) |
-| R6, R8 | R 1k 0805 | `1k 0805` | Class `LCSC` → **C17513** | basic part (0805W8F1001T5E) |
-| R7 | R 2k 0805 | `2k 0805` | Class `LCSC` → **C17604** | basic part (0805W8F2001T5E) |
-| Q1 | NPN ขับ buzzer | `S8050` → **C181158** · หรือ `MMBT2222A` → **C181121** | Class `LCSC` | footprint SOT-23-3 — ตรวจขา B/E/C ก่อนเดินลาย |
-| Q1 (ตัวเลือก) | NPN เบอร์แทนของ EasyEDA | `2N3904(SOT-23)` | Common Library → Transistor | ใช้แทนได้ (NPN ทั่วไป) |
-| H1–H4 | รูยึด M2 | `Screw-M2` (Common Library → Others) หรือ `MOUNTING HOLE M2 2.2MM` | EasyEDA library | หรือใช้เครื่องมือ `Hole` ใน PCB ก็ได้ (หัวข้อ 9.2) |
-| (ตัวเลือก) | จอ OLED 4 ขา แบบโมดูล | `0.96OLED_4P` | Common Library → Display | ใช้แทน J5 + โมดูล OLED ได้ |
-
-หมายเหตุการค้น
-  - ชื่อใน Common Library เป็นตัวพิมพ์ผสม (เช่น `HDR-M-2.54_1x1`) — ช่องค้นหาไม่สนใจตัวพิมพ์เล็ก/ใหญ่
-  - ถ้าพิมพ์ชื่อเต็มแล้วไม่เจอ ให้พิมพ์สั้นลงเช่น `HDR-M-2.54` แล้วไล่ดูในผลลัพธ์ (หรือเปิดหมวด Connector ใน Common Library)
-  - R ใน Common Library มีแต่ตัว generic (เช่น `R_0603_US`) ที่ไม่มีค่าให้เลือก → ใช้คลาส LCSC ที่มีทั้งค่าและเบอร์ C-code จะง่ายกว่า
-  - หลังวางทุกตัว ดูคอลัมน์ **Footprint** ในผลค้นหา (หรือกด Place แล้วดูใน Properties) — ถ้ามีชื่อ footprint = เป็นอุปกรณ์ครบชุด
-
----
-
-## สรุปลำดับทำงานสั้น ๆ
-
-```
-Create a new project → New → Schematic
-  → Shift+F ค้นอุปกรณ์ตามตารางหัวข้อ 3 วางครบ 16 ตัว
-  → W/N/Ctrl+G/Ctrl+Q ต่อ net ตามตาราง "เฉลย" หัวข้อ 6 + No-Connect Flag ที่ขาไม่ใช้
-  → Ctrl+D (Design Manager) เน็ตไม่แดง · Alt+F footprint ครบ
-  → Convert to PCB → ลบขอบที่ EasyEDA ให้ → Tools > Set Board Outline 88×148 + รูยึด 2.2 mm 4 รู
-  → วางอุปกรณ์ตามหัวข้อ 9 → Tools > Design Rule 0.3/0.2 (+POWER 0.6) → ลากลายตามหัวข้อ 10.3
-  → E = Copper Area (Top/Bottom, Net=GND) + Solid Region No-Solid ใต้เสาอากาศ → Shift+B
-  → Design > Check DRC = 0 error → File > Generate PCB Fabrication File(Gerber) → Gerber View → zip → JLCPCB (2 ชั้น 1.6 mm)
-```
+| อาการ | ตรวจ/แก้ |
+|---|---|
+| Shift+F ไม่ขึ้น | เปิดเอกสารและคลิก canvas ก่อน |
+| Convert แล้วแถวแดง | footprint หาย หรือเลข symbol pin ไม่ตรง pad |
+| แก้ schematic แล้ว PCB ไม่เปลี่ยน | Design → Import Changes → Apply Change |
+| DRC ยังมี unrouted | ตรวจ ratline และ jumper; อย่าซ่อนด้วยการวาดเส้นไร้ net |
+| ลายขาดหลัง etch | เพิ่ม track width/pad size และลดความหนาแน่น; ใช้ jumper แทนการเบียด |
+| CAM reset ตอนส่งภาพ | ตรวจ 5V drop, GND, ความกว้างลาย และ C 470 µF/100 nF ชิด J_CAM |
+| RFID_OUT ไม่ทำงาน | ตรวจ GPIO17/2/14/35/13 และ GPIO35 ต้องเป็น MISO เท่านั้น |
+| ESP32 เสีย/อ่านระยะเพี้ยน | ตรวจ divider: ECHO—1 kΩ—GPIO27 และ 2 kΩ จาก GPIO27 ลง GND |

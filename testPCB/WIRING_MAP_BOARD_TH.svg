@@ -1,0 +1,310 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="726" viewBox="0 0 780 726">
+<rect x="0.0" y="0.0" width="780.0" height="726.0" fill="#ffffff" stroke="#333" stroke-width="1" rx="0" opacity="1"/>
+<text x="16.0" y="30.0" font-size="15" fill="#111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">ผังตำแหน่งบนบอร์ด — Security Door Lock (door-demo01) 88 × 148 mm</text>
+<text x="16.0" y="48.0" font-size="9" fill="#444" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ด้านบัดกรี (มุมมองด้านอุปกรณ์) · พิกัด mm จากมุมซ้ายบน · ตัวเลขในวงกลม = net/ขา, ตัวเลขเล็ก = เลข pin ของขั้ว</text>
+<rect x="40.0" y="86.0" width="352.0" height="592.0" fill="#fcfdfd" stroke="#111" stroke-width="1.8" rx="4" opacity="1"/>
+<circle cx="63.9" cy="109.9" r="4.6" fill="#ffffff" stroke="#888" stroke-width="1.2"/>
+<circle cx="63.9" cy="109.9" r="2.0" fill="#bbb" stroke="none" stroke-width="0"/>
+<circle cx="367.9" cy="109.9" r="4.6" fill="#ffffff" stroke="#888" stroke-width="1.2"/>
+<circle cx="367.9" cy="109.9" r="2.0" fill="#bbb" stroke="none" stroke-width="0"/>
+<circle cx="63.9" cy="653.9" r="4.6" fill="#ffffff" stroke="#888" stroke-width="1.2"/>
+<circle cx="63.9" cy="653.9" r="2.0" fill="#bbb" stroke="none" stroke-width="0"/>
+<circle cx="367.9" cy="653.9" r="4.6" fill="#ffffff" stroke="#888" stroke-width="1.2"/>
+<circle cx="367.9" cy="653.9" r="2.0" fill="#bbb" stroke="none" stroke-width="0"/>
+<rect x="135.4" y="294.0" width="155.8" height="132.8" fill="#eceff1" stroke="#546e7a" stroke-width="1.4" rx="3" opacity="1"/>
+<text x="213.3" y="356.4" font-size="11" fill="#111" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">ESP32 DEVKIT V1 (30 ขา)</text>
+<text x="213.3" y="372.4" font-size="9" fill="#555" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">แถวบน = ขา 16–30 · แถวล่าง = ขา 1–15</text>
+<text x="213.3" y="387.4" font-size="8" fill="#78909c" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">เลขในวงกลมเล็ก = หมายเลขขาบนบอร์ด</text>
+<circle cx="142.2" cy="411.2" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="142.2" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<circle cx="152.3" cy="411.2" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="152.3" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<circle cx="162.5" cy="411.2" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="162.5" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">3</text>
+<circle cx="172.6" cy="411.2" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="172.6" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">4</text>
+<circle cx="182.8" cy="411.2" r="2.8" fill="#6a1b9a" stroke="#37474f" stroke-width="1"/>
+<text x="182.8" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">5</text>
+<circle cx="193.0" cy="411.2" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="193.0" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">6</text>
+<circle cx="203.1" cy="411.2" r="2.8" fill="#c07f00" stroke="#37474f" stroke-width="1"/>
+<text x="203.1" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">7</text>
+<circle cx="213.3" cy="411.2" r="2.8" fill="#ad1457" stroke="#37474f" stroke-width="1"/>
+<text x="213.3" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">8</text>
+<circle cx="223.4" cy="411.2" r="2.8" fill="#2e7d32" stroke="#37474f" stroke-width="1"/>
+<text x="223.4" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">9</text>
+<circle cx="233.6" cy="411.2" r="2.8" fill="#2e7d32" stroke="#37474f" stroke-width="1"/>
+<text x="233.6" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">10</text>
+<circle cx="243.8" cy="411.2" r="2.8" fill="#6a1b9a" stroke="#37474f" stroke-width="1"/>
+<text x="243.8" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">11</text>
+<circle cx="253.9" cy="411.2" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="253.9" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">12</text>
+<circle cx="264.1" cy="411.2" r="2.8" fill="#6a1b9a" stroke="#37474f" stroke-width="1"/>
+<text x="264.1" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">13</text>
+<circle cx="274.2" cy="411.2" r="2.8" fill="#111111" stroke="#37474f" stroke-width="1"/>
+<text x="274.2" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">14</text>
+<circle cx="284.4" cy="411.2" r="2.8" fill="#d32f2f" stroke="#37474f" stroke-width="1"/>
+<text x="284.4" y="426.2" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">15</text>
+<circle cx="142.2" cy="309.6" r="2.8" fill="#1565c0" stroke="#37474f" stroke-width="1"/>
+<text x="142.2" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">16</text>
+<circle cx="152.3" cy="309.6" r="2.8" fill="#00838f" stroke="#37474f" stroke-width="1"/>
+<text x="152.3" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">17</text>
+<circle cx="162.5" cy="309.6" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="162.5" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">18</text>
+<circle cx="172.6" cy="309.6" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="172.6" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">19</text>
+<circle cx="182.8" cy="309.6" r="2.8" fill="#00838f" stroke="#37474f" stroke-width="1"/>
+<text x="182.8" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">20</text>
+<circle cx="193.0" cy="309.6" r="2.8" fill="#1565c0" stroke="#37474f" stroke-width="1"/>
+<text x="193.0" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">21</text>
+<circle cx="203.1" cy="309.6" r="2.8" fill="#1565c0" stroke="#37474f" stroke-width="1"/>
+<text x="203.1" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">22</text>
+<circle cx="213.3" cy="309.6" r="2.8" fill="#1565c0" stroke="#37474f" stroke-width="1"/>
+<text x="213.3" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">23</text>
+<circle cx="223.4" cy="309.6" r="2.8" fill="#6a1b9a" stroke="#37474f" stroke-width="1"/>
+<text x="223.4" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">24</text>
+<circle cx="233.6" cy="309.6" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="233.6" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">25</text>
+<circle cx="243.8" cy="309.6" r="2.8" fill="#1565c0" stroke="#37474f" stroke-width="1"/>
+<text x="243.8" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">26</text>
+<circle cx="253.9" cy="309.6" r="2.8" fill="#6a1b9a" stroke="#37474f" stroke-width="1"/>
+<text x="253.9" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">27</text>
+<circle cx="264.1" cy="309.6" r="2.8" fill="#ffffff" stroke="#37474f" stroke-width="1"/>
+<text x="264.1" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">28</text>
+<circle cx="274.2" cy="309.6" r="2.8" fill="#111111" stroke="#37474f" stroke-width="1"/>
+<text x="274.2" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">29</text>
+<circle cx="284.4" cy="309.6" r="2.8" fill="#ef6c00" stroke="#37474f" stroke-width="1"/>
+<text x="284.4" y="302.6" font-size="7.5" fill="#37474f" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">30</text>
+<rect x="173.3" y="123.0" width="85.2" height="15.2" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="173.3" y="119.0" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">RFID_IN1</text>
+<circle cx="180.9" cy="130.6" r="2.8" fill="#1565c0" stroke="#263238" stroke-width="1"/>
+<text x="183.9" y="136.6" font-size="8" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 183.9 136.6)" opacity="1">1 GPIO5</text>
+<circle cx="190.9" cy="130.6" r="2.8" fill="#1565c0" stroke="#263238" stroke-width="1"/>
+<text x="193.9" y="136.6" font-size="8" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 193.9 136.6)" opacity="1">2 GPIO18</text>
+<circle cx="200.9" cy="130.6" r="2.8" fill="#1565c0" stroke="#263238" stroke-width="1"/>
+<text x="203.9" y="136.6" font-size="8" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 203.9 136.6)" opacity="1">3 GPIO23</text>
+<circle cx="210.9" cy="130.6" r="2.8" fill="#1565c0" stroke="#263238" stroke-width="1"/>
+<text x="213.9" y="136.6" font-size="8" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 213.9 136.6)" opacity="1">4 GPIO19</text>
+<circle cx="220.9" cy="130.6" r="2.8" fill="#ffffff" stroke="#263238" stroke-width="1"/>
+<text x="223.9" y="136.6" font-size="8" fill="#888" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 223.9 136.6)" opacity="1">5 -</text>
+<circle cx="230.9" cy="130.6" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="233.9" y="136.6" font-size="8" fill="#111111" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 233.9 136.6)" opacity="1">6 GND</text>
+<circle cx="240.9" cy="130.6" r="2.8" fill="#1565c0" stroke="#263238" stroke-width="1"/>
+<text x="243.9" y="136.6" font-size="8" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 243.9 136.6)" opacity="1">7 GPIO4</text>
+<circle cx="250.9" cy="130.6" r="2.8" fill="#ef6c00" stroke="#263238" stroke-width="1"/>
+<text x="253.9" y="136.6" font-size="8" fill="#ef6c00" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 253.9 136.6)" opacity="1">8 +3.3V</text>
+<rect x="162.5" y="583.4" width="85.2" height="15.2" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="162.5" y="610.6" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">RFID_OUT1</text>
+<circle cx="170.1" cy="591.0" r="2.8" fill="#6a1b9a" stroke="#263238" stroke-width="1"/>
+<text x="173.1" y="585.0" font-size="8" fill="#6a1b9a" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 173.1 585.0)" opacity="1">1 GPIO17</text>
+<circle cx="180.1" cy="591.0" r="2.8" fill="#6a1b9a" stroke="#263238" stroke-width="1"/>
+<text x="183.1" y="585.0" font-size="8" fill="#6a1b9a" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 183.1 585.0)" opacity="1">2 GPIO14</text>
+<circle cx="190.1" cy="591.0" r="2.8" fill="#6a1b9a" stroke="#263238" stroke-width="1"/>
+<text x="193.1" y="585.0" font-size="8" fill="#6a1b9a" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 193.1 585.0)" opacity="1">3 GPIO13</text>
+<circle cx="200.1" cy="591.0" r="2.8" fill="#6a1b9a" stroke="#263238" stroke-width="1"/>
+<text x="203.1" y="585.0" font-size="8" fill="#6a1b9a" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 203.1 585.0)" opacity="1">4 GPIO35</text>
+<circle cx="210.1" cy="591.0" r="2.8" fill="#ffffff" stroke="#263238" stroke-width="1"/>
+<text x="213.1" y="585.0" font-size="8" fill="#888" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 213.1 585.0)" opacity="1">5 -</text>
+<circle cx="220.1" cy="591.0" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="223.1" y="585.0" font-size="8" fill="#111111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 223.1 585.0)" opacity="1">6 GND</text>
+<circle cx="230.1" cy="591.0" r="2.8" fill="#6a1b9a" stroke="#263238" stroke-width="1"/>
+<text x="233.1" y="585.0" font-size="8" fill="#6a1b9a" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 233.1 585.0)" opacity="1">7 GPIO2</text>
+<circle cx="240.1" cy="591.0" r="2.8" fill="#ef6c00" stroke="#263238" stroke-width="1"/>
+<text x="243.1" y="585.0" font-size="8" fill="#ef6c00" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" transform="rotate(-90 243.1 585.0)" opacity="1">8 +3.3V</text>
+<rect x="81.8" y="195.7" width="15.2" height="45.7" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="81.8" y="191.7" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">OLED1</text>
+<circle cx="89.4" cy="203.3" r="2.8" fill="#ef6c00" stroke="#263238" stroke-width="1"/>
+<text x="83.4" y="206.3" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<text x="96.4" y="206.3" font-size="8" fill="#ef6c00" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+3.3V</text>
+<circle cx="89.4" cy="213.4" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="83.4" y="216.4" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<text x="96.4" y="216.4" font-size="8" fill="#111111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND</text>
+<circle cx="89.4" cy="223.6" r="2.8" fill="#00838f" stroke="#263238" stroke-width="1"/>
+<text x="83.4" y="226.6" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">3</text>
+<text x="96.4" y="226.6" font-size="8" fill="#00838f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GPIO22</text>
+<circle cx="89.4" cy="233.8" r="2.8" fill="#00838f" stroke="#263238" stroke-width="1"/>
+<text x="83.4" y="236.8" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">4</text>
+<text x="96.4" y="236.8" font-size="8" fill="#00838f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GPIO21</text>
+<rect x="82.4" y="437.5" width="15.2" height="45.7" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="82.4" y="433.5" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">ULTRASONIC</text>
+<circle cx="90.0" cy="445.1" r="2.8" fill="#d32f2f" stroke="#263238" stroke-width="1"/>
+<text x="84.0" y="448.1" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<text x="97.0" y="448.1" font-size="8" fill="#d32f2f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V</text>
+<circle cx="90.0" cy="455.3" r="2.8" fill="#2e7d32" stroke="#263238" stroke-width="1"/>
+<text x="84.0" y="458.3" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<text x="97.0" y="458.3" font-size="8" fill="#2e7d32" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GPIO26</text>
+<circle cx="90.0" cy="465.4" r="2.8" fill="#2e7d32" stroke="#263238" stroke-width="1"/>
+<text x="84.0" y="468.4" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">3</text>
+<text x="97.0" y="468.4" font-size="8" fill="#2e7d32" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ECHO 5V เข้าตัวแบ่ง</text>
+<circle cx="90.0" cy="475.6" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="84.0" y="478.6" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">4</text>
+<text x="97.0" y="478.6" font-size="8" fill="#111111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND</text>
+<rect x="266.8" y="499.5" width="15.2" height="25.4" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="266.8" y="495.5" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">BUZZER1</text>
+<circle cx="274.4" cy="517.2" r="2.8" fill="#c07f00" stroke="#263238" stroke-width="1"/>
+<text x="281.4" y="520.2" font-size="7.5" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<text x="268.4" y="520.2" font-size="8" fill="#c07f00" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GPIO33</text>
+<circle cx="274.4" cy="507.1" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="281.4" y="510.1" font-size="7.5" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<text x="268.4" y="510.1" font-size="8" fill="#111111" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND</text>
+<rect x="304.8" y="491.8" width="15.2" height="35.5" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="304.8" y="475.8" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">J_RELAY_CTRL</text>
+<circle cx="312.4" cy="519.8" r="2.8" fill="#d32f2f" stroke="#263238" stroke-width="1"/>
+<text x="306.4" y="522.8" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<text x="319.4" y="522.8" font-size="8" fill="#d32f2f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V</text>
+<circle cx="312.4" cy="509.6" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="306.4" y="512.6" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<text x="319.4" y="512.6" font-size="8" fill="#111111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND</text>
+<circle cx="312.4" cy="499.4" r="2.8" fill="#ad1457" stroke="#263238" stroke-width="1"/>
+<text x="306.4" y="502.4" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">3</text>
+<text x="319.4" y="502.4" font-size="8" fill="#ad1457" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GPIO25</text>
+<rect x="338.4" y="231.8" width="15.2" height="25.4" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="338.4" y="227.8" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">5V_IN</text>
+<circle cx="346.0" cy="239.4" r="2.8" fill="#d32f2f" stroke="#263238" stroke-width="1"/>
+<text x="340.0" y="242.4" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<text x="353.0" y="242.4" font-size="8" fill="#d32f2f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V</text>
+<circle cx="346.0" cy="249.5" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="340.0" y="252.5" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<text x="353.0" y="252.5" font-size="8" fill="#111111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND</text>
+<rect x="336.9" y="437.5" width="15.2" height="25.4" fill="#eef7ff" stroke="#78909c" stroke-width="1" rx="2" opacity="1"/>
+<text x="336.9" y="433.5" font-size="9" fill="#0d47a1" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">5V_OUT</text>
+<circle cx="344.5" cy="445.1" r="2.8" fill="#d32f2f" stroke="#263238" stroke-width="1"/>
+<text x="338.5" y="448.1" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">1</text>
+<text x="351.5" y="448.1" font-size="8" fill="#d32f2f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V</text>
+<circle cx="344.5" cy="455.3" r="2.8" fill="#111111" stroke="#263238" stroke-width="1"/>
+<text x="338.5" y="458.3" font-size="7.5" fill="#37474f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">2</text>
+<text x="351.5" y="458.3" font-size="8" fill="#111111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND</text>
+<line x1="241.3" y1="373.5" x2="230.2" y2="472.0" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<line x1="235.7" y1="422.8" x2="235.7" y2="435.8" stroke="#b00020" stroke-width="1.2" stroke-dasharray="3,2" stroke-linecap="round"/>
+<circle cx="235.7" cy="442.8" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="235.7" y="446.0" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W1</text>
+<line x1="58.2" y1="517.8" x2="94.2" y2="517.8" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="76.2" cy="517.8" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="76.2" y="521.0" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W2</text>
+<line x1="160.6" y1="191.6" x2="189.0" y2="191.6" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="174.8" cy="191.6" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="174.8" y="194.8" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W3</text>
+<line x1="265.2" y1="574.1" x2="284.0" y2="574.1" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="274.6" cy="574.1" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="274.6" y="577.3" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W4</text>
+<line x1="260.6" y1="154.5" x2="277.9" y2="154.5" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="269.3" cy="154.5" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="269.3" y="157.7" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W5</text>
+<line x1="86.4" y1="153.0" x2="106.7" y2="175.4" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="96.6" cy="164.2" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="96.6" y="167.4" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W6</text>
+<line x1="182.9" y1="380.1" x2="200.7" y2="624.4" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="191.8" cy="502.3" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="191.8" y="505.5" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W7</text>
+<line x1="332.8" y1="536.0" x2="332.8" y2="587.4" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="332.8" cy="561.7" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="332.8" y="564.9" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W8</text>
+<line x1="81.3" y1="396.3" x2="108.8" y2="424.8" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="95.0" cy="410.6" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="95.0" y="413.8" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W9</text>
+<line x1="209.8" y1="554.8" x2="247.4" y2="554.8" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="228.6" cy="554.8" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="228.6" y="558.0" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W10</text>
+<line x1="247.4" y1="476.6" x2="247.4" y2="440.0" stroke="#b00020" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round"/>
+<circle cx="247.4" cy="458.3" r="8.5" fill="#ffffff" stroke="#b00020" stroke-width="1"/>
+<text x="247.4" y="461.5" font-size="7.5" fill="#b00020" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">W11</text>
+<rect x="137.3" y="471.7" width="10.0" height="22.0" fill="#fff8e1" stroke="#8d6e63" stroke-width="1" rx="2" opacity="1"/>
+<text x="142.3" y="485.7" font-size="6.5" fill="#4e342e" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">R 1k</text>
+<rect x="170.4" y="452.3" width="22.0" height="10.0" fill="#fff8e1" stroke="#8d6e63" stroke-width="1" rx="2" opacity="1"/>
+<text x="181.4" y="448.3" font-size="6.5" fill="#4e342e" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">R 2k</text>
+<rect x="300.8" y="233.4" width="10.0" height="22.0" fill="#fff8e1" stroke="#8d6e63" stroke-width="1" rx="2" opacity="1"/>
+<text x="305.8" y="247.4" font-size="6.5" fill="#4e342e" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">C 100nF</text>
+<rect x="263.3" y="231.4" width="10.0" height="22.0" fill="#fff8e1" stroke="#8d6e63" stroke-width="1" rx="2" opacity="1"/>
+<text x="268.3" y="245.4" font-size="6.5" fill="#4e342e" text-anchor="middle" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">C 470uF</text>
+<rect x="341.6" y="490.4" width="22.0" height="10.0" fill="#fff8e1" stroke="#8d6e63" stroke-width="1" rx="2" opacity="1"/>
+<text x="367.6" y="498.4" font-size="6.5" fill="#4e342e" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">C 100nF</text>
+<rect x="342.6" y="525.4" width="22.0" height="10.0" fill="#fff8e1" stroke="#8d6e63" stroke-width="1" rx="2" opacity="1"/>
+<text x="368.6" y="533.4" font-size="6.5" fill="#4e342e" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">C 470uF</text>
+<rect x="404.0" y="86.0" width="364.0" height="592.0" fill="#fafafa" stroke="#999" stroke-width="1" rx="3" opacity="1"/>
+<text x="414.0" y="104.0" font-size="10" fill="#111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">คำอธิบายสี</text>
+<circle cx="420.0" cy="115.0" r="5.0" fill="#d32f2f" stroke="none" stroke-width="0"/>
+<text x="432.0" y="118.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V  (net 5V_OUT_1)</text>
+<circle cx="420.0" cy="128.0" r="5.0" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="432.0" y="131.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND  (net 5V_OUT_2)</text>
+<circle cx="420.0" cy="141.0" r="5.0" fill="#ef6c00" stroke="none" stroke-width="0"/>
+<text x="432.0" y="144.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+3.3V  (net OLED1_1)</text>
+<circle cx="420.0" cy="154.0" r="5.0" fill="#1565c0" stroke="none" stroke-width="0"/>
+<text x="432.0" y="157.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">สัญญาณหัวอ่านขาเข้า RFID_IN1 (VSPI)</text>
+<circle cx="420.0" cy="167.0" r="5.0" fill="#6a1b9a" stroke="none" stroke-width="0"/>
+<text x="432.0" y="170.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">สัญญาณหัวอ่านขาออก RFID_OUT1 (HSPI)</text>
+<circle cx="420.0" cy="180.0" r="5.0" fill="#00838f" stroke="none" stroke-width="0"/>
+<text x="432.0" y="183.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">OLED1 (I2C)</text>
+<circle cx="420.0" cy="193.0" r="5.0" fill="#2e7d32" stroke="none" stroke-width="0"/>
+<text x="432.0" y="196.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ULTRASONIC / ตัวแบ่ง Echo</text>
+<circle cx="420.0" cy="206.0" r="5.0" fill="#ad1457" stroke="none" stroke-width="0"/>
+<text x="432.0" y="209.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">J_RELAY_CTRL</text>
+<circle cx="420.0" cy="219.0" r="5.0" fill="#c07f00" stroke="none" stroke-width="0"/>
+<text x="432.0" y="222.0" font-size="7.5" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">BUZZER1</text>
+<line x1="412.0" y1="233.0" x2="760.0" y2="233.0" stroke="#ccc" stroke-width="1" stroke-linecap="round"/>
+<text x="414.0" y="245.0" font-size="9.5" fill="#111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">สายจั้ม W1–W11 (ลวดบัดกรีข้าม pad)</text>
+<text x="416.0" y="258.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W1 · RST ขาออก GPIO2</text>
+<text x="426.0" y="267.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา _27  ↔  OUT ขา _7   (24.8 mm)</text>
+<text x="416.0" y="278.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W2 · SS ขาออก GPIO17</text>
+<text x="426.0" y="287.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา _24  ↔  OUT ขา _1   (9.0 mm)</text>
+<text x="416.0" y="298.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W3 · GND</text>
+<text x="426.0" y="307.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">GND  ↔  GND   (7.1 mm)</text>
+<text x="416.0" y="318.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W4 · +3.3V ไปหัวอ่านขาออก</text>
+<text x="426.0" y="327.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+3V3  ↔  +3V3   (4.7 mm)</text>
+<text x="416.0" y="338.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W5 · +3.3V ไปหัวอ่านขาเข้า/ESP32</text>
+<text x="426.0" y="347.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+3V3  ↔  +3V3   (4.3 mm)</text>
+<text x="416.0" y="358.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W6 · +3.3V ไปขั้ว OLED</text>
+<text x="426.0" y="367.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+3V3  ↔  +3V3   (7.6 mm)</text>
+<text x="416.0" y="378.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W7 · MISO ขาออก GPIO35</text>
+<text x="426.0" y="387.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">OUT ขา _4  ↔  OUT ขา _4   (61.3 mm)</text>
+<text x="416.0" y="398.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W8 · +5V ด้านขวาล่าง</text>
+<text x="426.0" y="407.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V  ↔  +5V   (12.8 mm)</text>
+<text x="416.0" y="418.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W9 · +5V ด้านซ้ายกลาง</text>
+<text x="426.0" y="427.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">+5V  ↔  +5V   (9.9 mm)</text>
+<text x="416.0" y="438.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W10 · MOSI ขาออก ช่วงล่าง</text>
+<text x="426.0" y="447.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">OUT ขา _3  ↔  OUT ขา _3   (9.4 mm)</text>
+<text x="416.0" y="458.0" font-size="7.2" fill="#222" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">W11 · MOSI ขาออก ช่วงกลาง</text>
+<text x="426.0" y="467.0" font-size="7" fill="#b00020" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">OUT ขา _3  ↔  OUT ขา _3   (9.1 mm)</text>
+<line x1="412.0" y1="474.0" x2="760.0" y2="474.0" stroke="#ccc" stroke-width="1" stroke-linecap="round"/>
+<text x="414.0" y="486.0" font-size="9.5" fill="#111" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">ขา ESP32 ที่ใช้งาน (pin = เลขบนบอร์ด)</text>
+<text x="416.0" y="498.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 5 = GPIO35</text>
+<text x="754.0" y="498.0" font-size="7" fill="#6a1b9a" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO35</text>
+<text x="416.0" y="508.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 7 = GPIO33</text>
+<text x="754.0" y="508.5" font-size="7" fill="#c07f00" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO33</text>
+<text x="416.0" y="519.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 8 = GPIO25</text>
+<text x="754.0" y="519.0" font-size="7" fill="#ad1457" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO25</text>
+<text x="416.0" y="529.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 9 = GPIO26</text>
+<text x="754.0" y="529.5" font-size="7" fill="#2e7d32" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO26</text>
+<text x="416.0" y="540.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 10 = GPIO27</text>
+<text x="754.0" y="540.0" font-size="7" fill="#2e7d32" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO27</text>
+<text x="416.0" y="550.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 11 = GPIO14</text>
+<text x="754.0" y="550.5" font-size="7" fill="#6a1b9a" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO14</text>
+<text x="416.0" y="561.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 13 = GPIO13</text>
+<text x="754.0" y="561.0" font-size="7" fill="#6a1b9a" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO13</text>
+<text x="416.0" y="571.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 14 = GND</text>
+<text x="754.0" y="571.5" font-size="7" fill="#111111" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GND</text>
+<text x="416.0" y="582.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 15 = VIN</text>
+<text x="754.0" y="582.0" font-size="7" fill="#d32f2f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">+5V</text>
+<text x="416.0" y="592.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 16 = GPIO23</text>
+<text x="754.0" y="592.5" font-size="7" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO23</text>
+<text x="416.0" y="603.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 17 = GPIO22</text>
+<text x="754.0" y="603.0" font-size="7" fill="#00838f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO22</text>
+<text x="416.0" y="613.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 20 = GPIO21</text>
+<text x="754.0" y="613.5" font-size="7" fill="#00838f" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO21</text>
+<text x="416.0" y="624.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 21 = GPIO19</text>
+<text x="754.0" y="624.0" font-size="7" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO19</text>
+<text x="416.0" y="634.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 22 = GPIO18</text>
+<text x="754.0" y="634.5" font-size="7" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO18</text>
+<text x="416.0" y="645.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 23 = GPIO5</text>
+<text x="754.0" y="645.0" font-size="7" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO5</text>
+<text x="416.0" y="655.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 24 = GPIO17 (TX2)</text>
+<text x="754.0" y="655.5" font-size="7" fill="#6a1b9a" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO17</text>
+<text x="416.0" y="666.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 26 = GPIO4</text>
+<text x="754.0" y="666.0" font-size="7" fill="#1565c0" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO4</text>
+<text x="416.0" y="676.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 27 = GPIO2</text>
+<text x="754.0" y="676.5" font-size="7" fill="#6a1b9a" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GPIO2</text>
+<text x="416.0" y="687.0" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 29 = GND</text>
+<text x="754.0" y="687.0" font-size="7" fill="#111111" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">GND</text>
+<text x="416.0" y="697.5" font-size="7" fill="#37474f" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">ขา 30 = 3V3</text>
+<text x="754.0" y="697.5" font-size="7" fill="#ef6c00" text-anchor="end" font-family="Leelawadee UI, Tahoma, sans-serif" font-weight="bold" opacity="1">+3.3V</text>
+<text x="16.0" y="710.0" font-size="7.5" fill="#888" text-anchor="start" font-family="Leelawadee UI, Tahoma, sans-serif" opacity="1">สร้างอัตโนมัติจาก PCB_demo_last_19-9.json โดย tools/gen_wiring_diagrams.py</text>
+</svg>
