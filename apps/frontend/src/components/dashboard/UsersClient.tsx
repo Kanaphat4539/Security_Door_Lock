@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, History, Plus, Trash2, UserPlus } from "lucide-react";
+import { CreditCard, History, Plus, Search, Trash2, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/services/api";
+import { filterUsers } from "@/lib/user-filter";
 import type { AccessAttempt, UnassignedUid, User } from "@/types";
 
 /**
@@ -55,6 +56,8 @@ export function UsersClient({
   const [busy, setBusy] = useState(false);
   const [uid, setUid] = useState("");
   const [name, setName] = useState("");
+  const [query, setQuery] = useState("");
+  const visibleUsers = filterUsers(users, query);
 
   const [historyOf, setHistoryOf] = useState<User | null>(null);
   const [history, setHistory] = useState<AccessAttempt[]>([]);
@@ -175,18 +178,26 @@ export function UsersClient({
       </Card>
 
       <Card className="overflow-hidden border-border/80 py-0 shadow-sm">
-        <div className="flex items-center gap-2 border-b px-5 py-5">
-          <h2 className="font-heading text-lg font-semibold">รายชื่อผู้มีสิทธิ์</h2>
-          <Badge variant="secondary">{users.length}</Badge>
+        <div className="flex flex-col gap-4 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="font-heading text-lg font-semibold">รายชื่อผู้มีสิทธิ์</h2>
+            <Badge variant="secondary">{visibleUsers.length} / {users.length}</Badge>
+          </div>
+          <div className="relative w-full sm:max-w-64">
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input aria-label="ค้นหาชื่อหรือ UID" placeholder="ค้นหาชื่อหรือ UID" value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" />
+          </div>
         </div>
 
         {users.length === 0 ? (
           <p className="px-6 py-12 text-center text-sm text-muted-foreground">
             ยังไม่มีผู้ใช้ในระบบ
           </p>
+        ) : visibleUsers.length === 0 ? (
+          <p className="px-6 py-12 text-center text-sm text-muted-foreground">ไม่พบบัตรที่ตรงกับคำค้นหา</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto" role="region" aria-label="รายชื่อบัตร เลื่อนแนวนอนเพื่อดูคอลัมน์เพิ่มเติม" tabIndex={0}>
+            <Table className="min-w-[670px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>ชื่อ</TableHead>
@@ -197,7 +208,7 @@ export function UsersClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {visibleUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
 

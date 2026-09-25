@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Camera, DoorClosed, Fingerprint, Radio, ShieldCheck } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAuthPresentation } from "@/lib/auth-copy";
 
 import { login, register, type AuthState } from "./actions";
 
 const initialState: AuthState = { error: null };
 
 export default function LoginPage() {
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const presentation = getAuthPresentation(activeTab);
   // แยก state ของสองฟอร์ม จะได้ไม่เอา error ของอีกแท็บมาโชว์ผิดที่
   const [loginState, loginAction, loginPending] = useActionState(
     login,
@@ -50,12 +53,12 @@ export default function LoginPage() {
       <div className="mb-8">
         <div className="mb-6 flex items-center gap-2 font-heading text-xl font-bold lg:hidden"><DoorClosed className="size-6 text-primary" /> SENTINEL.</div>
         <div className="mb-3 flex items-center gap-2 text-xs font-bold tracking-[.18em] text-primary"><ShieldCheck className="size-4" /> SECURE ACCESS</div>
-        <h2 className="font-heading text-3xl font-bold tracking-tight">ยินดีต้อนรับกลับ</h2>
-        <p className="mt-2 text-sm text-muted-foreground">เข้าสู่ระบบเพื่อดูภาพรวมการเข้า-ออกและจัดการบัตร</p>
+        <h2 className="font-heading text-3xl font-bold tracking-tight">{presentation.title}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{presentation.description}</p>
       </div>
 
       <Card className="border-border/80 shadow-xl shadow-slate-900/5">
-        <Tabs defaultValue="login">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
           <CardHeader>
             <TabsList className="w-full">
               <TabsTrigger value="login">เข้าสู่ระบบ</TabsTrigger>

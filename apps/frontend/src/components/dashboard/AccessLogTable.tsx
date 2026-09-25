@@ -49,8 +49,8 @@ export function AccessLogTable({ logs }: { logs: AccessAttempt[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="overflow-x-auto" role="region" aria-label="ประวัติการเข้าออก เลื่อนแนวนอนเพื่อดูคอลัมน์เพิ่มเติม" tabIndex={0}>
+        <Table className="min-w-[650px]">
           <TableHeader>
             <TableRow>
               <TableHead>เวลา</TableHead>

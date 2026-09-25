@@ -18,6 +18,7 @@ COPY . .
 
 # Next.js telemetry is disabled
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV BUILD_STANDALONE 1
 
 RUN npm run build
 
