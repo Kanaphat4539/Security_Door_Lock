@@ -3,14 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, User, Monitor } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, User, Monitor, KeyRound } from 'lucide-react';
 import SecurityPhysicsBackground from '@/components/shared/SecurityPhysicsBackground';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { register as registerRequest } from '@/services/backend';
+import axios from 'axios';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,6 +17,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Handle Theme
   useEffect(() => {
@@ -32,22 +30,35 @@ export default function RegisterPage() {
     }
   }, []);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError('รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+      return;
+    }
+    if (password.length < 8) {
+      setError('รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร');
+      return;
+    }
+
     setLoading(true);
-    
-    // Simulate registration process
-    setTimeout(() => {
-      // In a real app, this would be an API call to register
-      const role = email.includes('admin') ? 'admin' : 'employee';
-      document.cookie = `user_role=${role}; path=/; max-age=86400`; // 1 day
-      
-      if (role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/employee/profile');
-      }
-    }, 1000);
+    try {
+      // username = email, backend สมัครได้แค่ role USER (-> employee)
+      const role = await registerRequest(email, password, inviteCode);
+      router.push(role === 'admin' ? '/admin/dashboard' : '/employee/profile');
+    } catch (err) {
+      const status = axios.isAxiosError(err) ? err.response?.status : 0;
+      setError(
+        status === 401 || status === 403
+          ? 'รหัสเชิญไม่ถูกต้อง'
+          : status === 409
+            ? 'มีชื่อผู้ใช้นี้อยู่แล้ว'
+            : 'สมัครไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?',
+      );
+      setLoading(false);
+    }
   };
 
   return (
@@ -173,6 +184,31 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Invite Code (backend บังคับ) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">Invite Code</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <KeyRound className="w-5 h-5 text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    placeholder="รหัสเชิญจากผู้ดูแลระบบ"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm font-medium font-mono"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1">สมัครเองได้แค่สิทธิ์ผู้ชม (employee)</p>
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-800/50 dark:bg-red-900/20 dark:text-red-300">
+                  {error}
+                </div>
+              )}
 
               <button
                 type="submit"

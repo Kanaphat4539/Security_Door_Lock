@@ -4,14 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Shield, Lock, ArrowRight, Mail, Eye, EyeOff, Monitor } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import SecurityPhysicsBackground from '@/components/shared/SecurityPhysicsBackground';
-import { authApi } from '@/services/api';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { login as loginRequest } from '@/services/backend';
+import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,6 +14,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Handle Theme
   useEffect(() => {
@@ -30,39 +26,27 @@ export default function LoginPage() {
     }
   }, []);
 
-  const performLogin = async (u: string, p: string) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
-      // Call the real backend login endpoint
-      const { token } = await authApi.login({ username: u, password: p });
-      
-      // Store token in localStorage so axios interceptor can pick it up
-      localStorage.setItem('auth_token', token);
-      
-      // Get user details to determine role
-      const user = await authApi.getMe();
-      const role = user.role.toLowerCase();
-      
-      document.cookie = `user_role=${role}; path=/; max-age=86400`; // 1 day
-      localStorage.setItem('user_role', role);
-
-      // Redirect based on role
+      const role = await loginRequest(email, password);
       if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/employee/profile');
       }
-    } catch (err: any) {
-      console.error('Login failed:', err);
-      alert('Login failed: ' + (err.response?.data?.message || err.message));
+    } catch (err) {
+      // backend ตอบ 401 = ชื่อผู้ใช้/รหัสผ่านไม่ถูกต้อง
+      const msg =
+        axios.isAxiosError(err) && err.response?.status === 401
+          ? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+          : 'เข้าสู่ระบบไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?';
+      setError(msg);
       setLoading(false);
     }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await performLogin(email, password);
   };
 
   return (
@@ -149,18 +133,23 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {error && (
+                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-800/50 dark:bg-red-900/20 dark:text-red-300">
+                  {error}
+                </div>
+              )}
               {/* Auto Fill Buttons */}
               <div className="flex gap-3 justify-center pt-2">
                 <button
                   type="button"
-                  onClick={() => performLogin('admin', 'admin1234')}
+                  onClick={() => { setEmail('admin'); setPassword('admin'); }}
                   className="text-[11px] font-bold uppercase tracking-wider py-1.5 px-4 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-800/60 transition-colors border border-blue-200 dark:border-blue-800/50"
                 >
                   Admin Role
                 </button>
                 <button
                   type="button"
-                  onClick={() => performLogin('employee', 'employee1234')}
+                  onClick={() => { setEmail('employee'); setPassword('password'); }}
                   className="text-[11px] font-bold uppercase tracking-wider py-1.5 px-4 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
                 >
                   Employee Role

@@ -3,7 +3,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useLogStore } from '@/store/useLogStore';
-import { authApi } from '@/services/api';
+import {
+  getWsTicket,
+  fetchRecentLogs,
+  mapAccessAttempt,
+} from '@/services/backend';
 
 interface WebSocketContextType {
   socket: Socket | null;
@@ -21,64 +25,55 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const addLog = useLogStore((state) => state.addLog);
+  const setLogs = useLogStore((state) => state.setLogs);
 
   useEffect(() => {
+    let active = true;
     let socketInstance: Socket | null = null;
-    let isMounted = true;
 
-    const connectWebSocket = async () => {
+    async function connect() {
+      // 1) โหลด log ล่าสุดจาก REST มาลง store ก่อน
       try {
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
-        let token = '';
+        const logs = await fetchRecentLogs();
+        if (active) setLogs(logs);
+      } catch (err) {
+        console.error('โหลด log เริ่มต้นไม่สำเร็จ', err);
+      }
 
-        // Try getting the ws-ticket if authenticated
-        if (typeof window !== 'undefined' && localStorage.getItem('auth_token')) {
-          try {
-            const { ticket } = await authApi.getWsTicket();
-            token = ticket;
-          } catch (e) {
-            console.error('Failed to get WebSocket ticket:', e);
-          }
-        }
-        
-        if (!isMounted) return;
-
-        socketInstance = io(socketUrl, {
-          auth: { token },
+      // 2) ขอตั๋วอายุสั้นแล้วต่อ WebSocket (backend บังคับตรวจตอน handshake)
+      try {
+        const ticket = await getWsTicket();
+        const url =
+          process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
+        socketInstance = io(url, {
+          auth: { token: ticket },
           autoConnect: true,
         });
-
+        if (!active) {
+          socketInstance.disconnect();
+          return;
+        }
         setSocket(socketInstance);
 
-        socketInstance.on('connect', () => {
-          console.log('Connected to WebSocket server');
-          setIsConnected(true);
-        });
+        socketInstance.on('connect', () => active && setIsConnected(true));
+        socketInstance.on('disconnect', () => active && setIsConnected(false));
 
-        socketInstance.on('disconnect', () => {
-          console.log('Disconnected from WebSocket server');
-          setIsConnected(false);
-        });
-
-        // Listen for real-time access logs using the new event name
+        // backend emit event 'access' ทุกครั้งที่มีการทาบบัตร
         socketInstance.on('access', (data) => {
-          console.log('New access log received:', data);
-          addLog(data);
+          addLog(mapAccessAttempt(data));
         });
       } catch (err) {
-        console.error('WebSocket connection setup failed:', err);
+        console.error('ต่อ WebSocket ไม่สำเร็จ (ขอตั๋วไม่ได้?)', err);
       }
-    };
+    }
 
-    connectWebSocket();
+    connect();
 
     return () => {
-      isMounted = false;
-      if (socketInstance) {
-        socketInstance.disconnect();
-      }
+      active = false;
+      socketInstance?.disconnect();
     };
-  }, [addLog]);
+  }, [addLog, setLogs]);
 
   return (
     <WebSocketContext.Provider value={{ socket, isConnected }}>

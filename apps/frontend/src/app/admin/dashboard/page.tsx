@@ -35,8 +35,8 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    const granted = logs.filter(l => l.status === 'granted').length;
-    const denied = logs.filter(l => l.status === 'denied').length;
+    const granted = logs.filter(l => l.status === 'GRANTED').length;
+    const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

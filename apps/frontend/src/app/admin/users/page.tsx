@@ -1,17 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit2, Trash2, X } from 'lucide-react';
+import {
+  fetchUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from '@/services/backend';
 
-// Initial mock data
-const initialUsers = [
-  { id: '1', name: 'John Doe', role: 'Employee', uid: 'A1B2C3D4', department: 'Engineering', status: 'Active' },
-  { id: '2', name: 'Jane Smith', role: 'Admin', uid: 'E5F6G7H8', department: 'HR', status: 'Active' },
-  { id: '3', name: 'Mike Johnson', role: 'Employee', uid: 'I9J0K1L2', department: 'Sales', status: 'Inactive' },
-];
+// backend ไม่มี role/department ให้บัตร — 2 ช่องนั้นเป็นแค่ UI (ไม่บันทึก)
+interface UiUser {
+  id: number;
+  name: string;
+  uid: string;
+  status: 'Active' | 'Inactive';
+  role: string;
+  department: string;
+}
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<UiUser[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,9 +28,31 @@ export default function AdminUsersPage() {
     uid: '',
     department: '',
     role: 'Employee',
-    status: 'Active'
+    status: 'Active',
   });
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await fetchUsers();
+      setUsers(
+        data.map((u) => ({
+          id: u.id,
+          name: u.name,
+          uid: u.uid,
+          status: u.isActive ? 'Active' : 'Inactive',
+          role: 'Employee',
+          department: '',
+        })),
+      );
+    } catch (err) {
+      console.error('โหลดรายชื่อผู้ใช้ไม่สำเร็จ', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,35 +65,44 @@ export default function AdminUsersPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (user: typeof initialUsers[0]) => {
+  const openEditModal = (user: UiUser) => {
     setFormData({ name: user.name, uid: user.uid, department: user.department, role: user.role, status: user.status });
     setEditingUserId(user.id);
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(u => u.id !== id));
+  const handleDeleteUser = async (id: number) => {
+    if (window.confirm('ลบผู้ใช้นี้ใช่ไหม? (ประวัติการเข้า-ออกยังอยู่)')) {
+      try {
+        await deleteUser(id);
+        await load();
+      } catch {
+        window.alert('ลบไม่สำเร็จ');
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.uid) return;
 
-    if (editingUserId) {
-      setUsers(users.map(u => u.id === editingUserId ? { ...formData, id: editingUserId } : u));
-    } else {
-      const userToAdd = {
-        id: Math.random().toString(36).substring(2, 9),
-        ...formData
-      };
-      setUsers([...users, userToAdd]);
+    try {
+      if (editingUserId) {
+        // backend แก้ได้แค่ name + isActive (uid เปลี่ยนไม่ได้)
+        await updateUser(editingUserId, {
+          name: formData.name,
+          isActive: formData.status === 'Active',
+        });
+      } else {
+        await createUser(formData.uid, formData.name);
+      }
+      setIsModalOpen(false);
+      setEditingUserId(null);
+      setFormData({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
+      await load();
+    } catch {
+      window.alert('บันทึกไม่สำเร็จ — UID ซ้ำ หรือรูปแบบไม่ถูกต้อง');
     }
-
-    setIsModalOpen(false);
-    setFormData({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
-    setEditingUserId(null);
   };
 
   return (

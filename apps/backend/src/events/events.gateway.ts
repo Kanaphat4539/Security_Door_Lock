@@ -20,7 +20,9 @@ import { WS_EVENTS, type AccessEventPayload } from './events.types';
  */
 @WebSocketGateway({
   cors: {
-    origin: process.env.WS_CORS_ORIGIN ?? 'http://localhost:3000',
+    // ตั๋วอายุสั้นตอน handshake คือด่านจริง (ไม่ใช่ CORS) dev จึงสะท้อน origin ใดก็ได้
+    // ตั้ง WS_CORS_ORIGIN ใน .env เพื่อจำกัด origin ตอน deploy จริง
+    origin: process.env.WS_CORS_ORIGIN ?? true,
   },
 })
 export class EventsGateway

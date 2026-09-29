@@ -3,20 +3,15 @@
 import React, { useState } from 'react';
 import { Search, Filter, Download } from 'lucide-react';
 import { useLogStore } from '@/store/useLogStore';
+import { SnapshotViewer } from '@/components/shared/SnapshotViewer';
 
 export default function AdminLogsPage() {
   const { logs } = useLogStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  // Fallback to mock data if store is empty for demonstration
-  const displayLogs = logs.length > 0 ? logs : [
-    { id: 1, userName: 'John Doe', uid: 'A1B2C3D4', createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), status: 'granted', direction: 'in', imagePath: null },
-    { id: 2, userName: 'Unknown', uid: 'UNKNOWN_123', createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: 'denied', direction: 'in', imagePath: null },
-    { id: 3, userName: 'Jane Smith', uid: 'E5F6G7H8', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), status: 'granted', direction: 'out', imagePath: null },
-  ] as any[];
-
-  const filteredLogs = displayLogs.filter(log => {
+  // ข้อมูลจริงมาจาก store (WebSocketProvider โหลด /access/recent + realtime มาให้)
+  const filteredLogs = logs.filter(log => {
     const matchesSearch = (log.userName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       log.uid.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || log.status === statusFilter;
@@ -96,18 +91,16 @@ export default function AdminLogsPage() {
                     {log.direction ? log.direction.toUpperCase() : 'IN'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${log.status === 'granted' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' :
-                        log.status === 'denied' ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' :
-                          'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${log.status === 'GRANTED' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' :
+                      log.status === 'DENIED' ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' :
+                        'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
                       }`}>
                       {log.status.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
-                    {log.status === 'denied' ? (
-                      <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-bold text-xs underline underline-offset-2 transition-colors">
-                        View Snapshot
-                      </button>
+                    {log.imageUrl ? (
+                      <SnapshotViewer src={log.imageUrl} />
                     ) : (
                       <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
                     )}

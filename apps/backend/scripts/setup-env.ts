@@ -30,7 +30,10 @@ const GENERATED: Record<string, () => string> = {
 /** ค่าที่ลอกจาก .env.example ได้ตรง ๆ (ตรงกับ docker-compose.yml อยู่แล้ว) */
 const DEFAULTS: Record<string, string> = {
   // พอร์ต 3307 ไม่ใช่ 3306 — ดูเหตุผลใน docker-compose.yml (เลี่ยงชนกับ repo Door)
-  DATABASE_URL: '"mysql://doorlock:doorlock_dev@localhost:3307/doorlock"',
+  // ?allowPublicKeyRetrieval=true จำเป็นสำหรับ MySQL 8.4 (caching_sha2_password)
+  // ต่อแบบไม่มี TLS บน localhost ถ้าไม่มี driver มariadb จะ error 500 (RSA key)
+  DATABASE_URL:
+    '"mysql://doorlock:doorlock_dev@localhost:3307/doorlock?allowPublicKeyRetrieval=true"',
   PORT: "3001",
   UPLOAD_DIR: "uploads",
 };

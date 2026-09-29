@@ -1,16 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Clock } from 'lucide-react';
+import { fetchRecentLogs } from '@/services/backend';
+import type { AccessLog } from '@/store/useLogStore';
 
 export default function EmployeeMyLogsPage() {
-  // Mock data for employee's personal logs
-  const myLogs = [
-    { id: '1', timestamp: new Date(new Date().setHours(8, 25, 0)).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-    { id: '2', timestamp: new Date(new Date().setHours(12, 5, 0)).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-    { id: '3', timestamp: new Date(new Date().setHours(12, 55, 0)).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-    { id: '4', timestamp: new Date(new Date().setHours(17, 30, 0)).toISOString(), status: 'GRANTED', doorId: 'Main Entrance' },
-  ];
+  // หมายเหตุ: backend ยังไม่ผูกบัญชี dashboard กับบัตร RFID
+  // เลยยังกรอง "เฉพาะของฉัน" ไม่ได้ — โชว์ log ล่าสุดทั้งหมดไปก่อน
+  const [myLogs, setMyLogs] = useState<AccessLog[]>([]);
+  useEffect(() => {
+    fetchRecentLogs()
+      .then(setMyLogs)
+      .catch((err) => console.error('โหลด log ไม่สำเร็จ', err));
+  }, []);
 
   return (
     <div className="space-y-6">
