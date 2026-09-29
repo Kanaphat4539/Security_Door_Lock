@@ -45,18 +45,23 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // username = email, backend สมัครได้แค่ role USER (guard)
-      const role = await registerRequest(email, password, inviteCode);
+      const role = await registerRequest(email.trim(), password, inviteCode.trim());
       router.push(role === 'admin' ? '/admin/dashboard' : '/guard/dashboard');
     } catch (err) {
-      const status = axios.isAxiosError(err) ? err.response?.status : 0;
-      setError(
-        status === 401 || status === 403
-          ? 'รหัสเชิญไม่ถูกต้อง'
-          : status === 409
-            ? 'มีชื่อผู้ใช้นี้อยู่แล้ว'
-            : 'สมัครไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?',
-      );
+      let errorMessage = 'สมัครไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?';
+      if (axios.isAxiosError(err) && err.response) {
+        const msg = err.response.data?.message;
+        if (Array.isArray(msg)) {
+          errorMessage = msg.join(', ');
+        } else if (typeof msg === 'string') {
+          errorMessage = msg;
+        } else if (err.response.status === 401 || err.response.status === 403) {
+          errorMessage = 'รหัสเชิญไม่ถูกต้องหรือหมดอายุแล้ว';
+        } else if (err.response.status === 409) {
+          errorMessage = 'มีชื่อผู้ใช้นี้อยู่แล้วในระบบ';
+        }
+      }
+      setError(errorMessage);
       setLoading(false);
     }
   };

@@ -3,8 +3,8 @@ import { IsString, Length, Matches } from 'class-validator';
 export class RegisterDto {
   @IsString()
   @Length(3, 64)
-  @Matches(/^[a-zA-Z0-9_.-]+$/, {
-    message: 'ชื่อผู้ใช้ใช้ได้เฉพาะ a-z A-Z 0-9 _ . - เท่านั้น',
+  @Matches(/^[a-zA-Z0-9_.\-@+]+$/, {
+    message: 'ชื่อผู้ใช้หรืออีเมลใช้ได้เฉพาะ a-z A-Z 0-9 _ . - @ + เท่านั้น',
   })
   username!: string;
 
