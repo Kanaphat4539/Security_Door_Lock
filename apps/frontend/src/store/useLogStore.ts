@@ -9,6 +9,7 @@ export interface AccessLog {
   direction: Direction;
   status: AccessStatus;
   imagePath: string | null;
+  imageUrl?: string;
   userName: string | null;
   createdAt: string;
 }
@@ -25,7 +26,7 @@ export const useLogStore = create<LogStore>((set) => ({
   logs: [],
   recentLog: null,
   addLog: (log) => set((state) => ({ 
-    logs: [log, ...state.logs], 
+    logs: [log, ...state.logs.filter((existing) => existing.id !== log.id)],
     recentLog: log 
   })),
   setLogs: (logs) => set({ logs }),

@@ -120,7 +120,19 @@ export class AuthService {
   async verifySession(token: string): Promise<SessionPayload | null> {
     try {
       const payload = await this.jwt.verifyAsync<SessionPayload>(token);
-      return payload.typ === 'session' ? payload : null;
+      if (payload.typ !== 'session') return null;
+
+      const account = await this.prisma.admin.findUnique({
+        where: { id: payload.sub },
+        select: { username: true, role: true },
+      });
+      if (
+        account?.username !== payload.username ||
+        account.role !== payload.role
+      ) {
+        return null;
+      }
+      return payload;
     } catch {
       return null;
     }

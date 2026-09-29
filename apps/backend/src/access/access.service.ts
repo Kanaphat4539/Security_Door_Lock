@@ -60,15 +60,32 @@ export class AccessService {
     const status: AccessStatus =
       user !== null && user.isActive ? 'granted' : 'denied';
 
-    const log = await this.prisma.accessLog.create({
-      data: {
-        uid: normalized,
-        direction,
-        status,
-        imagePath: null,
-        userId: user?.id ?? null,
-      },
-    });
+    const logData = {
+      uid: normalized,
+      userName: user?.name ?? null,
+      direction,
+      status,
+      imagePath: null,
+      userId: user?.id ?? null,
+    };
+    const email = user?.email?.trim();
+    const log = await this.prisma.accessLog.create({ data: logData });
+
+    if (user !== null && status === 'granted' && email && user.emailNotificationsEnabled) {
+      try {
+        void this.prisma.emailNotification.create({
+          data: {
+            accessLogId: log.id,
+            toEmail: email,
+            recipientName: user.name,
+          },
+        }).catch((error: Error) => {
+          this.logger.error(`สร้างงานแจ้งเตือนอีเมลไม่สำเร็จ (log=${log.id}): ${error.message}`);
+        });
+      } catch (error) {
+        this.logger.error(`สร้างงานแจ้งเตือนอีเมลไม่สำเร็จ (log=${log.id}): ${(error as Error).message}`);
+      }
+    }
 
     this.logResult(normalized, direction, status, user);
 
@@ -78,7 +95,7 @@ export class AccessService {
       direction: log.direction,
       status: log.status,
       imagePath: log.imagePath,
-      userName: user?.name ?? null,
+      userName: log.userName ?? user?.name ?? null,
       createdAt: log.createdAt.toISOString(),
     };
   }
@@ -121,9 +138,35 @@ export class AccessService {
       direction: log.direction,
       status: log.status,
       imagePath: log.imagePath,
-      userName: log.user?.name ?? null,
+      userName: log.userName ?? log.user?.name ?? null,
       createdAt: log.createdAt.toISOString(),
     }));
+  }
+
+  /** ประวัติทั้งหมดแบบแบ่งหน้า เพื่อให้ Guard เลื่อนดูย้อนหลังได้โดยไม่โหลดทั้งตาราง */
+  async getHistory(beforeId?: number): Promise<{
+    logs: AccessAttempt[];
+    nextCursor: number | null;
+  }> {
+    const rows = await this.prisma.accessLog.findMany({
+      ...(beforeId === undefined ? {} : { where: { id: { lt: beforeId } } }),
+      orderBy: { id: 'desc' },
+      take: 51,
+      include: { user: { select: { name: true } } },
+    });
+    const page = rows.slice(0, 50);
+    return {
+      logs: page.map((log) => ({
+        id: log.id,
+        uid: log.uid,
+        direction: log.direction,
+        status: log.status,
+        imagePath: log.imagePath,
+        userName: log.userName ?? log.user?.name ?? null,
+        createdAt: log.createdAt.toISOString(),
+      })),
+      nextCursor: rows.length > 50 ? page[page.length - 1].id : null,
+    };
   }
 
   /** ตัวเลขสรุปสำหรับ KPI cards บน dashboard */

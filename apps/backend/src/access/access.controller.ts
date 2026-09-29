@@ -6,14 +6,16 @@ import {
   Logger,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-import { DeviceRoute } from '../auth/auth.constants';
+import { DeviceRoute, GuardReadable } from '../auth/auth.constants';
 import { AccessService } from './access.service';
 import {
   isDirection,
@@ -53,12 +55,23 @@ export class AccessController {
 
   /** ดู log ล่าสุด ใช้ตอนทดสอบฮาร์ดแวร์ และเป็นฐานให้ dashboard ต่อไป */
   @Get('recent')
+  @GuardReadable()
   getRecent(): Promise<AccessAttempt[]> {
     return this.accessService.getRecent();
   }
 
+  @Get('history')
+  @GuardReadable()
+  getHistory(@Query('beforeId', new ParseIntPipe({ optional: true })) beforeId?: number) {
+    if (beforeId !== undefined && beforeId < 1) {
+      throw new BadRequestException('beforeId must be a positive number');
+    }
+    return this.accessService.getHistory(beforeId);
+  }
+
   /** ตัวเลขสำหรับ KPI cards */
   @Get('stats')
+  @GuardReadable()
   getStats() {
     return this.accessService.getStats();
   }
@@ -73,6 +86,7 @@ export class AccessController {
    * แล้วค่อยสร้าง object URL (ดู components/AuthImage.tsx)
    */
   @Get('image/:filename')
+  @GuardReadable()
   getImage(@Param('filename') filename: string, @Res() res: Response): void {
     // กัน path traversal: ยอมรับเฉพาะชื่อไฟล์ที่ backend เป็นคนตั้งเองเท่านั้น
     if (!/^[0-9A-Za-z._-]+$/.test(filename) || filename.includes('..')) {

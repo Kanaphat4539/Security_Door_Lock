@@ -40,31 +40,45 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         console.error('โหลด log เริ่มต้นไม่สำเร็จ', err);
       }
 
-      // 2) ขอตั๋วอายุสั้นแล้วต่อ WebSocket (backend บังคับตรวจตอน handshake)
-      try {
-        const ticket = await getWsTicket();
-        const url =
-          process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
-        socketInstance = io(url, {
-          auth: { token: ticket },
-          autoConnect: true,
-        });
-        if (!active) {
-          socketInstance.disconnect();
-          return;
-        }
-        setSocket(socketInstance);
-
-        socketInstance.on('connect', () => active && setIsConnected(true));
-        socketInstance.on('disconnect', () => active && setIsConnected(false));
-
-        // backend emit event 'access' ทุกครั้งที่มีการทาบบัตร
-        socketInstance.on('access', (data) => {
-          addLog(mapAccessAttempt(data));
-        });
-      } catch (err) {
-        console.error('ต่อ WebSocket ไม่สำเร็จ (ขอตั๋วไม่ได้?)', err);
+      // ทุก handshake ต้องใช้ตั๋วใหม่ เพราะตั๋วเดิมหมดอายุใน 60 วินาที
+      const url = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
+      socketInstance = io(url, {
+        auth: (callback) => {
+          void getWsTicket()
+            .then((ticket) => callback({ token: active ? ticket : '' }))
+            .catch((error) => {
+              console.error('ขอตั๋ว WebSocket ไม่สำเร็จ', error);
+              callback({ token: '' });
+            });
+        },
+        autoConnect: true,
+      });
+      if (!active) {
+        socketInstance.disconnect();
+        return;
       }
+      setSocket(socketInstance);
+
+      let connectedOnce = false;
+      socketInstance.on('connect', () => {
+        if (!active) return;
+        setIsConnected(true);
+        if (connectedOnce) {
+          void fetchRecentLogs()
+            .then((recent) => {
+              if (!active) return;
+              const current = useLogStore.getState().logs;
+              setLogs(Array.from(new Map([...recent, ...current].map((log) => [log.id, log])).values()).sort((a, b) => b.id - a.id));
+            })
+            .catch((error) => console.error('โหลดเหตุการณ์ที่พลาดระหว่างหลุดการเชื่อมต่อไม่สำเร็จ', error));
+        }
+        connectedOnce = true;
+      });
+      socketInstance.on('disconnect', () => active && setIsConnected(false));
+
+      socketInstance.on('access', (data) => {
+        if (active) addLog(mapAccessAttempt(data));
+      });
     }
 
     connect();

@@ -36,7 +36,7 @@ export default function LoginPage() {
       if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {
-        router.push('/employee/profile');
+        router.push('/guard/dashboard');
       }
     } catch (err) {
       // backend ตอบ 401 = ชื่อผู้ใช้/รหัสผ่านไม่ถูกต้อง
@@ -138,24 +138,6 @@ export default function LoginPage() {
                   {error}
                 </div>
               )}
-              {/* Auto Fill Buttons */}
-              <div className="flex gap-3 justify-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setEmail('admin'); setPassword('admin'); }}
-                  className="text-[11px] font-bold uppercase tracking-wider py-1.5 px-4 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-800/60 transition-colors border border-blue-200 dark:border-blue-800/50"
-                >
-                  Admin Role
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setEmail('employee'); setPassword('password'); }}
-                  className="text-[11px] font-bold uppercase tracking-wider py-1.5 px-4 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-                >
-                  Employee Role
-                </button>
-              </div>
-
               <button
                 type="submit"
                 disabled={loading}
@@ -174,7 +156,7 @@ export default function LoginPage() {
 
             <div className="mt-8 text-center">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Don't have an account?{' '}
+                Guard with an invite code?{' '}
                 <Link href="/register" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold transition-colors">
                   Create one now
                 </Link>
@@ -184,7 +166,7 @@ export default function LoginPage() {
             <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/50 text-center">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
                 <Shield className="w-3.5 h-3.5" />
-                Secure, end-to-end encrypted connection
+                Authorized staff only
               </p>
             </div>
           </div>

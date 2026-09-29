@@ -4,13 +4,18 @@ jest.mock('../../generated/prisma/client', () => ({
   PrismaClient: class {},
 }));
 
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from './users.service';
 
 const prismaMock = {
+  admin: { findUnique: jest.fn() },
   user: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
@@ -25,7 +30,7 @@ describe('UsersService', () => {
   let service: UsersService;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -38,6 +43,86 @@ describe('UsersService', () => {
   });
 
   describe('create', () => {
+    it('admin can enable owner email for a cardholder without a dashboard account', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({ id: 1 });
+
+      await service.create({
+        uid: 'AAAA',
+        name: 'Owner',
+        email: 'owner@example.com',
+        emailNotificationsEnabled: true,
+      });
+
+      expect(prismaMock.user.create).toHaveBeenCalledWith({
+        data: {
+          uid: 'AAAA',
+          name: 'Owner',
+          isActive: true,
+          email: 'owner@example.com',
+          emailNotificationsEnabled: true,
+        },
+      });
+    });
+
+    it('rejects enabling owner email without an address', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      await expect(service.create({ uid: 'AAAA', name: 'Owner', emailNotificationsEnabled: true }))
+        .rejects.toThrow(BadRequestException);
+    });
+    it('stores the owner email and links only an available employee account', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'USER' });
+      prismaMock.user.create.mockResolvedValue({ id: 1 });
+
+      await service.create({
+        uid: 'AAAA',
+        name: 'Owner',
+        email: 'owner@example.com',
+        dashboardUsername: 'employee',
+      });
+
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+        where: { dashboardAccountId: 9 },
+      });
+      expect(prismaMock.user.create).toHaveBeenCalledWith({
+        data: {
+          uid: 'AAAA',
+          name: 'Owner',
+          isActive: true,
+          email: 'owner@example.com',
+          dashboardAccountId: 9,
+        },
+      });
+    });
+
+    it('rejects linking an admin account as an employee owner', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'ADMIN' });
+      await expect(
+        service.create({
+          uid: 'AAAA',
+          name: 'Owner',
+          dashboardUsername: 'admin',
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a dashboard account already linked to another card', async () => {
+      prismaMock.user.findUnique
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 7 });
+      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'USER' });
+      await expect(
+        service.create({
+          uid: 'AAAA',
+          name: 'Owner',
+          dashboardUsername: 'employee',
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
     it('สร้างผู้ใช้ใหม่ได้เมื่อ uid ยังไม่ถูกใช้', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
       prismaMock.user.create.mockResolvedValue({ id: 1, uid: 'A1B2C3D4' });
@@ -81,6 +166,57 @@ describe('UsersService', () => {
   });
 
   describe('update', () => {
+    it('admin can enable owner email on an existing cardholder', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 7, email: 'owner@example.com' });
+      prismaMock.user.update.mockResolvedValue({ id: 7 });
+
+      await service.update(7, { emailNotificationsEnabled: true });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: { emailNotificationsEnabled: true },
+      });
+    });
+
+    it('rejects clearing email while enabling notifications', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 7, email: 'owner@example.com' });
+
+      await expect(service.update(7, { email: null, emailNotificationsEnabled: true }))
+        .rejects.toThrow(BadRequestException);
+      expect(prismaMock.user.update).not.toHaveBeenCalled();
+    });
+    it('turns off notifications when the owner email changes', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 7,
+        email: 'old@example.com',
+        dashboardAccountId: 9,
+      });
+      prismaMock.user.update.mockResolvedValue({ id: 7 });
+
+      await service.update(7, { email: 'new@example.com' });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: { email: 'new@example.com', emailNotificationsEnabled: false },
+      });
+    });
+
+    it('can clear an owner email and turn off notifications', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 7 });
+      prismaMock.user.update.mockResolvedValue({ id: 7 });
+
+      await service.update(7, { email: null, dashboardUsername: null });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: {
+          email: null,
+          emailNotificationsEnabled: false,
+          dashboardAccountId: null,
+        },
+      });
+    });
+
     it('โยน 404 ก่อน ไม่เรียก update ถ้าไม่มีผู้ใช้', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 

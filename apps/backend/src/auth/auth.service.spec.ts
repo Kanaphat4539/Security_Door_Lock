@@ -158,3 +158,54 @@ describe('AuthService.login', () => {
     );
   });
 });
+
+describe('AuthService.verifySession', () => {
+  let service: AuthService;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: JwtService, useValue: jwtMock },
+      ],
+    }).compile();
+    service = module.get<AuthService>(AuthService);
+  });
+
+  it('rejects an old admin session after its account is changed to USER', async () => {
+    jwtMock.verifyAsync.mockResolvedValue({
+      sub: 8,
+      username: 'employee',
+      role: 'ADMIN',
+      typ: 'session',
+    });
+    prismaMock.admin.findUnique.mockResolvedValue({
+      id: 8,
+      username: 'employee',
+      role: 'USER',
+    });
+
+    await expect(service.verifySession('old-admin-token')).resolves.toBeNull();
+  });
+
+  it('accepts a session whose account still has the same role', async () => {
+    const payload = {
+      sub: 8,
+      username: 'employee',
+      role: 'USER',
+      typ: 'session',
+    };
+    jwtMock.verifyAsync.mockResolvedValue(payload);
+    prismaMock.admin.findUnique.mockResolvedValue({
+      id: 8,
+      username: 'employee',
+      role: 'USER',
+    });
+
+    await expect(service.verifySession('fresh-employee-token')).resolves.toEqual(
+      payload,
+    );
+  });
+});

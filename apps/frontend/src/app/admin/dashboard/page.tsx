@@ -3,40 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { useLogStore } from '@/store/useLogStore';
-import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Sun, Moon, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key } from 'lucide-react';
+import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboardPage() {
   const { isConnected } = useWebSocket();
   const { logs } = useLogStore();
   const [stats, setStats] = useState({ totalScans: 0, granted: 0, denied: 0, uniqueEmployeesToday: 0 });
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isDark = document.documentElement.classList.contains('dark') ||
-        localStorage.getItem('theme') === 'dark' ||
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      setIsDarkMode(isDark);
-      if (isDark) document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
-  useEffect(() => {
-    const granted = logs.filter(l => l.status === 'GRANTED').length;
-    const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
+    const granted = logs.filter(l => l.status === 'granted').length;
+    const denied = logs.filter(l => l.status === 'denied').length;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -75,13 +52,6 @@ export default function AdminDashboardPage() {
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 font-medium">Real-time facility monitoring and physical access control.</p>
         </div>
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all self-start md:self-auto group active:scale-95"
-        >
-          {isDarkMode ? <Sun className="w-5 h-5 text-amber-500 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-5 h-5 text-indigo-600 group-hover:-rotate-12 transition-transform duration-500" />}
-          <span className="font-semibold text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-        </button>
       </header>
 
       <div className="grid grid-cols-12 gap-6 relative z-10">

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 
-import { Public, SESSION_ADMIN_ID, SESSION_ROLE } from './auth.constants';
+import { GuardReadable, GuardSession, Public, SESSION_ADMIN_ID, SESSION_ROLE } from './auth.constants';
 import { AuthService, SESSION_TTL_SECONDS, type Role } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -49,6 +49,7 @@ export class AuthController {
 
   /** ข้อมูลบัญชีที่ล็อกอินอยู่ — frontend ใช้ตัดสินว่าจะโชว์เมนูไหนบ้าง */
   @Get('me')
+  @GuardReadable()
   me(@Req() request: AuthedRequest): { id: number; role: Role } {
     return {
       id: request[SESSION_ADMIN_ID] ?? 0,
@@ -62,6 +63,7 @@ export class AuthController {
    * ต้องมี session token อยู่แล้ว (guard ตรวจให้ก่อนเข้ามาถึงตรงนี้)
    */
   @Post('ws-ticket')
+  @GuardSession()
   async wsTicket(
     @Req() request: AuthedRequest,
   ): Promise<{ ticket: string; expiresIn: number }> {

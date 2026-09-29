@@ -13,6 +13,8 @@ import {
   extractBearer,
   IS_ADMIN_ONLY,
   IS_DEVICE_ROUTE,
+  IS_GUARD_READABLE,
+  IS_GUARD_SESSION,
   IS_PUBLIC,
   SESSION_ADMIN_ID,
   SESSION_ROLE,
@@ -65,12 +67,18 @@ export class TokenAuthGuard implements CanActivate {
       request[SESSION_ADMIN_ID] = session.sub;
       request[SESSION_ROLE] = session.role;
 
-      if (adminOnly && session.role !== 'ADMIN') {
+      if (
+        session.role !== 'ADMIN' &&
+        (adminOnly ||
+          (!this.readMeta(context, IS_GUARD_SESSION) &&
+            (request.method !== 'GET' ||
+              !this.readMeta(context, IS_GUARD_READABLE))))
+      ) {
         this.logger.warn(
           `ปฏิเสธ ${request.method} ${request.url} — ` +
-            `${session.username} เป็น role ${session.role} ไม่ใช่ ADMIN`,
+            `${session.username} เป็น role ${session.role} และไม่มีสิทธิ์เรียก route นี้`,
         );
-        throw new ForbiddenException('ต้องเป็นผู้ดูแลระบบเท่านั้น');
+        throw new ForbiddenException('บัญชี Guard ดูประวัติได้อย่างเดียว');
       }
 
       return true;

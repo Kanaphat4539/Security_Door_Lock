@@ -14,6 +14,8 @@ import { Reflector } from '@nestjs/core';
 import {
   IS_ADMIN_ONLY,
   IS_DEVICE_ROUTE,
+  IS_GUARD_READABLE,
+  IS_GUARD_SESSION,
   IS_PUBLIC,
   tokenMatches,
 } from './auth.constants';
@@ -25,12 +27,12 @@ const DEVICE = 'device-token-bbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 const SESSION_JWT = 'a.valid.session.jwt';
 const USER_JWT = 'a.valid.user.jwt';
 
-const contextWith = (authorization?: string): ExecutionContext =>
+const contextWith = (authorization?: string, method = 'GET'): ExecutionContext =>
   ({
     switchToHttp: () => ({
       getRequest: () => ({
         headers: authorization ? { authorization } : {},
-        method: 'GET',
+        method,
         url: '/test',
       }),
     }),
@@ -135,10 +137,31 @@ describe('TokenAuthGuard', () => {
   });
 
   describe('@AdminOnly()', () => {
-    it('role USER เข้า route ทั่วไปได้ (เช่น /access/recent)', async () => {
+    it('role USER อ่าน route ที่เปิดให้ guard ได้', async () => {
+      mockMetadata(IS_GUARD_READABLE);
+      await expect(
+        guard.canActivate(contextWith(`Bearer ${USER_JWT}`)),
+      ).resolves.toBe(true);
+    });
+
+    it('role USER ถูกปฏิเสธบน route ที่ไม่ได้เปิดให้ guard', async () => {
       mockMetadata(null);
       await expect(
         guard.canActivate(contextWith(`Bearer ${USER_JWT}`)),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('role USER เรียกคำสั่งเขียนไม่ได้ แม้ route จะติด @GuardReadable()', async () => {
+      mockMetadata(IS_GUARD_READABLE);
+      await expect(
+        guard.canActivate(contextWith(`Bearer ${USER_JWT}`, 'POST')),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('role USER ขอตั๋ว WebSocket บน route session ได้', async () => {
+      mockMetadata(IS_GUARD_SESSION);
+      await expect(
+        guard.canActivate(contextWith(`Bearer ${USER_JWT}`, 'POST')),
       ).resolves.toBe(true);
     });
 
