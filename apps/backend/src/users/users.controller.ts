@@ -15,10 +15,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
 /**
- * ทั้ง controller เป็น ADMIN เท่านั้น — ติดที่ระดับคลาสจะได้ไม่ลืมเวลาเพิ่ม route ใหม่
- * (การเพิ่ม/ลบบัตร และการดูประวัติรายบุคคลของคนอื่น เป็นงานของผู้ดูแลระบบ)
+ * ดูข้อมูลผู้ใช้/บัตร: ทั้ง ADMIN และ GUARD (ผู้ช่วย) ดูได้
+ * จัดการข้อมูล (เพิ่ม/แก้ไข/ลบ): ADMIN เท่านั้น
  */
-@AdminOnly()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -47,19 +46,19 @@ export class UsersController {
     return this.usersService.findLogs(id);
   }
 
+  @AdminOnly()
   @Post()
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
+  @AdminOnly()
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateUserDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
+  @AdminOnly()
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);

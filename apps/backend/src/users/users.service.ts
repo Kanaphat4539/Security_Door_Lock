@@ -116,6 +116,6 @@ export class UsersService {
         attempts: row._count.uid,
         lastSeenAt: row._max.createdAt?.toISOString() ?? null,
       }))
-      .sort((a, b) => (a.lastSeenAt ?? '') < (b.lastSeenAt ?? '') ? 1 : -1);
+      .sort((a, b) => ((a.lastSeenAt ?? '') < (b.lastSeenAt ?? '') ? 1 : -1));
   }
 }

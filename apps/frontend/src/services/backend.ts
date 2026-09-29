@@ -5,7 +5,7 @@
 import { api } from './api';
 import type { AccessLog, AccessStatus } from '@/store/useLogStore';
 
-export type BackendRole = 'ADMIN' | 'USER';
+export type BackendRole = 'ADMIN' | 'USER' | 'GUARD';
 export type UiRole = 'admin' | 'employee';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';

@@ -61,7 +61,7 @@ describe('TokenAuthGuard', () => {
           return Promise.resolve({
             sub: 8,
             username: 'viewer',
-            role: 'USER' as const,
+            role: 'GUARD' as const,
             typ: 'session' as const,
           });
         }

@@ -5,6 +5,7 @@ import { AccessModule } from './access/access.module';
 import { AuthModule } from './auth/auth.module';
 import { DevicesModule } from './devices/devices.module';
 import { EventsModule } from './events/events.module';
+import { GuardsModule } from './guards/guards.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     AccessModule,
     DevicesModule,
     UsersModule,
+    GuardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

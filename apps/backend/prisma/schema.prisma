@@ -24,11 +24,11 @@ enum AccessStatus {
 }
 
 /// สิทธิ์ของบัญชี dashboard
-/// ADMIN = จัดการบัตร/ผู้ใช้ได้ทั้งหมด
-/// USER  = ดูหน้าภาพรวมได้อย่างเดียว แตะ /users ไม่ได้เลย
+/// ADMIN = จัดการบัตร/ผู้ใช้ได้ทั้งหมด และจัดการ GUARD ได้
+/// GUARD = ผู้ช่วย ADMIN ดูข้อมูลได้ทุกอย่าง แต่เพิ่ม/ลบ/แก้บัตรและผู้ใช้ไม่ได้
 enum Role {
   ADMIN
-  USER
+  GUARD
 }
 
 /// บัญชีสำหรับ "เข้าใช้ dashboard" — คนละเรื่องกับ User ที่เป็นเจ้าของบัตร RFID
@@ -38,10 +38,20 @@ model Admin {
   username     String   @unique @db.VarChar(64)
   /// รูปแบบ "scrypt:<salt hex>:<hash hex>" — ดู auth/password.ts
   passwordHash String   @db.VarChar(255)
-  /// สมัครเองผ่านหน้าเว็บได้แค่ USER — ADMIN ต้องตั้งจาก CLI (db:add-admin)
-  role         Role     @default(USER)
+  /// สมัครเองผ่านหน้าเว็บได้แค่ GUARD — ADMIN ต้องตั้งจาก CLI (db:add-admin)
+  role         Role     @default(GUARD)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+/// รหัสเชิญสำหรับสมัครเป็น GUARD ซึ่ง ADMIN เป็นผู้ออกให้
+model InviteCode {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique @db.VarChar(32)
+  isUsed    Boolean   @default(false)
+  usedBy    String?   @db.VarChar(64)
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
 }
 
 /// ผู้มีสิทธิ์เข้า-ออก 1 คนต่อ 1 บัตร

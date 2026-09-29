@@ -1,20 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { User, CreditCard, Bell, MessageCircle, Save } from 'lucide-react';
+import React from 'react';
+import { User, CreditCard, Bell } from 'lucide-react';
 
 export default function EmployeeProfilePage() {
-  const [lineConnected, setLineConnected] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleConnectLine = () => {
-    setLoading(true);
-    // Simulate API call to get LINE Login URL
-    setTimeout(() => {
-      setLoading(false);
-      setLineConnected(true);
-    }, 1500);
-  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -80,50 +69,6 @@ export default function EmployeeProfilePage() {
           </div>
           
           <div className="space-y-6">
-            <p className="text-sm text-slate-500 dark:text-zinc-400">
-              Receive real-time alerts when your RFID card is used to access secure areas. This helps prevent unauthorized use of your card.
-            </p>
-
-            <div className="border border-slate-200 dark:border-zinc-800 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <MessageCircle className="w-6 h-6 text-[#06C755]" />
-                  <div>
-                    <h4 className="font-medium text-slate-900 dark:text-white">LINE Notify</h4>
-                    <p className="text-xs text-slate-500 dark:text-zinc-400">Receive alerts via LINE Flex Messages</p>
-                  </div>
-                </div>
-                <div>
-                  {lineConnected ? (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                      Connected
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-zinc-800 dark:text-zinc-400">
-                      Not Connected
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              {!lineConnected ? (
-                <button 
-                  onClick={handleConnectLine}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  {loading ? 'Connecting...' : 'Connect with LINE'}
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setLineConnected(false)}
-                  className="w-full py-2 px-4 border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Disconnect
-                </button>
-              )}
-            </div>
-
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-medium text-slate-900 dark:text-white">Email Notifications</h4>
