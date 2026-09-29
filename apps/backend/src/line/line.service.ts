@@ -2,6 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import type { AccessAttempt } from '../access/access.types';
 
+export const DEFAULT_LINE_ICONS = {
+  user: 'https://img.icons8.com/ios-glyphs/64/374151/user--v1.png',
+  uid: 'https://img.icons8.com/ios/64/374151/identification-documents.png',
+  entry: 'https://img.icons8.com/ios/64/374151/right.png',
+  exit: 'https://img.icons8.com/ios/64/374151/exit.png',
+  clock: 'https://img.icons8.com/material-outlined/64/374151/alarm-clock.png',
+};
+
 @Injectable()
 export class LineService {
   private readonly logger = new Logger(LineService.name);
@@ -12,6 +20,31 @@ export class LineService {
 
   private get groupId(): string | undefined {
     return process.env.LINE_GROUP_ID?.trim();
+  }
+
+  /**
+   * คืนค่า URL ของไอคอนต่าง ๆ
+   * สามารถ override ผ่าน env `LINE_ICON_BASE_URL` ได้ (เช่น ชี้ไปที่ CDN หรือ server ตัวเอง)
+   */
+  getIcons(): {
+    user: string;
+    uid: string;
+    entry: string;
+    exit: string;
+    clock: string;
+  } {
+    const base = process.env.LINE_ICON_BASE_URL?.trim();
+    if (base) {
+      const cleanBase = base.replace(/\/+$/, '');
+      return {
+        user: `${cleanBase}/user.png`,
+        uid: `${cleanBase}/uid.png`,
+        entry: `${cleanBase}/entry.png`,
+        exit: `${cleanBase}/exit.png`,
+        clock: `${cleanBase}/clock.png`,
+      };
+    }
+    return DEFAULT_LINE_ICONS;
   }
 
   /**
@@ -33,19 +66,21 @@ export class LineService {
   }
 
   /**
-   * สร้างโครงสร้าง LINE Flex Message Bubble ให้สวยงาม
+   * สร้างโครงสร้าง LINE Flex Message Bubble ให้สวยงามตรงตาม Mockup (FlexDoorlock)
    */
   buildFlexMessage(attempt: AccessAttempt): Record<string, unknown> {
     const isGranted = attempt.status === 'granted';
     const directionText =
       attempt.direction === 'in' ? 'ขาเข้า (Entry)' : 'ขาออก (Exit)';
-    const statusText = isGranted
-      ? 'อนุญาตให้ผ่านประตู ✅'
-      : 'ไม่อนุญาตให้เข้า ❌';
+    const statusTitle = isGranted ? 'อนุญาตให้ผ่านประตู' : 'ไม่อนุญาตให้เข้า';
     const statusBadge = isGranted ? 'GRANTED' : 'DENIED';
-    const headerBgColor = isGranted ? '#059669' : '#DC2626';
-    const badgeColor = isGranted ? '#A7F3D0' : '#FECACA';
+    const headerBgColor = isGranted ? '#20B561' : '#DA4034';
+    const badgeSymbol = isGranted ? '✓' : '✕';
     const userName = attempt.userName || 'ไม่พบข้อมูลในระบบ';
+
+    const icons = this.getIcons();
+    const directionIcon =
+      attempt.direction === 'in' ? icons.entry : icons.exit;
 
     const timeStr = new Date(attempt.createdAt).toLocaleString('th-TH', {
       timeZone: 'Asia/Bangkok',
@@ -70,6 +105,7 @@ export class LineService {
           layout: 'vertical',
           backgroundColor: headerBgColor,
           paddingAll: '20px',
+          paddingBottom: '16px',
           contents: [
             {
               type: 'box',
@@ -87,119 +123,202 @@ export class LineService {
                   text: statusBadge,
                   align: 'end',
                   weight: 'bold',
-                  color: badgeColor,
+                  color: '#FFFFFF',
                   size: 'xs',
                 },
               ],
             },
             {
-              type: 'text',
-              text: statusText,
-              weight: 'bold',
-              size: 'lg',
-              color: '#FFFFFF',
+              type: 'box',
+              layout: 'horizontal',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               margin: 'md',
+              contents: [
+                {
+                  type: 'text',
+                  text: statusTitle,
+                  weight: 'bold',
+                  size: 'xl',
+                  color: '#FFFFFF',
+                  flex: 1,
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  width: '28px',
+                  height: '28px',
+                  cornerRadius: '100px',
+                  backgroundColor: '#FFFFFF',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flex: 0,
+                  contents: [
+                    {
+                      type: 'text',
+                      text: badgeSymbol,
+                      color: headerBgColor,
+                      size: 'sm',
+                      weight: 'bold',
+                      align: 'center',
+                      gravity: 'center',
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
         body: {
           type: 'box',
           layout: 'vertical',
+          backgroundColor: '#FFFFFF',
           paddingAll: '20px',
+          spacing: 'lg',
           contents: [
             {
               type: 'box',
-              layout: 'vertical',
+              layout: 'horizontal',
+              alignItems: 'center',
               spacing: 'md',
               contents: [
                 {
+                  type: 'image',
+                  url: icons.user,
+                  size: '34px',
+                  aspectRatio: '1:1',
+                  aspectMode: 'fit',
+                  flex: 0,
+                },
+                {
                   type: 'box',
-                  layout: 'baseline',
-                  spacing: 'sm',
+                  layout: 'vertical',
+                  spacing: 'none',
                   contents: [
                     {
                       type: 'text',
-                      text: '👤 ผู้ใช้งาน',
-                      color: '#888888',
-                      size: 'sm',
-                      flex: 3,
+                      text: 'ผู้ใช้งาน',
+                      size: 'xs',
+                      color: '#6B7280',
                     },
                     {
                       type: 'text',
                       text: userName,
-                      wrap: true,
-                      color: '#111111',
-                      size: 'sm',
+                      size: 'md',
                       weight: 'bold',
-                      flex: 5,
+                      color: '#111827',
+                      wrap: true,
                     },
                   ],
                 },
+              ],
+            },
+            {
+              type: 'box',
+              layout: 'horizontal',
+              alignItems: 'center',
+              spacing: 'md',
+              contents: [
+                {
+                  type: 'image',
+                  url: icons.uid,
+                  size: '34px',
+                  aspectRatio: '1:1',
+                  aspectMode: 'fit',
+                  flex: 0,
+                },
                 {
                   type: 'box',
-                  layout: 'baseline',
-                  spacing: 'sm',
+                  layout: 'vertical',
+                  spacing: 'none',
                   contents: [
                     {
                       type: 'text',
-                      text: '💳 รหัส UID',
-                      color: '#888888',
-                      size: 'sm',
-                      flex: 3,
+                      text: 'รหัส UID',
+                      size: 'xs',
+                      color: '#6B7280',
                     },
                     {
                       type: 'text',
                       text: attempt.uid,
-                      wrap: true,
-                      color: '#333333',
-                      size: 'sm',
+                      size: 'md',
                       weight: 'bold',
-                      flex: 5,
+                      color: '#111827',
+                      wrap: true,
                     },
                   ],
                 },
+              ],
+            },
+            {
+              type: 'box',
+              layout: 'horizontal',
+              alignItems: 'center',
+              spacing: 'md',
+              contents: [
+                {
+                  type: 'image',
+                  url: directionIcon,
+                  size: '34px',
+                  aspectRatio: '1:1',
+                  aspectMode: 'fit',
+                  flex: 0,
+                },
                 {
                   type: 'box',
-                  layout: 'baseline',
-                  spacing: 'sm',
+                  layout: 'vertical',
+                  spacing: 'none',
                   contents: [
                     {
                       type: 'text',
-                      text: '📍 ทิศทาง',
-                      color: '#888888',
-                      size: 'sm',
-                      flex: 3,
+                      text: 'ทิศทาง',
+                      size: 'xs',
+                      color: '#6B7280',
                     },
                     {
                       type: 'text',
                       text: directionText,
-                      wrap: true,
-                      color: '#333333',
-                      size: 'sm',
+                      size: 'md',
                       weight: 'bold',
-                      flex: 5,
+                      color: '#111827',
+                      wrap: true,
                     },
                   ],
                 },
+              ],
+            },
+            {
+              type: 'box',
+              layout: 'horizontal',
+              alignItems: 'center',
+              spacing: 'md',
+              contents: [
+                {
+                  type: 'image',
+                  url: icons.clock,
+                  size: '34px',
+                  aspectRatio: '1:1',
+                  aspectMode: 'fit',
+                  flex: 0,
+                },
                 {
                   type: 'box',
-                  layout: 'baseline',
-                  spacing: 'sm',
+                  layout: 'vertical',
+                  spacing: 'none',
                   contents: [
                     {
                       type: 'text',
-                      text: '⏰ เวลา',
-                      color: '#888888',
-                      size: 'sm',
-                      flex: 3,
+                      text: 'เวลา',
+                      size: 'xs',
+                      color: '#6B7280',
                     },
                     {
                       type: 'text',
                       text: timeStr,
+                      size: 'md',
+                      weight: 'bold',
+                      color: '#111827',
                       wrap: true,
-                      color: '#666666',
-                      size: 'xs',
-                      flex: 5,
                     },
                   ],
                 },
@@ -210,14 +329,15 @@ export class LineService {
         footer: {
           type: 'box',
           layout: 'vertical',
-          paddingAll: '10px',
+          backgroundColor: '#ECEFF2',
+          paddingAll: '12px',
+          paddingStart: '20px',
           contents: [
             {
               type: 'text',
-              text: 'IoT Smart Door Lock System • น้องจูดี้',
+              text: 'IoT Smart Door Lock System.',
               size: 'xxs',
-              color: '#AAAAAA',
-              align: 'center',
+              color: '#8E95A0',
             },
           ],
         },

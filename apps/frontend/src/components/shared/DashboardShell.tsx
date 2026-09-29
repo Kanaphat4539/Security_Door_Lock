@@ -17,7 +17,6 @@ export default function DashboardShell({ children, portal }: { children: React.R
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
   };
 
   const navItems = portal === 'admin'

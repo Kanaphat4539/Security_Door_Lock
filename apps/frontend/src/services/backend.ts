@@ -74,14 +74,20 @@ export async function register(
 }
 
 export function logout() {
-  useLogStore.getState().clearLogs();
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_role');
   document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  useLogStore.getState().clearLogs();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
 }
 
 // ตั๋วอายุสั้นสำหรับต่อ WebSocket (backend บังคับตรวจตอน handshake)
 export async function getWsTicket(): Promise<string> {
+  if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) {
+    return '';
+  }
   const { data } = await api.post<{ ticket: string }>('/auth/ws-ticket');
   return data.ticket;
 }

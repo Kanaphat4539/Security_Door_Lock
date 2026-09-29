@@ -44,10 +44,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       const url = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
       socketInstance = io(url, {
         auth: (callback) => {
+          if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) {
+            callback({ token: '' });
+            return;
+          }
           void getWsTicket()
             .then((ticket) => callback({ token: active ? ticket : '' }))
             .catch((error) => {
-              console.error('ขอตั๋ว WebSocket ไม่สำเร็จ', error);
+              if (typeof window !== 'undefined' && localStorage.getItem('auth_token')) {
+                console.error('ขอตั๋ว WebSocket ไม่สำเร็จ', error);
+              }
               callback({ token: '' });
             });
         },

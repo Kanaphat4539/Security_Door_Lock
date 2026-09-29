@@ -24,6 +24,7 @@
     "db:studio": "prisma studio",
     "db:add-card": "tsx scripts/add-card.ts",
     "db:add-admin": "tsx scripts/add-admin.ts",
+    "test:line": "tsx scripts/test-line.ts",
     "setup": "tsx scripts/setup-env.ts"
   },
   "dependencies": {

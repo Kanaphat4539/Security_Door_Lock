@@ -15,6 +15,15 @@ api.interceptors.request.use(
       const token = localStorage.getItem('auth_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else if (
+        !config.url?.includes('/auth/login') &&
+        !config.url?.includes('/auth/register')
+      ) {
+        // ไม่มี token และไม่ใช่ route สมัคร/ล็อกอิน -> ตัดคำขอทิ้งทันที
+        // ป้องกันไม่ให้ยิง request หลุดไปโดน 401 ตอนกำลังกด Logout
+        const controller = new AbortController();
+        config.signal = controller.signal;
+        controller.abort('Logged out');
       }
     }
     return config;
@@ -28,6 +37,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // ถ้าคำขอถูกยกเลิกเพราะไม่มี token ให้เงียบไว้ ไม่ต้องโยน error ขึ้น UI
+    if (axios.isCancel(error)) {
+      return new Promise(() => {});
+    }
     const url: string = error.config?.url ?? '';
     // ไม่เด้งตอนล็อกอิน/สมัคร/ตรวจ me ผิด — ให้หน้า login โชว์ error เอง
     const isAuthCall = url.includes('/auth/');
