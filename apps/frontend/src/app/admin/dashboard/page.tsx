@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { useLogStore } from '@/store/useLogStore';
-import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key } from 'lucide-react';
+import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboardPage() {
@@ -312,6 +312,10 @@ export default function AdminDashboardPage() {
                   <UserPlus className="w-4 h-4" />
                   Register New User
                 </Link>
+                <Link href="/admin/guards" className="w-full bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-3 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all border border-indigo-200/80 dark:border-indigo-800/60 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                  <KeyRound className="w-4 h-4 text-indigo-500" />
+                  Guard Invite Keys
+                </Link>
                 <Link href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
                   <Shield className="w-4 h-4" />
                   Manage Permissions
@@ -349,6 +353,27 @@ export default function AdminDashboardPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Quick Link Banner to Guard Keys Page */}
+        <div className="col-span-12">
+          <div className="bg-gradient-to-r from-indigo-950/80 via-slate-900/80 to-blue-950/80 p-6 rounded-2xl shadow-xl border border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-400/30 text-indigo-400">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white">GUARD Key Management</h3>
+                <p className="text-xs text-slate-300 mt-0.5">จัดการและสร้างรหัสเชิญสำหรับสมัคร GUARD แบบเต็มหน้าจอ</p>
+              </div>
+            </div>
+            <Link
+              href="/admin/guards"
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 shrink-0"
+            >
+              เปิดหน้าจัดการรหัสเชิญ →
+            </Link>
           </div>
         </div>
       </div>

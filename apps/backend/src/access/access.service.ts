@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { ImageFetchService } from '../devices/image-fetch.service';
 import { EventsGateway } from '../events/events.gateway';
+import { LineService } from '../line/line.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   AccessAttempt,
@@ -18,6 +19,7 @@ export class AccessService {
     private readonly prisma: PrismaService,
     private readonly events: EventsGateway,
     private readonly imageFetch: ImageFetchService,
+    private readonly line: LineService,
   ) {}
 
   /**
@@ -31,6 +33,9 @@ export class AccessService {
     direction: Direction,
   ): Promise<AccessResponse> {
     const attempt = await this.authorize(uid, direction);
+
+    // แจ้งเตือนไปยังน้องจูดี้ (LINE Bot Flex Message) เบื้องหลัง (ไม่บล็อกการเปิดประตู)
+    void this.line.notifyAccess(attempt);
 
     if (direction === 'in') {
       // ขาเข้า: ดึงรูปจาก CAM เบื้องหลัง (ไม่ await -> ไม่บล็อกการตอบ)

@@ -98,8 +98,8 @@ export class UsersService {
     ownerId?: number,
   ): Promise<number> {
     const account = await this.prisma.admin.findUnique({ where: { username } });
-    if (!account || account.role !== 'USER') {
-      throw new BadRequestException('ไม่พบบัญชี employee ชื่อนี้');
+    if (!account || account.role !== 'GUARD') {
+      throw new BadRequestException('ไม่พบบัญชีผู้ช่วย (GUARD) ชื่อนี้');
     }
     const linked = await this.prisma.user.findUnique({
       where: { dashboardAccountId: account.id },

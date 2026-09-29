@@ -17,9 +17,20 @@ model Admin {
   passwordHash String   @db.VarChar(255)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  /// สมัครเองผ่านหน้าเว็บได้แค่ USER — ADMIN ต้องตั้งจาก CLI (db:add-admin)
-  role         Role     @default(USER)
+  /// สมัครเองผ่านหน้าเว็บได้แค่ GUARD — ADMIN ต้องตั้งจาก CLI (db:add-admin)
+  role         Role     @default(GUARD)
   cardOwner    User?
+}
+
+/// รหัสเชิญสำหรับสมัครเป็น GUARD ซึ่ง ADMIN เป็นผู้ออกให้ (แบบ User ต่อ User มีเวลาจำกัด)
+model InviteCode {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique @db.VarChar(32)
+  isUsed    Boolean   @default(false)
+  usedBy    String?   @db.VarChar(64)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
 }
 
 /// ผู้มีสิทธิ์เข้า-ออก 1 คนต่อ 1 บัตร
@@ -99,8 +110,8 @@ enum AccessStatus {
 
 /// สิทธิ์ของบัญชี dashboard
 /// ADMIN = จัดการบัตร/ผู้ใช้ได้ทั้งหมด
-/// USER  = ชื่อ role เดิมของ Guard; ดูข้อมูลการเข้าออกได้อย่างเดียว
+/// GUARD = ผู้ช่วย ADMIN; ดูข้อมูลการเข้าออกได้อย่างเดียว
 enum Role {
   ADMIN
-  USER
+  GUARD
 }

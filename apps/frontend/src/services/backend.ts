@@ -5,7 +5,7 @@
 import { api } from './api';
 import { useLogStore, type AccessLog } from '@/store/useLogStore';
 
-export type BackendRole = 'ADMIN' | 'USER';
+export type BackendRole = 'ADMIN' | 'USER' | 'GUARD';
 export type UiRole = 'admin' | 'guard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -170,3 +170,59 @@ export async function fetchUnassignedUids(): Promise<UnassignedUid[]> {
   const { data } = await api.get<UnassignedUid[]>('/users/unassigned-uids');
   return data;
 }
+
+// ===================== guards & invite codes =====================
+export interface InviteCodeItem {
+  id: number;
+  code: string;
+  isUsed: boolean;
+  usedBy: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  usedAt: string | null;
+  status: 'active' | 'used' | 'expired';
+}
+
+export async function fetchInviteCodes(): Promise<InviteCodeItem[]> {
+  const { data } = await api.get<InviteCodeItem[]>('/guards/invite-codes');
+  return data;
+}
+
+export async function createInviteCode(
+  expiresInMinutes = 60,
+  customCode?: string,
+): Promise<InviteCodeItem> {
+  const { data } = await api.post<InviteCodeItem>('/guards/invite-codes', {
+    expiresInMinutes,
+    code: customCode || undefined,
+  });
+  return data;
+}
+
+export async function deleteInviteCode(
+  id: number,
+): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.delete<{ success: boolean; message: string }>(
+    `/guards/invite-codes/${id}`,
+  );
+  return data;
+}
+
+export interface GuardAccount {
+  id: number;
+  username: string;
+  role: 'GUARD';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchGuards(): Promise<GuardAccount[]> {
+  const { data } = await api.get<GuardAccount[]>('/guards');
+  return data;
+}
+
+export async function deleteGuard(id: number): Promise<{ message: string }> {
+  const { data } = await api.delete<{ message: string }>(`/guards/${id}`);
+  return data;
+}
+
