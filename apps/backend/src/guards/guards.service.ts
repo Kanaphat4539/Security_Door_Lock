@@ -70,11 +70,30 @@ export class GuardsService {
    * @param expiresInMinutes จำนวนนาทีที่รหัสใช้งานได้ (ค่าเริ่มต้น 60 นาที = 1 ชั่วโมง)
    * @param customCode รหัสที่ระบุเอง (ถ้ามี)
    */
-  async createInviteCode(expiresInMinutes = 60, customCode?: string) {
+  async createInviteCode(
+    expiresInMinutesOrCode?: number | string,
+    customCode?: string,
+  ) {
+    let minutes = 60;
+    let targetCustomCode: string | undefined;
+
+    if (typeof expiresInMinutesOrCode === 'string') {
+      targetCustomCode = expiresInMinutesOrCode;
+    } else {
+      if (
+        typeof expiresInMinutesOrCode === 'number' &&
+        !isNaN(expiresInMinutesOrCode) &&
+        expiresInMinutesOrCode > 0
+      ) {
+        minutes = expiresInMinutesOrCode;
+      }
+      targetCustomCode = customCode;
+    }
+
     let code: string;
 
-    if (customCode && customCode.trim().length > 0) {
-      code = customCode.trim().toUpperCase();
+    if (targetCustomCode && targetCustomCode.trim().length > 0) {
+      code = targetCustomCode.trim().toUpperCase();
       const existing = await this.prisma.inviteCode.findUnique({
         where: { code },
       });
@@ -95,9 +114,7 @@ export class GuardsService {
       } while (attempts < 10);
     }
 
-    const minutes = Number(expiresInMinutes);
-    const validMinutes = !isNaN(minutes) && minutes > 0 ? minutes : 60;
-    const expiresAt = new Date(Date.now() + validMinutes * 60 * 1000);
+    const expiresAt = new Date(Date.now() + minutes * 60 * 1000);
 
     return this.prisma.inviteCode.create({
       data: {
