@@ -22,7 +22,7 @@ export default function GuardDashboardPage() {
     let active = true;
     fetchStats()
       .then((data) => { if (active) setStats(data); })
-      .catch((error) => console.error('โหลดสรุปการเข้าออกไม่สำเร็จ', error));
+      .catch(() => console.warn('ยังโหลดสรุปการเข้าออกไม่ได้: API ไม่พร้อมใช้งาน'));
     return () => { active = false; };
   }, [latestLogId]);
 

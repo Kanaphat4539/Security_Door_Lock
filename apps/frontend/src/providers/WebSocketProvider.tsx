@@ -30,14 +30,18 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     let socketInstance: Socket | null = null;
+    let initialLoadSucceeded = false;
 
     async function connect() {
       // 1) โหลด log ล่าสุดจาก REST มาลง store ก่อน
       try {
         const logs = await fetchRecentLogs();
-        if (active) setLogs(logs);
-      } catch (err) {
-        console.error('โหลด log เริ่มต้นไม่สำเร็จ', err);
+        if (active) {
+          setLogs(logs);
+          initialLoadSucceeded = true;
+        }
+      } catch {
+        console.warn('ยังโหลดประวัติการเข้าออกไม่ได้: API ไม่พร้อมใช้งาน');
       }
 
       // ทุก handshake ต้องใช้ตั๋วใหม่ เพราะตั๋วเดิมหมดอายุใน 60 วินาที
@@ -46,8 +50,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         auth: (callback) => {
           void getWsTicket()
             .then((ticket) => callback({ token: active ? ticket : '' }))
-            .catch((error) => {
-              console.error('ขอตั๋ว WebSocket ไม่สำเร็จ', error);
+            .catch(() => {
+              console.warn('ยังเชื่อมต่อเหตุการณ์สดไม่ได้: API ไม่พร้อมใช้งาน');
               callback({ token: '' });
             });
         },
@@ -63,14 +67,14 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       socketInstance.on('connect', () => {
         if (!active) return;
         setIsConnected(true);
-        if (connectedOnce) {
+        if (connectedOnce || !initialLoadSucceeded) {
           void fetchRecentLogs()
             .then((recent) => {
               if (!active) return;
               const current = useLogStore.getState().logs;
               setLogs(Array.from(new Map([...recent, ...current].map((log) => [log.id, log])).values()).sort((a, b) => b.id - a.id));
             })
-            .catch((error) => console.error('โหลดเหตุการณ์ที่พลาดระหว่างหลุดการเชื่อมต่อไม่สำเร็จ', error));
+            .catch(() => console.warn('ยังโหลดเหตุการณ์ที่พลาดระหว่างหลุดการเชื่อมต่อไม่ได้'));
         }
         connectedOnce = true;
       });
