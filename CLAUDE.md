@@ -469,29 +469,27 @@ Authorization: Bearer <token>
 **บัญชี dashboard อยู่ในตาราง `Admin`** — คนละเรื่องกับตาราง `User` ที่เป็นเจ้าของบัตร RFID
 (มีบัตรเข้าประตูได้ ไม่ได้แปลว่าเข้า dashboard ได้ และกลับกัน)
 
-### สิทธิ์ (role) — `ADMIN` กับ `USER`
+### สิทธิ์ (role) — `ADMIN` กับ `GUARD`
 
 | role | ทำอะไรได้ | ได้มายังไง |
 |---|---|---|
-| `ADMIN` | ทุกอย่าง รวมถึงเพิ่ม/ลบบัตร และดูประวัติรายบุคคล | **CLI เท่านั้น** |
-| `USER` | ดูหน้าภาพรวม (KPI + log เรียลไทม์) เท่านั้น | สมัครเองผ่านหน้าเว็บด้วยรหัสเชิญ |
+| `ADMIN` | ทุกอย่าง รวมถึงเพิ่ม/ลบบัตร และจัดการ GUARD / ออกรหัสเชิญ | **CLI เท่านั้น (`db:add-admin`)** |
+| `GUARD` | ผู้ช่วย ADMIN ดูข้อมูลได้ทุกอย่าง (KPI, log, ดูรายชื่อบัตร) แต่เพิ่ม/ลบ/แก้บัตรไม่ได้ | สมัครเองผ่านหน้าเว็บด้วยรหัสเชิญที่ ADMIN ออกให้ |
 
 ```bash
-npm run db:add-admin -- <username> <password>   # สร้าง ADMIN / เลื่อนขั้นคนเดิม
+npm run db:add-admin -- <username> <password> [ADMIN|GUARD]   # สร้างบัญชีผ่าน CLI
 ```
 
-**สมัครเองได้แค่ `USER` โดยตั้งใจ** — ถ้ารหัสเชิญรั่ว คนที่ได้ไปก็ยังแตะบัตรไม่ได้
+**สมัครเองได้แค่ `GUARD` โดยตั้งใจ** — ต่อให้มีรหัสเชิญก็จัดการบัตรไม่ได้
 การจะเป็น `ADMIN` ต้องรันคำสั่งจากเครื่องที่รัน backend เท่านั้น
 
-⚠️ **`db:add-admin` เวอร์ชันก่อนหน้าไม่ได้ตั้ง role** บัญชีที่สร้างไว้ก่อนหน้านี้
-จะกลายเป็น `USER` (ค่า default ของคอลัมน์) ให้รันคำสั่งเดิมซ้ำเพื่อเลื่อนเป็น `ADMIN`
+**การบังคับสิทธิ์:** 
+- Route ทั่วไป (เช่น `/access/recent`, `/access/stats`, `GET /users/*`) ทั้ง `ADMIN` และ `GUARD` เข้าถึงได้
+- การเพิ่ม/แก้/ลบบัตร (`POST /users`, `PATCH /users/:id`, `DELETE /users/:id`) และการจัดการ GUARD/รหัสเชิญ (`/guards/*`) ติด `@AdminOnly()` — role `GUARD` จะได้ `403`
 
-**การบังคับสิทธิ์:** `@AdminOnly()` ติดไว้ที่ระดับคลาสของ `UsersController`
-จะได้ไม่ลืมเวลาเพิ่ม route ใหม่ — role `USER` ที่เรียกเข้ามาได้ `403`
-
-**รหัสเชิญ (`ADMIN_INVITE_CODE`)** อยู่ใน `apps/backend/.env`
-**ถ้าไม่ตั้งค่านี้ = ปิดการสมัครทั้งหมด** (fail-closed) เปลี่ยนค่าใหม่ได้ตลอด
-คนที่สมัครไปแล้วไม่ได้รับผลกระทบ
+**รหัสเชิญ (`InviteCode` & `ADMIN_INVITE_CODE`)**:
+- ADMIN สามารถออกรหัสเชิญรายบุคคลผ่าน API `POST /guards/invite-codes` (หรือดูรายการรหัสเชิญที่ `GET /guards/invite-codes`)
+- มี fallback ตรวจกับ `ADMIN_INVITE_CODE` ใน `.env`
 
 **รหัสผ่านเก็บด้วย scrypt** (`src/auth/password.ts`) ที่มากับ Node ไม่ต้องพึ่ง
 bcrypt/argon2 ซึ่งต้อง compile native module (มักมีปัญหาบน Windows)
