@@ -49,7 +49,9 @@ api.interceptors.response.use(
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_role');
         document.cookie =
-          'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+          'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+        document.cookie =
+          'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
         window.location.href = '/login';
       }
     }

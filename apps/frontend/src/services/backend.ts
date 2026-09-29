@@ -37,8 +37,9 @@ export const roleToUi = (r: BackendRole): UiRole =>
 function setSession(token: string, uiRole: UiRole) {
   localStorage.setItem('auth_token', token);
   localStorage.setItem('user_role', uiRole);
-  // cookie ให้ middleware (server) อ่าน role ได้
-  document.cookie = `user_role=${uiRole}; path=/; max-age=86400`;
+  // cookie ให้ middleware / proxy (server) อ่าน token และ role ได้
+  document.cookie = `auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `user_role=${uiRole}; path=/; max-age=86400; SameSite=Lax`;
 }
 
 export async function login(
@@ -76,7 +77,8 @@ export async function register(
 export function logout() {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_role');
-  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
   useLogStore.getState().clearLogs();
   if (typeof window !== 'undefined') {
     window.location.href = '/login';
