@@ -1,16 +1,17 @@
 import { create } from 'zustand';
 
-export type AccessStatus = 'GRANTED' | 'DENIED' | 'ERROR';
+export type Direction = 'in' | 'out';
+export type AccessStatus = 'granted' | 'denied';
 
 export interface AccessLog {
-  id: string;
-  userId: string | null;
-  userName?: string;
+  id: number;
   uid: string;
-  timestamp: string;
+  direction: Direction;
   status: AccessStatus;
-  doorId: string;
+  imagePath: string | null;
   imageUrl?: string;
+  userName: string | null;
+  createdAt: string;
 }
 
 interface LogStore {
@@ -25,7 +26,7 @@ export const useLogStore = create<LogStore>((set) => ({
   logs: [],
   recentLog: null,
   addLog: (log) => set((state) => ({ 
-    logs: [log, ...state.logs], 
+    logs: [log, ...state.logs.filter((existing) => existing.id !== log.id)],
     recentLog: log 
   })),
   setLogs: (logs) => set({ logs }),

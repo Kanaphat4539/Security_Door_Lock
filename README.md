@@ -61,3 +61,14 @@ pio run -t upload
 cd ../esp32-main
 pio run -t upload
 ```
+
+## Email notifications for card owners
+
+1. Apply the database migration in `apps/backend` with `npm run db:deploy`, then run `npm run db:generate`.
+2. Verify a sending domain with [Resend](https://resend.com/docs/dashboard/domains/introduction). Add `RESEND_API_KEY` and `EMAIL_FROM="Door Lock <alerts@your-domain.com>"` to `apps/backend/.env`, then restart the backend. Keep the key out of the frontend and firmware.
+3. In **Admin → User Management**, enter the card owner's email and check **Email owner on each granted scan**. Card owners do not need a dashboard account. Only an admin can change this setting.
+4. A successful entry or exit records the access log, then queues one `EmailNotification` job in the background. Email failures do not delay or deny door access. The sender retries temporary failures up to five times and does not notify an admin or an unknown card. If delivery fails permanently, inspect the `EmailNotification` table in Prisma Studio (`npm run db:studio`); if queuing itself fails, check the backend error log.
+
+The `USER` dashboard role is the Guard account for now (existing `employee` logins continue to work). It opens `/guard/dashboard` and can read access history, statistics, and snapshots. The backend rejects user/card management, device commands, and notification setting changes from Guard sessions. Only `ADMIN` accounts can manage RFID cards and owners.
+
+Sending is disabled when the Resend settings are absent. No real email can be verified until a valid provider key and sender domain are configured.

@@ -3,10 +3,10 @@
 // backend route: /auth, /access, /users, /devices  (ไม่มี prefix /api)
 // auth: เก็บ JWT ใน localStorage 'auth_token' + role ใน cookie 'user_role' (ให้ middleware อ่าน)
 import { api } from './api';
-import type { AccessLog, AccessStatus } from '@/store/useLogStore';
+import { useLogStore, type AccessLog } from '@/store/useLogStore';
 
-export type BackendRole = 'ADMIN' | 'USER';
-export type UiRole = 'admin' | 'employee';
+export type BackendRole = 'ADMIN' | 'USER' | 'GUARD';
+export type UiRole = 'admin' | 'guard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -25,26 +25,21 @@ interface AccessAttempt {
 export function mapAccessAttempt(a: AccessAttempt): AccessLog {
   const filename = a.imagePath ? a.imagePath.split('/').pop() : null;
   return {
-    id: String(a.id),
-    userId: null,
-    userName: a.userName ?? undefined,
-    uid: a.uid,
-    timestamp: a.createdAt,
-    status: (a.status === 'granted' ? 'GRANTED' : 'DENIED') as AccessStatus,
-    doorId: a.direction === 'in' ? 'Entry' : 'Exit',
+    ...a,
     imageUrl: filename ? `${API_BASE}/access/image/${filename}` : undefined,
   };
 }
 
 export const roleToUi = (r: BackendRole): UiRole =>
-  r === 'ADMIN' ? 'admin' : 'employee';
+  r === 'ADMIN' ? 'admin' : 'guard';
 
 // ===================== auth =====================
 function setSession(token: string, uiRole: UiRole) {
   localStorage.setItem('auth_token', token);
   localStorage.setItem('user_role', uiRole);
-  // cookie ให้ middleware (server) อ่าน role ได้
-  document.cookie = `user_role=${uiRole}; path=/; max-age=86400`;
+  // cookie ให้ middleware / proxy (server) อ่าน token และ role ได้
+  document.cookie = `auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `user_role=${uiRole}; path=/; max-age=86400; SameSite=Lax`;
 }
 
 export async function login(
@@ -82,11 +77,19 @@ export async function register(
 export function logout() {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_role');
-  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+  useLogStore.getState().clearLogs();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
 }
 
 // ตั๋วอายุสั้นสำหรับต่อ WebSocket (backend บังคับตรวจตอน handshake)
 export async function getWsTicket(): Promise<string> {
+  if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) {
+    return '';
+  }
   const { data } = await api.post<{ ticket: string }>('/auth/ws-ticket');
   return data.ticket;
 }
@@ -114,6 +117,9 @@ export interface BackendUser {
   uid: string;
   name: string;
   isActive: boolean;
+  email: string | null;
+  emailNotificationsEnabled: boolean;
+  dashboardAccount: { username: string } | null;
   createdAt: string;
   updatedAt: string;
   _count?: { logs: number };
@@ -123,15 +129,41 @@ export async function fetchUsers(): Promise<BackendUser[]> {
   const { data } = await api.get<BackendUser[]>('/users');
   return data;
 }
-export async function createUser(uid: string, name: string) {
-  const { data } = await api.post<BackendUser>('/users', { uid, name });
+export async function createUser(uid: string, name: string, email?: string, emailNotificationsEnabled = false) {
+  const { data } = await api.post<BackendUser>('/users', { uid, name, email, emailNotificationsEnabled });
   return data;
 }
 export async function updateUser(
   id: number,
-  patch: { name?: string; isActive?: boolean },
+  patch: { name?: string; isActive?: boolean; email?: string | null; emailNotificationsEnabled?: boolean },
 ) {
   const { data } = await api.patch<BackendUser>(`/users/${id}`, patch);
+  return data;
+}
+
+export async function fetchHistoryPage(beforeId?: number): Promise<{ logs: AccessLog[]; nextCursor: number | null }> {
+  const { data } = await api.get<{ logs: AccessAttempt[]; nextCursor: number | null }>('/access/history', {
+    params: beforeId === undefined ? undefined : { beforeId },
+  });
+  return { logs: data.logs.map(mapAccessAttempt), nextCursor: data.nextCursor };
+}
+
+export interface NotificationSettings {
+  linked: boolean;
+  name: string | null;
+  email: string | null;
+  enabled: boolean;
+  uid: string | null;
+  isActive: boolean | null;
+}
+
+export async function fetchNotificationSettings(): Promise<NotificationSettings> {
+  const { data } = await api.get<NotificationSettings>('/notification-settings');
+  return data;
+}
+
+export async function updateNotificationSettings(enabled: boolean): Promise<NotificationSettings> {
+  const { data } = await api.patch<NotificationSettings>('/notification-settings', { enabled });
   return data;
 }
 export async function deleteUser(id: number) {
@@ -146,3 +178,59 @@ export async function fetchUnassignedUids(): Promise<UnassignedUid[]> {
   const { data } = await api.get<UnassignedUid[]>('/users/unassigned-uids');
   return data;
 }
+
+// ===================== guards & invite codes =====================
+export interface InviteCodeItem {
+  id: number;
+  code: string;
+  isUsed: boolean;
+  usedBy: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  usedAt: string | null;
+  status: 'active' | 'used' | 'expired';
+}
+
+export async function fetchInviteCodes(): Promise<InviteCodeItem[]> {
+  const { data } = await api.get<InviteCodeItem[]>('/guards/invite-codes');
+  return data;
+}
+
+export async function createInviteCode(
+  expiresInMinutes = 60,
+  customCode?: string,
+): Promise<InviteCodeItem> {
+  const { data } = await api.post<InviteCodeItem>('/guards/invite-codes', {
+    expiresInMinutes,
+    code: customCode || undefined,
+  });
+  return data;
+}
+
+export async function deleteInviteCode(
+  id: number,
+): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.delete<{ success: boolean; message: string }>(
+    `/guards/invite-codes/${id}`,
+  );
+  return data;
+}
+
+export interface GuardAccount {
+  id: number;
+  username: string;
+  role: 'GUARD';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchGuards(): Promise<GuardAccount[]> {
+  const { data } = await api.get<GuardAccount[]>('/guards');
+  return data;
+}
+
+export async function deleteGuard(id: number): Promise<{ message: string }> {
+  const { data } = await api.delete<{ message: string }>(`/guards/${id}`);
+  return data;
+}
+

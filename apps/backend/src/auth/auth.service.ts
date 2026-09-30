@@ -22,7 +22,7 @@ export const SESSION_TTL_SECONDS = 8 * 60 * 60; // 8 ชั่วโมง
  */
 export const WS_TICKET_TTL_SECONDS = 60;
 
-export type Role = 'ADMIN' | 'USER';
+export type Role = 'ADMIN' | 'GUARD';
 
 export interface SessionPayload {
   sub: number;
@@ -69,31 +69,66 @@ export class AuthService {
   }
 
   /**
-   * สมัครบัญชีเองผ่านหน้าเว็บ — ต้องมี invite code ที่ตรงกับ ADMIN_INVITE_CODE
+   * สมัครบัญชีเองผ่านหน้าเว็บ — ต้องมีรหัสเชิญที่ ADMIN ออกให้
+   * ตรวจสอบความถูกต้อง: แบบ User ต่อ User (ใช้ได้ครั้งเดียว) และต้องไม่หมดอายุ
    *
-   * สมัครได้แค่ role USER เท่านั้น ต่อให้รู้ invite code ก็ยังจัดการบัตรไม่ได้
+   * สมัครได้แค่ role GUARD เท่านั้น ต่อให้รู้ invite code ก็ยังจัดการบัตรไม่ได้
    * ถ้าจะให้ใครเป็น ADMIN ต้องรัน `npm run db:add-admin` จากเครื่องที่รัน backend
-   * (invite code รั่วจึงเสียหายจำกัด)
    */
   async register(
     username: string,
     password: string,
     inviteCode: string,
   ): Promise<string> {
-    const expected = process.env.ADMIN_INVITE_CODE ?? '';
+    const code = inviteCode?.trim().toUpperCase() ?? '';
+    const masterCode = (process.env.ADMIN_INVITE_CODE ?? '').trim().toUpperCase();
 
-    // ไม่ได้ตั้ง invite code = ปิดการสมัครไปเลย (fail-closed)
-    if (expected.length === 0) {
-      this.logger.warn('มีคนพยายามสมัครแต่ยังไม่ได้ตั้ง ADMIN_INVITE_CODE');
-      throw new ForbiddenException('ระบบยังไม่เปิดให้สมัครสมาชิก');
+    if (code.length === 0) {
+      throw new ForbiddenException('กรุณาระบุรหัสเชิญ');
     }
 
-    if (inviteCode !== expected) {
-      this.logger.warn(`สมัครไม่สำเร็จ username=${username} — invite code ผิด`);
-      throw new ForbiddenException('รหัสเชิญไม่ถูกต้อง');
+    // 1. ตรวจสอบในตาราง InviteCode ก่อน
+    const dbCode = await this.prisma.inviteCode.findUnique({
+      where: { code },
+    });
+
+    let valid = false;
+    let isDbCode = false;
+
+    if (dbCode) {
+      if (dbCode.isUsed) {
+        this.logger.warn(
+          `สมัครไม่สำเร็จ username=${username} — รหัสเชิญ ${code} ถูกใช้งานไปแล้ว`,
+        );
+        throw new ForbiddenException('รหัสเชิญนี้ถูกใช้งานไปแล้ว');
+      }
+
+      if (dbCode.expiresAt && new Date() > dbCode.expiresAt) {
+        this.logger.warn(
+          `สมัครไม่สำเร็จ username=${username} — รหัสเชิญ ${code} หมดอายุแล้ว`,
+        );
+        throw new ForbiddenException(
+          'รหัสเชิญนี้หมดอายุแล้ว (กรุณาขอรหัสใหม่จาก Admin)',
+        );
+      }
+
+      valid = true;
+      isDbCode = true;
+    } else if (masterCode.length > 0 && code === masterCode) {
+      // 2. Fallback: master invite code จาก .env
+      valid = true;
     }
 
-    const existing = await this.prisma.admin.findUnique({ where: { username } });
+    if (!valid) {
+      this.logger.warn(
+        `สมัครไม่สำเร็จ username=${username} — รหัสเชิญไม่ถูกต้องหรือหมดอายุ`,
+      );
+      throw new ForbiddenException('รหัสเชิญไม่ถูกต้องหรือหมดอายุ');
+    }
+
+    const existing = await this.prisma.admin.findUnique({
+      where: { username },
+    });
     if (existing !== null) {
       throw new ConflictException('ชื่อผู้ใช้นี้ถูกใช้แล้ว');
     }
@@ -102,11 +137,23 @@ export class AuthService {
       data: {
         username,
         passwordHash: await hashPassword(password),
-        role: 'USER',
+        role: 'GUARD',
       },
     });
 
-    this.logger.log(`สมัครบัญชีใหม่ username=${admin.username} role=USER`);
+    // หากใช้รหัสจากตาราง InviteCode ให้อัปเดตสถานะเป็นใช้งานแล้ว (User ต่อ User ใช้ซ้ำไม่ได้)
+    if (isDbCode && dbCode) {
+      await this.prisma.inviteCode.update({
+        where: { id: dbCode.id },
+        data: {
+          isUsed: true,
+          usedBy: admin.username,
+          usedAt: new Date(),
+        },
+      });
+    }
+
+    this.logger.log(`สมัครบัญชีใหม่ username=${admin.username} role=GUARD`);
 
     return this.signSession({
       sub: admin.id,
@@ -120,7 +167,19 @@ export class AuthService {
   async verifySession(token: string): Promise<SessionPayload | null> {
     try {
       const payload = await this.jwt.verifyAsync<SessionPayload>(token);
-      return payload.typ === 'session' ? payload : null;
+      if (payload.typ !== 'session') return null;
+
+      const account = await this.prisma.admin.findUnique({
+        where: { id: payload.sub },
+        select: { username: true, role: true },
+      });
+      if (
+        account?.username !== payload.username ||
+        account.role !== payload.role
+      ) {
+        return null;
+      }
+      return payload;
     } catch {
       return null;
     }

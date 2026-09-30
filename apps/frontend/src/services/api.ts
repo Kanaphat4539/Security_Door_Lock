@@ -15,6 +15,15 @@ api.interceptors.request.use(
       const token = localStorage.getItem('auth_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else if (
+        !config.url?.includes('/auth/login') &&
+        !config.url?.includes('/auth/register')
+      ) {
+        // ไม่มี token และไม่ใช่ route สมัคร/ล็อกอิน -> ตัดคำขอทิ้งทันที
+        // ป้องกันไม่ให้ยิง request หลุดไปโดน 401 ตอนกำลังกด Logout
+        const controller = new AbortController();
+        config.signal = controller.signal;
+        controller.abort('Logged out');
       }
     }
     return config;
@@ -28,6 +37,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // ถ้าคำขอถูกยกเลิกเพราะไม่มี token ให้เงียบไว้ ไม่ต้องโยน error ขึ้น UI
+    if (axios.isCancel(error)) {
+      return new Promise(() => {});
+    }
     const url: string = error.config?.url ?? '';
     // ไม่เด้งตอนล็อกอิน/สมัคร/ตรวจ me ผิด — ให้หน้า login โชว์ error เอง
     const isAuthCall = url.includes('/auth/');
@@ -36,10 +49,32 @@ api.interceptors.response.use(
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_role');
         document.cookie =
-          'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+          'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+        document.cookie =
+          'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
         window.location.href = '/login';
       }
     }
     return Promise.reject(error);
   }
 );
+
+// Auth Endpoints
+export const authApi = {
+  login: async (credentials: Record<string, string>) => {
+    const res = await api.post('/auth/login', credentials);
+    return res.data;
+  },
+  register: async (data: Record<string, string>) => {
+    const res = await api.post('/auth/register', data);
+    return res.data;
+  },
+  getWsTicket: async () => {
+    const res = await api.post('/auth/ws-ticket');
+    return res.data;
+  },
+  getMe: async () => {
+    const res = await api.get('/auth/me');
+    return res.data;
+  }
+};

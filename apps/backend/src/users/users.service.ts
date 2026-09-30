@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -16,7 +17,10 @@ export class UsersService {
     return this.prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
       // ให้ dashboard แสดงได้เลยว่าใครทาบบัตรไปกี่ครั้ง
-      include: { _count: { select: { logs: true } } },
+      include: {
+        _count: { select: { logs: true } },
+        dashboardAccount: { select: { username: true } },
+      },
     });
   }
 
@@ -29,6 +33,9 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto) {
+    if (dto.emailNotificationsEnabled && !dto.email?.trim()) {
+      throw new BadRequestException('ต้องระบุอีเมลเจ้าของบัตรก่อนเปิดการแจ้งเตือน');
+    }
     // เช็คก่อนเพื่อให้ได้ error ที่อ่านรู้เรื่อง แทน P2002 ดิบ ๆ จาก Prisma
     const existing = await this.prisma.user.findUnique({
       where: { uid: dto.uid },
@@ -39,18 +46,68 @@ export class UsersService {
       );
     }
 
+    const dashboardAccountId = dto.dashboardUsername
+      ? await this.resolveDashboardAccountId(dto.dashboardUsername)
+      : undefined;
+
     return this.prisma.user.create({
       data: {
         uid: dto.uid,
         name: dto.name,
         isActive: dto.isActive ?? true,
+        ...(dto.email !== undefined ? { email: dto.email } : {}),
+        ...(dto.emailNotificationsEnabled !== undefined
+          ? { emailNotificationsEnabled: dto.emailNotificationsEnabled }
+          : {}),
+        ...(dashboardAccountId !== undefined ? { dashboardAccountId } : {}),
       },
     });
   }
 
   async update(id: number, dto: UpdateUserDto) {
-    await this.findOne(id); // โยน 404 ถ้าไม่มี
-    return this.prisma.user.update({ where: { id }, data: dto });
+    const existing = await this.findOne(id); // โยน 404 ถ้าไม่มี
+    const ownerEmail = dto.email === undefined ? existing.email : dto.email;
+    if (dto.emailNotificationsEnabled && !ownerEmail?.trim()) {
+      throw new BadRequestException('ต้องระบุอีเมลเจ้าของบัตรก่อนเปิดการแจ้งเตือน');
+    }
+    const { dashboardUsername, ...changes } = dto;
+    const dashboardAccountId =
+      dashboardUsername === undefined
+        ? undefined
+        : dashboardUsername === null
+          ? null
+          : await this.resolveDashboardAccountId(dashboardUsername, id);
+    const ownerChanged =
+      (dto.email !== undefined && dto.email !== existing.email) ||
+      (dashboardAccountId !== undefined &&
+        dashboardAccountId !== existing.dashboardAccountId);
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        ...changes,
+        ...(ownerChanged && dto.emailNotificationsEnabled === undefined
+          ? { emailNotificationsEnabled: false }
+          : {}),
+        ...(dashboardAccountId !== undefined ? { dashboardAccountId } : {}),
+      },
+    });
+  }
+
+  private async resolveDashboardAccountId(
+    username: string,
+    ownerId?: number,
+  ): Promise<number> {
+    const account = await this.prisma.admin.findUnique({ where: { username } });
+    if (!account || account.role !== 'GUARD') {
+      throw new BadRequestException('ไม่พบบัญชีผู้ช่วย (GUARD) ชื่อนี้');
+    }
+    const linked = await this.prisma.user.findUnique({
+      where: { dashboardAccountId: account.id },
+    });
+    if (linked && linked.id !== ownerId) {
+      throw new ConflictException('บัญชี employee นี้ผูกกับบัตรใบอื่นแล้ว');
+    }
+    return account.id;
   }
 
   async remove(id: number) {
@@ -83,7 +140,7 @@ export class UsersService {
       direction: log.direction,
       status: log.status,
       imagePath: log.imagePath,
-      userName: user.name,
+      userName: log.userName ?? user.name,
       createdAt: log.createdAt.toISOString(),
     }));
   }
@@ -116,6 +173,6 @@ export class UsersService {
         attempts: row._count.uid,
         lastSeenAt: row._max.createdAt?.toISOString() ?? null,
       }))
-      .sort((a, b) => (a.lastSeenAt ?? '') < (b.lastSeenAt ?? '') ? 1 : -1);
+      .sort((a, b) => ((a.lastSeenAt ?? '') < (b.lastSeenAt ?? '') ? 1 : -1));
   }
 }

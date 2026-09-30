@@ -7,16 +7,27 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  type BackendUser,
 } from '@/services/backend';
 
-// backend ไม่มี role/department ให้บัตร — 2 ช่องนั้นเป็นแค่ UI (ไม่บันทึก)
 interface UiUser {
   id: number;
   name: string;
   uid: string;
+  email: string;
+  emailNotificationsEnabled: boolean;
   status: 'Active' | 'Inactive';
-  role: string;
-  department: string;
+}
+
+function toUiUsers(data: BackendUser[]): UiUser[] {
+  return data.map((u) => ({
+    id: u.id,
+    name: u.name,
+    uid: u.uid,
+    email: u.email ?? '',
+    emailNotificationsEnabled: u.emailNotificationsEnabled,
+    status: u.isActive ? 'Active' : 'Inactive',
+  }));
 }
 
 export default function AdminUsersPage() {
@@ -26,8 +37,8 @@ export default function AdminUsersPage() {
   const [formData, setFormData] = useState({
     name: '',
     uid: '',
-    department: '',
-    role: 'Employee',
+    email: '',
+    emailNotificationsEnabled: false,
     status: 'Active',
   });
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
@@ -35,24 +46,19 @@ export default function AdminUsersPage() {
   const load = useCallback(async () => {
     try {
       const data = await fetchUsers();
-      setUsers(
-        data.map((u) => ({
-          id: u.id,
-          name: u.name,
-          uid: u.uid,
-          status: u.isActive ? 'Active' : 'Inactive',
-          role: 'Employee',
-          department: '',
-        })),
-      );
+      setUsers(toUiUsers(data));
     } catch (err) {
       console.error('โหลดรายชื่อผู้ใช้ไม่สำเร็จ', err);
     }
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+    fetchUsers()
+      .then((data) => { if (active) setUsers(toUiUsers(data)); })
+      .catch((err) => console.error('โหลดรายชื่อผู้ใช้ไม่สำเร็จ', err));
+    return () => { active = false; };
+  }, []);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,13 +66,13 @@ export default function AdminUsersPage() {
   );
 
   const openAddModal = () => {
-    setFormData({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
+    setFormData({ name: '', uid: '', email: '', emailNotificationsEnabled: false, status: 'Active' });
     setEditingUserId(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (user: UiUser) => {
-    setFormData({ name: user.name, uid: user.uid, department: user.department, role: user.role, status: user.status });
+    setFormData({ name: user.name, uid: user.uid, email: user.email, emailNotificationsEnabled: user.emailNotificationsEnabled, status: user.status });
     setEditingUserId(user.id);
     setIsModalOpen(true);
   };
@@ -92,16 +98,18 @@ export default function AdminUsersPage() {
         await updateUser(editingUserId, {
           name: formData.name,
           isActive: formData.status === 'Active',
+          email: formData.email.trim() || null,
+          emailNotificationsEnabled: formData.emailNotificationsEnabled,
         });
       } else {
-        await createUser(formData.uid, formData.name);
+        await createUser(formData.uid, formData.name, formData.email.trim() || undefined, formData.emailNotificationsEnabled);
       }
       setIsModalOpen(false);
       setEditingUserId(null);
-      setFormData({ name: '', uid: '', department: '', role: 'Employee', status: 'Active' });
+      setFormData({ name: '', uid: '', email: '', emailNotificationsEnabled: false, status: 'Active' });
       await load();
     } catch {
-      window.alert('บันทึกไม่สำเร็จ — UID ซ้ำ หรือรูปแบบไม่ถูกต้อง');
+      window.alert('บันทึกไม่สำเร็จ — ตรวจ UID และอีเมลเจ้าของบัตร');
     }
   };
 
@@ -111,7 +119,7 @@ export default function AdminUsersPage() {
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-400/10 dark:bg-blue-600/10 blur-3xl rounded-full pointer-events-none transition-colors duration-500"></div>
         <div className="relative z-10">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">User Management</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage employees, RFID cards, and access roles.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage card owners, RFID cards, and owner email alerts.</p>
         </div>
         <button
           onClick={openAddModal}
@@ -142,9 +150,8 @@ export default function AdminUsersPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-700/60">
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Card owner</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">RFID UID</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -159,7 +166,7 @@ export default function AdminUsersPage() {
                       </div>
                       <div>
                         <div className="text-sm font-bold text-slate-900 dark:text-white">{user.name}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user.department}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user.email || 'No email'}{user.emailNotificationsEnabled ? ' · Email alerts on' : ''}</div>
                       </div>
                     </div>
                   </td>
@@ -167,12 +174,6 @@ export default function AdminUsersPage() {
                     <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded inline-block shadow-sm">
                       {user.uid}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${user.role === 'Admin' ? 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800/50' : 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700'
-                      }`}>
-                      {user.role}
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border ${user.status === 'Active' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' : 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50'
@@ -194,8 +195,8 @@ export default function AdminUsersPage() {
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
-                    No users found matching "{searchTerm}"
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">
+                    No users found matching &quot;{searchTerm}&quot;
                   </td>
                 </tr>
               )}
@@ -207,7 +208,7 @@ export default function AdminUsersPage() {
       {/* Add User Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md">
-          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/60 ring-1 ring-white/50 dark:ring-white/10 relative">
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200/80 dark:border-slate-700/60 ring-1 ring-white/50 dark:ring-white/10 relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 dark:bg-blue-600/10 blur-2xl rounded-full pointer-events-none"></div>
             
             <div className="flex items-center justify-between p-6 border-b border-slate-200/80 dark:border-slate-700/60 relative z-10 bg-slate-50/50 dark:bg-slate-800/30">
@@ -246,28 +247,23 @@ export default function AdminUsersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Department</label>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Owner email</label>
                 <input
-                  type="text"
-                  value={formData.department}
-                  onChange={e => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80"
-                  placeholder="Engineering"
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value, emailNotificationsEnabled: e.target.value.trim() ? formData.emailNotificationsEnabled : false })}
+                  className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
+                  placeholder="owner@example.com"
                 />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Only this card owner receives access emails.</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Role</label>
-                  <select
-                    value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500/50 bg-white/50 dark:bg-slate-800/50 text-slate-900 dark:text-white backdrop-blur-sm shadow-inner transition-all hover:bg-white/80 dark:hover:bg-slate-800/80 appearance-none"
-                  >
-                    <option value="Employee">Employee</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-                <div>
+              <div>
+                <label className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <input type="checkbox" checked={formData.emailNotificationsEnabled} disabled={!formData.email.trim()} onChange={e => setFormData({ ...formData, emailNotificationsEnabled: e.target.checked })} className="h-4 w-4 accent-blue-600" />
+                  Email owner on each granted scan
+                </label>
+              </div>
+              <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
                   <select
                     value={formData.status}
@@ -277,7 +273,6 @@ export default function AdminUsersPage() {
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>
-                </div>
               </div>
               <div className="pt-6 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800/50 mt-6">
                 <button

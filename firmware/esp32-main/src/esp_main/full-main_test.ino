@@ -19,8 +19,8 @@
 // ---------- ★ WiFi & Backend Server Config ★ ----------
 const char* WIFI_SSID    = "thiraphat";
 const char* WIFI_PASS    = "12345678";
-const char* SERVER_URL   = "http://192.168.2.207:3001/access"; 
-const char* DEVICE_TOKEN = "511d890b7d952e2c7291f2328a46f4ebce4ed81dd825b0bd6b296ac01397bdfb"; 
+const char *SERVER_URL = "http://192.168.137.1:3001/access";
+const char *DEVICE_TOKEN ="a033222b56976a4d77ac32d427599ec16a2c71dac747df219475973a191ff4e5";
 
 // ---------- ★ ESP-NOW Receiver Address ★ ----------
 // ⚠️ แก้ไขค่า MAC Address ตรงนี้ตามที่ได้จาก Serial Monitor ของ ESP32-CAM

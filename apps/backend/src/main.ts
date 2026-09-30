@@ -38,7 +38,6 @@ async function bootstrap() {
     origin: corsOrigin ? corsOrigin.split(',') : true, // dev: สะท้อน origin ใดก็ได้
     credentials: false,
   });
-
   // validate + แปลงชนิดข้อมูลตาม DTO ให้อัตโนมัติ
   // ไม่กระทบ POST /access เพราะ body ที่นั่นไม่ได้ผูกกับคลาส DTO
   // (ValidationPipe ข้าม metatype ที่เป็น native type)
@@ -53,6 +52,7 @@ async function bootstrap() {
   app.useGlobalGuards(
     new TokenAuthGuard(app.get(Reflector), app.get(AuthService)),
   );
+
 
   // 3001 ไม่ใช่ 3000 เพราะ Next.js dashboard ใช้ 3000 อยู่แล้ว
   await app.listen(process.env.PORT ?? 3001);

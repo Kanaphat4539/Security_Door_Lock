@@ -4,6 +4,8 @@ import { timingSafeEqual } from 'crypto';
 export const IS_PUBLIC = 'auth:isPublic';
 export const IS_DEVICE_ROUTE = 'auth:isDeviceRoute';
 export const IS_ADMIN_ONLY = 'auth:isAdminOnly';
+export const IS_GUARD_READABLE = 'auth:isGuardReadable';
+export const IS_GUARD_SESSION = 'auth:isGuardSession';
 
 /** guard แปะ id/role ของ admin ไว้บน request หลังตรวจ session token ผ่าน */
 export const SESSION_ADMIN_ID = 'authAdminId';
@@ -17,6 +19,10 @@ export const SESSION_ROLE = 'authRole';
  * ฝั่งเซิร์ฟเวอร์/สคริปต์ ไม่ได้ผูกกับบัญชีคน
  */
 export const AdminOnly = () => SetMetadata(IS_ADMIN_ONLY, true);
+/** Dashboard guard อ่านข้อมูลได้เฉพาะ route ที่ระบุชัดเจน */
+export const GuardReadable = () => SetMetadata(IS_GUARD_READABLE, true);
+/** คำสั่ง session ที่ guard จำเป็นต้องใช้ เช่นออก WebSocket ticket */
+export const GuardSession = () => SetMetadata(IS_GUARD_SESSION, true);
 
 /** ไม่ต้องมี token เลย (ใช้กับ health check) */
 export const Public = () => SetMetadata(IS_PUBLIC, true);

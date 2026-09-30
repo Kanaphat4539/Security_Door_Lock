@@ -2,11 +2,12 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { mkdirSync } from 'fs';
 
 import { DevicesModule } from '../devices/devices.module';
+import { LineModule } from '../line/line.module';
 import { AccessController, UPLOAD_DIR } from './access.controller';
 import { AccessService } from './access.service';
 
 @Module({
-  imports: [DevicesModule], // ใช้ ImageFetchService สำหรับดึงรูปจาก CAM
+  imports: [DevicesModule, LineModule], // ใช้ ImageFetchService และแจ้งเตือน LINE
   controllers: [AccessController],
   providers: [AccessService],
 })

@@ -14,6 +14,7 @@ import { hashPassword } from './password';
 
 const prismaMock = {
   admin: { findUnique: jest.fn(), create: jest.fn() },
+  inviteCode: { findUnique: jest.fn(), update: jest.fn() },
 };
 
 const jwtMock = { signAsync: jest.fn(), verifyAsync: jest.fn() };
@@ -27,6 +28,7 @@ describe('AuthService.register', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     jwtMock.signAsync.mockResolvedValue('signed.jwt');
+    prismaMock.inviteCode.findUnique.mockResolvedValue(null);
     process.env.ADMIN_INVITE_CODE = INVITE;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -49,7 +51,7 @@ describe('AuthService.register', () => {
     prismaMock.admin.create.mockResolvedValue({
       id: 1,
       username: 'newbie',
-      role: 'USER',
+      role: 'GUARD',
     });
 
     await expect(
@@ -57,21 +59,60 @@ describe('AuthService.register', () => {
     ).resolves.toBe('signed.jwt');
   });
 
-  it('สมัครแล้วได้ role USER เสมอ ไม่ใช่ ADMIN', async () => {
+  it('สมัครแล้วได้ role GUARD เสมอ ไม่ใช่ ADMIN', async () => {
     prismaMock.admin.findUnique.mockResolvedValue(null);
     prismaMock.admin.create.mockResolvedValue({
       id: 1,
       username: 'newbie',
-      role: 'USER',
+      role: 'GUARD',
     });
 
     await service.register('newbie', 'password123', INVITE);
 
     expect(prismaMock.admin.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ role: 'USER' }),
+        data: expect.objectContaining({ role: 'GUARD' }),
       }),
     );
+  });
+
+  it('สมัครด้วยรหัสเชิญจากตาราง InviteCode ได้ และมาร์คว่าใช้แล้ว', async () => {
+    prismaMock.inviteCode.findUnique.mockResolvedValue({
+      id: 10,
+      code: 'GUARD-TEST',
+      isUsed: false,
+    });
+    prismaMock.admin.findUnique.mockResolvedValue(null);
+    prismaMock.admin.create.mockResolvedValue({
+      id: 2,
+      username: 'guard1',
+      role: 'GUARD',
+    });
+    prismaMock.inviteCode.update.mockResolvedValue({});
+
+    await expect(
+      service.register('guard1', 'password123', 'GUARD-TEST'),
+    ).resolves.toBe('signed.jwt');
+
+    expect(prismaMock.inviteCode.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 10 },
+        data: expect.objectContaining({ isUsed: true, usedBy: 'guard1' }),
+      }),
+    );
+  });
+
+  it('รหัสเชิญจากตารางที่ถูกใช้ไปแล้ว -> 403', async () => {
+    prismaMock.inviteCode.findUnique.mockResolvedValue({
+      id: 10,
+      code: 'GUARD-USED',
+      isUsed: true,
+    });
+
+    await expect(
+      service.register('guard2', 'password123', 'GUARD-USED'),
+    ).rejects.toThrow(ForbiddenException);
+    expect(prismaMock.admin.create).not.toHaveBeenCalled();
   });
 
   it('invite code ผิด -> 403 และไม่สร้างบัญชี', async () => {
@@ -84,9 +125,9 @@ describe('AuthService.register', () => {
   it('ไม่ได้ตั้ง ADMIN_INVITE_CODE -> ปิดการสมัครทั้งหมด (fail-closed)', async () => {
     delete process.env.ADMIN_INVITE_CODE;
 
-    await expect(
-      service.register('newbie', 'password123', ''),
-    ).rejects.toThrow(ForbiddenException);
+    await expect(service.register('newbie', 'password123', '')).rejects.toThrow(
+      ForbiddenException,
+    );
     expect(prismaMock.admin.create).not.toHaveBeenCalled();
   });
 
@@ -155,6 +196,57 @@ describe('AuthService.login', () => {
     expect(jwtMock.signAsync).toHaveBeenCalledWith(
       expect.objectContaining({ sub: 3, username: 'boss', role: 'ADMIN' }),
       expect.anything(),
+    );
+  });
+});
+
+describe('AuthService.verifySession', () => {
+  let service: AuthService;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: JwtService, useValue: jwtMock },
+      ],
+    }).compile();
+    service = module.get<AuthService>(AuthService);
+  });
+
+  it('rejects an old admin session after its account is changed to USER', async () => {
+    jwtMock.verifyAsync.mockResolvedValue({
+      sub: 8,
+      username: 'employee',
+      role: 'ADMIN',
+      typ: 'session',
+    });
+    prismaMock.admin.findUnique.mockResolvedValue({
+      id: 8,
+      username: 'employee',
+      role: 'USER',
+    });
+
+    await expect(service.verifySession('old-admin-token')).resolves.toBeNull();
+  });
+
+  it('accepts a session whose account still has the same role', async () => {
+    const payload = {
+      sub: 8,
+      username: 'employee',
+      role: 'USER',
+      typ: 'session',
+    };
+    jwtMock.verifyAsync.mockResolvedValue(payload);
+    prismaMock.admin.findUnique.mockResolvedValue({
+      id: 8,
+      username: 'employee',
+      role: 'USER',
+    });
+
+    await expect(service.verifySession('fresh-employee-token')).resolves.toEqual(
+      payload,
     );
   });
 });

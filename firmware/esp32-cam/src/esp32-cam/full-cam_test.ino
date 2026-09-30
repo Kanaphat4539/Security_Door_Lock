@@ -23,8 +23,12 @@
 // ==================== ตั้งค่า (แก้ก่อน Flash) ====================
 const char* WIFI_SSID    = "thiraphat";
 const char* WIFI_PASS    = "12345678";
-const char* SERVER_BASE  = "http://192.168.2.207:3001";
-const char* DEVICE_TOKEN = "511d890b7d952e2c7291f2328a46f4ebce4ed81dd825b0bd6b296ac01397bdfb";
+const char* SERVER_URL = "http://192.168.137.1:3001/access";
+
+// 👇 เพิ่มบรรทัดนี้เข้าไป เพื่อใช้เป็น URL หลักสำหรับต่อท้ายด้วย Path อื่นๆ
+const char* SERVER_BASE = "http://192.168.137.1:3001"; 
+
+const char* DEVICE_TOKEN ="a033222b56976a4d77ac32d427599ec16a2c71dac747df219475973a191ff4e5";
 
 // ==================== ขา TFT ST7735 (อ้างอิงตาม test-cam_tft) ====================
 #define TFT_CS   13

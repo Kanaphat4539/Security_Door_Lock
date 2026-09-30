@@ -10,6 +10,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { ImageFetchService } from '../devices/image-fetch.service';
 import { EventsGateway } from '../events/events.gateway';
+import { LineService } from '../line/line.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessService } from './access.service';
 
@@ -17,9 +18,11 @@ import { AccessService } from './access.service';
 const prismaMock = {
   user: { findUnique: jest.fn() },
   accessLog: { create: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+  emailNotification: { create: jest.fn() },
 };
 const eventsMock = { emitAccess: jest.fn() };
 const imageFetchMock = { fetchFromCam: jest.fn() };
+const lineMock = { notifyAccess: jest.fn() };
 
 const fakeLog = (over: Record<string, unknown> = {}) => ({
   id: 1,
@@ -47,6 +50,7 @@ describe('AccessService', () => {
         { provide: PrismaService, useValue: prismaMock },
         { provide: EventsGateway, useValue: eventsMock },
         { provide: ImageFetchService, useValue: imageFetchMock },
+        { provide: LineService, useValue: lineMock },
       ],
     }).compile();
 
@@ -54,6 +58,106 @@ describe('AccessService', () => {
   });
 
   describe('authorize', () => {
+    it('records the card owner name at scan time', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 1, name: 'Original Name', isActive: true, emailNotificationsEnabled: false });
+      prismaMock.accessLog.create.mockResolvedValue(fakeLog());
+
+      await service.authorize('A1B2C3D4', 'in');
+
+      expect(prismaMock.accessLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ userName: 'Original Name' }),
+      });
+    });
+
+    it('still grants access when the email outbox write fails', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 1, name: 'Owner', isActive: true, email: 'owner@example.com', emailNotificationsEnabled: true });
+      prismaMock.accessLog.create.mockResolvedValue(fakeLog());
+      prismaMock.emailNotification.create.mockRejectedValue(new Error('outbox unavailable'));
+
+      await expect(service.authorize('A1B2C3D4', 'in')).resolves.toMatchObject({ status: 'granted' });
+    });
+
+    it('does not wait for a slow email outbox before granting access', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 1, name: 'Owner', isActive: true, email: 'owner@example.com', emailNotificationsEnabled: true });
+      prismaMock.accessLog.create.mockResolvedValue(fakeLog());
+      prismaMock.emailNotification.create.mockReturnValue(new Promise(() => undefined));
+
+      const result = await Promise.race([
+        service.authorize('A1B2C3D4', 'in').then(() => 'granted'),
+        new Promise<string>((resolve) => setTimeout(() => resolve('blocked'), 25)),
+      ]);
+
+      expect(result).toBe('granted');
+    });
+    it.each(['in', 'out'] as const)(
+      'queues one owner email for granted %s access',
+      async (direction) => {
+        prismaMock.user.findUnique.mockResolvedValue({
+          id: 1,
+          name: 'Owner',
+          isActive: true,
+          email: 'owner@example.com',
+          emailNotificationsEnabled: true,
+        });
+        prismaMock.accessLog.create.mockResolvedValue(fakeLog({ direction }));
+        prismaMock.emailNotification.create.mockResolvedValue({ id: 4 });
+
+        await service.authorize('A1B2C3D4', direction);
+
+        expect(prismaMock.emailNotification.create).toHaveBeenCalledWith({
+          data: {
+            accessLogId: 1,
+            toEmail: 'owner@example.com',
+            recipientName: 'Owner',
+          },
+        });
+      },
+    );
+
+    it.each([
+      [null, 'in'],
+      [
+        {
+          id: 1,
+          name: 'Owner',
+          isActive: false,
+          email: 'owner@example.com',
+          emailNotificationsEnabled: true,
+        },
+        'out',
+      ],
+      [
+        {
+          id: 1,
+          name: 'Owner',
+          isActive: true,
+          email: null,
+          emailNotificationsEnabled: true,
+        },
+        'in',
+      ],
+      [
+        {
+          id: 1,
+          name: 'Owner',
+          isActive: true,
+          email: 'owner@example.com',
+          emailNotificationsEnabled: false,
+        },
+        'out',
+      ],
+    ] as const)(
+      'does not queue when owner is unavailable or opted out (%j, %s)',
+      async (user, direction) => {
+        prismaMock.user.findUnique.mockResolvedValue(user);
+        prismaMock.accessLog.create.mockResolvedValue(fakeLog());
+
+        await service.authorize('A1B2C3D4', direction);
+
+        expect(prismaMock.emailNotification.create).not.toHaveBeenCalled();
+      },
+    );
+
     it('granted เมื่อพบบัตรและบัตรเปิดใช้งานอยู่', async () => {
       prismaMock.user.findUnique.mockResolvedValue({
         id: 1,
@@ -133,7 +237,12 @@ describe('AccessService', () => {
     it('ขาออก: ตอบ status + ยิง event ทันที ไม่ดึงรูป', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
       prismaMock.accessLog.create.mockResolvedValue(
-        fakeLog({ uid: 'DEADBEEF', direction: 'out', status: 'denied', userId: null }),
+        fakeLog({
+          uid: 'DEADBEEF',
+          direction: 'out',
+          status: 'denied',
+          userId: null,
+        }),
       );
 
       const res = await service.handleAccess('DEADBEEF', 'out');
@@ -141,6 +250,7 @@ describe('AccessService', () => {
       expect(res.status).toBe('denied');
       expect(imageFetchMock.fetchFromCam).not.toHaveBeenCalled();
       expect(eventsMock.emitAccess).toHaveBeenCalledTimes(1);
+      expect(lineMock.notifyAccess).toHaveBeenCalledTimes(1);
     });
 
     it('ขาเข้า: ตอบ status ทันที แล้วดึงรูป -> อัปเดต log -> ยิง event พร้อมรูป', async () => {
@@ -155,6 +265,7 @@ describe('AccessService', () => {
 
       const res = await service.handleAccess('A1B2C3D4', 'in');
       expect(res.status).toBe('granted');
+      expect(lineMock.notifyAccess).toHaveBeenCalledTimes(1);
 
       await flush();
 
@@ -202,6 +313,50 @@ describe('AccessService', () => {
       expect(prismaMock.accessLog.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ orderBy: { createdAt: 'desc' }, take: 50 }),
       );
+    });
+  });
+
+  describe('getHistory', () => {
+    it('uses the name saved on the scan even after the card owner is removed', async () => {
+      prismaMock.accessLog.findMany.mockResolvedValue([
+        { ...fakeLog({ id: 4, userName: 'Original Name' }), user: null },
+      ]);
+
+      const page = await service.getHistory();
+
+      expect(page.logs[0].userName).toBe('Original Name');
+    });
+    it('แบ่งหน้าครั้งละ 50 และคืน cursor เมื่อมีข้อมูลถัดไป', async () => {
+      prismaMock.accessLog.findMany.mockResolvedValue(
+        Array.from({ length: 51 }, (_, index) => ({
+          ...fakeLog({ id: 100 - index }),
+          user: { name: 'สมชาย' },
+        })),
+      );
+
+      const page = await service.getHistory(101);
+
+      expect(page.logs).toHaveLength(50);
+      expect(page.logs[0].id).toBe(100);
+      expect(page.nextCursor).toBe(51);
+      expect(prismaMock.accessLog.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { lt: 101 } },
+          orderBy: { id: 'desc' },
+          take: 51,
+        }),
+      );
+    });
+
+    it('คืน cursor เป็น null เมื่อถึงหน้าสุดท้าย', async () => {
+      prismaMock.accessLog.findMany.mockResolvedValue([
+        { ...fakeLog({ id: 3 }), user: null },
+      ]);
+
+      const page = await service.getHistory();
+
+      expect(page.logs).toHaveLength(1);
+      expect(page.nextCursor).toBeNull();
     });
   });
 });

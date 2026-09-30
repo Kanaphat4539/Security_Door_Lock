@@ -45,18 +45,23 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // username = email, backend สมัครได้แค่ role USER (-> employee)
-      const role = await registerRequest(email, password, inviteCode);
-      router.push(role === 'admin' ? '/admin/dashboard' : '/employee/profile');
+      const role = await registerRequest(email.trim(), password, inviteCode.trim());
+      router.push(role === 'admin' ? '/admin/dashboard' : '/guard/dashboard');
     } catch (err) {
-      const status = axios.isAxiosError(err) ? err.response?.status : 0;
-      setError(
-        status === 401 || status === 403
-          ? 'รหัสเชิญไม่ถูกต้อง'
-          : status === 409
-            ? 'มีชื่อผู้ใช้นี้อยู่แล้ว'
-            : 'สมัครไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?',
-      );
+      let errorMessage = 'สมัครไม่สำเร็จ — เชื่อมต่อ backend ไม่ได้?';
+      if (axios.isAxiosError(err) && err.response) {
+        const msg = err.response.data?.message;
+        if (Array.isArray(msg)) {
+          errorMessage = msg.join(', ');
+        } else if (typeof msg === 'string') {
+          errorMessage = msg;
+        } else if (err.response.status === 401 || err.response.status === 403) {
+          errorMessage = 'รหัสเชิญไม่ถูกต้องหรือหมดอายุแล้ว';
+        } else if (err.response.status === 409) {
+          errorMessage = 'มีชื่อผู้ใช้นี้อยู่แล้วในระบบ';
+        }
+      }
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -94,8 +99,8 @@ export default function RegisterPage() {
             </div>
 
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">CREATE ACCOUNT</h2>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Fill in your details to register.</p>
+              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">GUARD ACCOUNT</h2>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Guard access requires an invite code. Card owners do not need a web account.</p>
             </div>
 
             <form onSubmit={handleRegister} className="space-y-4">
@@ -201,7 +206,7 @@ export default function RegisterPage() {
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm font-medium font-mono"
                   />
                 </div>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1">สมัครเองได้แค่สิทธิ์ผู้ชม (employee)</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1">บัญชีนี้สำหรับ Guard ดูประวัติการเข้า–ออกเท่านั้น</p>
               </div>
 
               {error && (
@@ -238,7 +243,7 @@ export default function RegisterPage() {
             <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/50 text-center">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
                 <Shield className="w-3.5 h-3.5" />
-                Secure, end-to-end encrypted connection
+                Guard access by invitation only
               </p>
             </div>
           </div>

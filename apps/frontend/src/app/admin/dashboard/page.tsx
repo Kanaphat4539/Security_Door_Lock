@@ -3,46 +3,23 @@
 import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { useLogStore } from '@/store/useLogStore';
-import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Sun, Moon, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key } from 'lucide-react';
+import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboardPage() {
   const { isConnected } = useWebSocket();
   const { logs } = useLogStore();
   const [stats, setStats] = useState({ totalScans: 0, granted: 0, denied: 0, uniqueEmployeesToday: 0 });
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isDark = document.documentElement.classList.contains('dark') ||
-        localStorage.getItem('theme') === 'dark' ||
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      setIsDarkMode(isDark);
-      if (isDark) document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
-  useEffect(() => {
-    const granted = logs.filter(l => l.status === 'GRANTED').length;
-    const denied = logs.filter(l => l.status === 'DENIED' || l.status === 'ERROR').length;
+    const granted = logs.filter(l => l.status === 'granted').length;
+    const denied = logs.filter(l => l.status === 'denied').length;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayLogs = logs.filter(l => {
-      const logDate = new Date(l.timestamp);
-      return logDate >= today && l.status === 'GRANTED' && l.userName;
+      const logDate = new Date(l.createdAt);
+      return logDate >= today && l.status === 'granted' && l.userName;
     });
     const uniqueUsers = new Set(todayLogs.map(l => l.userName));
 
@@ -59,7 +36,7 @@ export default function AdminDashboardPage() {
 
   // Determine current door state mock (in real app, this comes from WebSocket)
   const latestLog = logs[0];
-  const isRecentlyUnlocked = latestLog && latestLog.status === 'GRANTED' && (Date.now() - new Date(latestLog.timestamp).getTime() < 8000);
+  const isRecentlyUnlocked = latestLog && latestLog.status === 'granted' && (Date.now() - new Date(latestLog.createdAt).getTime() < 8000);
   const doorState = isRecentlyUnlocked ? 'UNLOCKED' : 'LOCKED';
 
   return (
@@ -75,13 +52,6 @@ export default function AdminDashboardPage() {
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 font-medium">Real-time facility monitoring and physical access control.</p>
         </div>
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all self-start md:self-auto group active:scale-95"
-        >
-          {isDarkMode ? <Sun className="w-5 h-5 text-amber-500 group-hover:rotate-90 transition-transform duration-500" /> : <Moon className="w-5 h-5 text-indigo-600 group-hover:-rotate-12 transition-transform duration-500" />}
-          <span className="font-semibold text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-        </button>
       </header>
 
       <div className="grid grid-cols-12 gap-6 relative z-10">
@@ -265,12 +235,12 @@ export default function AdminDashboardPage() {
                       </tr>
                     ) : (
                       logs.slice(0, 5).map(log => (
-                        <tr key={log.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${log.status === 'DENIED' || log.status === 'ERROR' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
+                        <tr key={log.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${log.status === 'denied' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
                           <td className="py-3.5 px-5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </td>
                           <td className="py-3.5 px-5 text-sm text-slate-900 dark:text-white font-medium flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm ${log.status === 'GRANTED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm ${log.status === 'granted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
                               'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                               }`}>
                               {log.userName ? log.userName.charAt(0).toUpperCase() : <Key className="w-3.5 h-3.5" />}
@@ -280,21 +250,16 @@ export default function AdminDashboardPage() {
                               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">ID: {log.uid}</div>
                             </div>
                           </td>
-                          <td className="py-3.5 px-5 text-xs font-bold text-slate-700 dark:text-slate-300">{log.doorId}</td>
+                          <td className="py-3.5 px-5 text-xs font-bold text-slate-700 dark:text-slate-300">{log.direction ? log.direction.toUpperCase() : 'IN'}</td>
                           <td className="py-3.5 px-5">
-                            {log.status === 'GRANTED' && (
+                            {log.status === 'granted' && (
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 dark:border-emerald-800/50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-md">
                                 <Unlock className="w-3 h-3" /> GRANTED
                               </span>
                             )}
-                            {log.status === 'DENIED' && (
+                            {log.status === 'denied' && (
                               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-md">
                                 <AlertTriangle className="w-3 h-3" /> DENIED
-                              </span>
-                            )}
-                            {log.status === 'ERROR' && (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 dark:border-amber-800/50 dark:bg-amber-900/30 dark:text-amber-400 px-2.5 py-1 rounded-md">
-                                <AlertTriangle className="w-3 h-3" /> ERROR
                               </span>
                             )}
                           </td>
@@ -347,6 +312,10 @@ export default function AdminDashboardPage() {
                   <UserPlus className="w-4 h-4" />
                   Register New User
                 </Link>
+                <Link href="/admin/guards" className="w-full bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-3 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all border border-indigo-200/80 dark:border-indigo-800/60 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                  <KeyRound className="w-4 h-4 text-indigo-500" />
+                  Guard Invite Keys
+                </Link>
                 <Link href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
                   <Shield className="w-4 h-4" />
                   Manage Permissions
@@ -384,6 +353,27 @@ export default function AdminDashboardPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Quick Link Banner to Guard Keys Page */}
+        <div className="col-span-12">
+          <div className="bg-gradient-to-r from-indigo-950/80 via-slate-900/80 to-blue-950/80 p-6 rounded-2xl shadow-xl border border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-400/30 text-indigo-400">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white">GUARD Key Management</h3>
+                <p className="text-xs text-slate-300 mt-0.5">จัดการและสร้างรหัสเชิญสำหรับสมัคร GUARD แบบเต็มหน้าจอ</p>
+              </div>
+            </div>
+            <Link
+              href="/admin/guards"
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 shrink-0"
+            >
+              เปิดหน้าจัดการรหัสเชิญ →
+            </Link>
           </div>
         </div>
       </div>
