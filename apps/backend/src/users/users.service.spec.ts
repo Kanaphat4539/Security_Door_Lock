@@ -72,7 +72,7 @@ describe('UsersService', () => {
     });
     it('stores the owner email and links only an available employee account', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
-      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'USER' });
+      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'GUARD' });
       prismaMock.user.create.mockResolvedValue({ id: 1 });
 
       await service.create({
@@ -113,7 +113,7 @@ describe('UsersService', () => {
       prismaMock.user.findUnique
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: 7 });
-      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'USER' });
+      prismaMock.admin.findUnique.mockResolvedValue({ id: 9, role: 'GUARD' });
       await expect(
         service.create({
           uid: 'AAAA',

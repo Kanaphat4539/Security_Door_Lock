@@ -10,6 +10,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { ImageFetchService } from '../devices/image-fetch.service';
 import { EventsGateway } from '../events/events.gateway';
+import { LineService } from '../line/line.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessService } from './access.service';
 
@@ -21,6 +22,7 @@ const prismaMock = {
 };
 const eventsMock = { emitAccess: jest.fn() };
 const imageFetchMock = { fetchFromCam: jest.fn() };
+const lineMock = { notifyAccess: jest.fn() };
 
 const fakeLog = (over: Record<string, unknown> = {}) => ({
   id: 1,
@@ -48,6 +50,7 @@ describe('AccessService', () => {
         { provide: PrismaService, useValue: prismaMock },
         { provide: EventsGateway, useValue: eventsMock },
         { provide: ImageFetchService, useValue: imageFetchMock },
+        { provide: LineService, useValue: lineMock },
       ],
     }).compile();
 
@@ -247,6 +250,7 @@ describe('AccessService', () => {
       expect(res.status).toBe('denied');
       expect(imageFetchMock.fetchFromCam).not.toHaveBeenCalled();
       expect(eventsMock.emitAccess).toHaveBeenCalledTimes(1);
+      expect(lineMock.notifyAccess).toHaveBeenCalledTimes(1);
     });
 
     it('ขาเข้า: ตอบ status ทันที แล้วดึงรูป -> อัปเดต log -> ยิง event พร้อมรูป', async () => {
@@ -261,6 +265,7 @@ describe('AccessService', () => {
 
       const res = await service.handleAccess('A1B2C3D4', 'in');
       expect(res.status).toBe('granted');
+      expect(lineMock.notifyAccess).toHaveBeenCalledTimes(1);
 
       await flush();
 

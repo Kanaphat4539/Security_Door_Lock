@@ -32,7 +32,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const role = await loginRequest(email, password);
+      const role = await loginRequest(email.trim(), password);
       if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {

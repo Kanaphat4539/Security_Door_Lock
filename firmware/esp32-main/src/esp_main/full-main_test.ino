@@ -1,29 +1,26 @@
-#include <ArduinoJson.h>
-#include <HTTPClient.h>
-#include <SPI.h>
 #include <WiFi.h>
-
+#include <HTTPClient.h>
+#include <ArduinoJson.h> 
+#include <SPI.h>
 // ★ ไลบรารี MFRC522v2 (ต้องติดตั้งใน Arduino IDE: Library Manager → ค้น "MFRC522v2")
-//   ใช้ v2 เพราะรับ SPIClass& ได้ จึงต่อหัวอ่าน 2 ตัวคนละบัส (VSPI/HSPI) เพื่อไม่ให้ MISO
-//   ชนกัน
+//   ใช้ v2 เพราะรับ SPIClass& ได้ จึงต่อหัวอ่าน 2 ตัวคนละบัส (VSPI/HSPI) เพื่อไม่ให้ MISO ชนกัน
+#include <MFRC522v2.h>
+#include <MFRC522DriverSPI.h>
+#include <MFRC522DriverPinSimple.h>
+#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
-#include <MFRC522DriverPinSimple.h>
-#include <MFRC522DriverSPI.h>
-#include <MFRC522v2.h>
-#include <Wire.h>
 #include <esp_now.h>
 
 // 🛡️ ป้องกัน ESP32 รีเซ็ตตัวเองจากปัญหาไฟตกกระชาก
-#include "soc/rtc_cntl_reg.h"
 #include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 // ---------- ★ WiFi & Backend Server Config ★ ----------
-const char *WIFI_SSID = "thiraphat";
-const char *WIFI_PASS = "12345678";
+const char* WIFI_SSID    = "thiraphat";
+const char* WIFI_PASS    = "12345678";
 const char *SERVER_URL = "http://192.168.137.1:3001/access";
-const char *DEVICE_TOKEN =
-    "a033222b56976a4d77ac32d427599ec16a2c71dac747df219475973a191ff4e5";
+const char *DEVICE_TOKEN ="a033222b56976a4d77ac32d427599ec16a2c71dac747df219475973a191ff4e5";
 
 // ---------- ★ ESP-NOW Receiver Address ★ ----------
 // ⚠️ แก้ไขค่า MAC Address ตรงนี้ตามที่ได้จาก Serial Monitor ของ ESP32-CAM
@@ -33,21 +30,21 @@ uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
 // RFID หัวอ่าน 2 ตัว แยกคนละ SPI บัส (แก้ปัญหา MISO ชนกันตอนใช้บัสเดียว)
 //   หัวเข้า (IN)  → VSPI  — คงสายเดิม ไม่ต้องย้าย
 //   หัวออก (OUT) → HSPI  — ⚠️ ต้องย้ายสาย SCK/MISO/MOSI/RST ตามค่าด้านล่าง
-#define SS_IN 5 // RFID เข้า — VSPI
-#define RST_IN 4
-#define SCK_IN 18
-#define MISO_IN 19
-#define MOSI_IN 23
+#define SS_IN    5        // RFID เข้า — VSPI
+#define RST_IN   4
+#define SCK_IN   18
+#define MISO_IN  19
+#define MOSI_IN  23
 
-#define SS_OUT 17   // RFID ออก — HSPI (SS เดิม คงไว้ได้ ไม่ต้องย้าย)
-#define RST_OUT 2   // RST เดิม คงไว้ได้ (ดึง HIGH หลังบูต — Door ใช้ขานี้ทำงานได้)
-#define SCK_OUT 14  // ⚠️ ย้ายจาก 18
-#define MISO_OUT 35 // ⚠️ ย้ายจาก 19 — GPIO35 input-only ปลอดภัย ไม่ใช่ strapping
-#define MOSI_OUT 13 // ⚠️ ย้ายจาก 23
+#define SS_OUT   17       // RFID ออก — HSPI (SS เดิม คงไว้ได้ ไม่ต้องย้าย)
+#define RST_OUT  2        // RST เดิม คงไว้ได้ (ดึง HIGH หลังบูต — Door ใช้ขานี้ทำงานได้)
+#define SCK_OUT  14       // ⚠️ ย้ายจาก 18
+#define MISO_OUT 35       // ⚠️ ย้ายจาก 19 — GPIO35 input-only ปลอดภัย ไม่ใช่ strapping
+#define MOSI_OUT 13       // ⚠️ ย้ายจาก 23
 
-#define RELAY_PIN 25
-#define TRIG_PIN 26
-#define ECHO_PIN 27
+#define RELAY_PIN  25
+#define TRIG_PIN   26
+#define ECHO_PIN   27
 #define BUZZER_PIN 33
 
 // ระยะ (ซม.) ที่ตรวจจับว่ามีคนเข้ามาใกล้ → ปลุกจอ
@@ -68,8 +65,7 @@ MFRC522DriverSPI gDriverOut(gSsOut, gSpiOut);
 MFRC522 rfidIn(gDriverIn);
 MFRC522 rfidOut(gDriverOut);
 
-Adafruit_SH1106G display =
-    Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 bool lastDisplayState = false;
 
@@ -98,7 +94,7 @@ void show(String a, String b = "", String c = "") {
 // ==================== เชื่อมต่อ WiFi ====================
 void connectWiFi() {
   show("Connecting WiFi...", WIFI_SSID);
-
+  
   // ใช้ AP_STA เพื่อให้รองรับ ESP-NOW
   WiFi.mode(WIFI_AP_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -123,8 +119,7 @@ void connectWiFi() {
 bool sendScan(String device, String uid, String &outStatus, String &outName) {
   if (WiFi.status() != WL_CONNECTED) {
     connectWiFi();
-    if (WiFi.status() != WL_CONNECTED)
-      return false;
+    if (WiFi.status() != WL_CONNECTED) return false;
   }
 
   HTTPClient http;
@@ -159,16 +154,14 @@ bool sendScan(String device, String uid, String &outStatus, String &outName) {
 
     StaticJsonDocument<256> resDoc;
     DeserializationError err = deserializeJson(resDoc, response);
-
+    
     if (!err) {
-      if (response.indexOf("granted") >= 0 ||
-          (resDoc.containsKey("status") && resDoc["status"] == "OPEN")) {
+      if (response.indexOf("granted") >= 0 || (resDoc.containsKey("status") && resDoc["status"] == "OPEN")) {
         outStatus = "granted";
       } else {
         outStatus = "denied";
       }
-      outName =
-          resDoc.containsKey("name") ? resDoc["name"].as<String>() : "User";
+      outName = resDoc.containsKey("name") ? resDoc["name"].as<String>() : "User";
       http.end();
       return true;
     }
@@ -185,11 +178,11 @@ void grantAccess(String name, String device) {
   digitalWrite(BUZZER_PIN, HIGH);
   digitalWrite(RELAY_PIN, HIGH);
   show("ACCESS GRANTED", name, "Gate: " + device);
-
+  
   delay(200);
   digitalWrite(BUZZER_PIN, LOW);
 
-  delay(5000); // ปลดล็อกประตูค้าง 5 วินาที (ตามโฟลว์ชาร์ต) แล้วล็อกกลับ
+  delay(5000);   // ปลดล็อกประตูค้าง 5 วินาที (ตามโฟลว์ชาร์ต) แล้วล็อกกลับ
   digitalWrite(RELAY_PIN, LOW);
 
   lastDisplayState = false;
@@ -222,8 +215,7 @@ void releaseReset(int pin) {
 // ลองซ้ำ 3 ครั้งก่อนยอมแพ้ กัน log init failed หลอก
 bool initWithRetry(MFRC522 &reader, const char *label) {
   for (int i = 0; i < 3; i++) {
-    if (reader.PCD_Init())
-      return true;
+    if (reader.PCD_Init()) return true;
     delay(50);
   }
   Serial.printf("[rfid] %s reader init failed\n", label);
@@ -236,8 +228,7 @@ void processRFID(MFRC522 &mfrc522, String deviceName) {
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
     String uid = "";
     for (byte i = 0; i < mfrc522.uid.size; i++) {
-      if (mfrc522.uid.uidByte[i] < 0x10)
-        uid += "0";
+      if (mfrc522.uid.uidByte[i] < 0x10) uid += "0";
       uid += String(mfrc522.uid.uidByte[i], HEX);
     }
     uid.toUpperCase();
@@ -287,8 +278,7 @@ void setup() {
   delay(1500);
 
   // ---------- เริ่มหัวอ่าน RFID (2 บัสแยกกัน VSPI/HSPI) ----------
-  // MFRC522v2 ใช้ soft reset ไม่รับขา RST ทาง driver จึงต้องปลดรีเซ็ตเองด้วยการดึง RST
-  // ขึ้น HIGH
+  // MFRC522v2 ใช้ soft reset ไม่รับขา RST ทาง driver จึงต้องปลดรีเซ็ตเองด้วยการดึง RST ขึ้น HIGH
   releaseReset(RST_IN);
   releaseReset(RST_OUT);
   gSpiIn.begin(SCK_IN, MISO_IN, MOSI_IN, SS_IN);
@@ -302,9 +292,9 @@ void setup() {
   if (esp_now_init() == ESP_OK) {
     esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, camMacAddress, 6);
-    peerInfo.channel = 0;
+    peerInfo.channel = 0;  
     peerInfo.encrypt = false;
-
+    
     if (esp_now_add_peer(&peerInfo) == ESP_OK) {
       Serial.println("[ESP-NOW] Peer ESP32-CAM added successfully!");
     }
@@ -321,10 +311,8 @@ void setup() {
 
 void loop() {
   // 1. อ่านระยะจาก Ultrasonic Sensor
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
   long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
 
@@ -361,15 +349,13 @@ void loop() {
   // 3. ตรวจสอบการแตะบัตร RFID
   //    หัวเข้า (IN) : ทาบได้เฉพาะตอนมีคนเข้ามาใกล้ < WAKE_DISTANCE_CM (ตามที่ต้องการ)
   //    หัวออก (OUT): ทาบได้เสมอ — ฝั่งในไม่มี ultrasonic ไม่งั้นคนข้างในจะออกไม่ได้
-  if (nearby)
-    processRFID(rfidIn, "IN");
+  if (nearby) processRFID(rfidIn, "IN");
   processRFID(rfidOut, "OUT");
 
   // 4. ตรวจสอบสถานะการเชื่อมต่อ WiFi ทุกๆ 10 วินาที
   static unsigned long lastWifiCheck = 0;
   if (millis() - lastWifiCheck > 10000) {
     lastWifiCheck = millis();
-    if (WiFi.status() != WL_CONNECTED)
-      connectWiFi();
+    if (WiFi.status() != WL_CONNECTED) connectWiFi();
   }
 }

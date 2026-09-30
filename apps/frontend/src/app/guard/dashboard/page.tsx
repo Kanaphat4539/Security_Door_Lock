@@ -20,9 +20,15 @@ export default function GuardDashboardPage() {
 
   useEffect(() => {
     let active = true;
+    if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) {
+      return;
+    }
     fetchStats()
       .then((data) => { if (active) setStats(data); })
-      .catch(() => console.warn('ยังโหลดสรุปการเข้าออกไม่ได้: API ไม่พร้อมใช้งาน'));
+      .catch((error) => {
+        if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) return;
+        console.error('โหลดสรุปการเข้าออกไม่สำเร็จ', error);
+      });
     return () => { active = false; };
   }, [latestLogId]);
 

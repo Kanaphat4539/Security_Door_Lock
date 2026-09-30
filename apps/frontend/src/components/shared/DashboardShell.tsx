@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, LogOut, Shield, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, LogOut, Shield, Menu, X, KeyRound } from 'lucide-react';
 import { WebSocketProvider } from '@/providers/WebSocketProvider';
 import ParticleBackground from '@/components/shared/ParticleBackground';
 import MouseTrail from '@/components/shared/MouseTrail';
@@ -17,12 +17,12 @@ export default function DashboardShell({ children, portal }: { children: React.R
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
   };
 
   const navItems = portal === 'admin'
     ? [
         { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+        { name: 'Guard Keys', href: '/admin/guards', icon: KeyRound },
         { name: 'Users', href: '/admin/users', icon: Users },
         { name: 'Access Logs', href: '/admin/logs', icon: FileText },
       ]

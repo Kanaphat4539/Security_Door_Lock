@@ -48,10 +48,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       const url = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
       socketInstance = io(url, {
         auth: (callback) => {
+          if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) {
+            callback({ token: '' });
+            return;
+          }
           void getWsTicket()
             .then((ticket) => callback({ token: active ? ticket : '' }))
-            .catch(() => {
-              console.warn('ยังเชื่อมต่อเหตุการณ์สดไม่ได้: API ไม่พร้อมใช้งาน');
+            .catch((error) => {
+              if (typeof window !== 'undefined' && localStorage.getItem('auth_token')) {
+                console.error('ขอตั๋ว WebSocket ไม่สำเร็จ', error);
+              }
               callback({ token: '' });
             });
         },
