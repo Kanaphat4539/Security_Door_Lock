@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity, AlertTriangle, ArrowDownLeft, ArrowUpRight, Clock3, FileText, Monitor, ShieldCheck, Wifi, WifiOff } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowDownLeft, ArrowUpRight, Camera, Clock3, FileText, Monitor, ShieldCheck, VideoOff, Wifi, WifiOff } from 'lucide-react';
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { fetchStats, type AccessStats } from '@/services/backend';
 import { useLogStore } from '@/store/useLogStore';
@@ -51,7 +51,7 @@ export default function GuardDashboardPage() {
         </span>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 relative z-10">
         <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-blue-100/80 dark:border-blue-800/50">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider"><span>Entries Today</span><ArrowDownLeft className="w-5 h-5 text-blue-500" /></div>
           <p className="text-4xl font-black text-slate-900 dark:text-white mt-4">{stats?.entriesToday ?? '—'}</p>
@@ -67,9 +67,27 @@ export default function GuardDashboardPage() {
           <p className="text-lg font-black text-slate-900 dark:text-white mt-4 truncate">{latest?.userName ?? (latest ? 'Unknown card' : 'No scans yet')}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{latest ? `${latest.direction === 'in' ? 'IN' : 'OUT'} · ${timeOf(latest.createdAt)}` : 'Waiting for an access event'}</p>
         </div>
+        <section aria-labelledby="live-camera-heading" className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700/60 bg-white/95 dark:bg-slate-900/90 p-4 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="live-camera-heading" className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+              <Camera aria-hidden="true" className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Live camera
+            </h2>
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-slate-400" /> Not connected
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="relative mx-auto flex aspect-[4/3] w-full max-w-[160px] items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950 px-3 text-center" aria-describedby="camera-placeholder-description">
+              <div className="flex flex-col items-center gap-2">
+                <VideoOff aria-hidden="true" className="h-6 w-6 text-slate-400" />
+                <p id="camera-placeholder-description" className="text-xs text-slate-300">Waiting for camera</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <section className="mt-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-xl overflow-hidden ring-1 ring-white/50 dark:ring-white/5 relative z-10">
+      <section className="mt-6 relative z-10 min-w-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-xl overflow-hidden ring-1 ring-white/50 dark:ring-white/5">
         <div className="flex items-center justify-between gap-4 p-6 border-b border-slate-200/80 dark:border-slate-700/60">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Recent Access</h2>
