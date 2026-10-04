@@ -36,7 +36,7 @@ npm install
 npm run setup                 # สร้าง .env พร้อม token สุ่มให้อัตโนมัติ
 npm run db:generate           # สร้าง Prisma client
 npm run db:migrate            # สร้างตาราง
-npm run start:dev             # http://localhost:3001
+             # http://localhost:3001
 ```
 
 > **ทำไมไม่ commit token ไว้ให้เลย?** repo นี้เป็น public — ถ้า `JWT_SECRET` อยู่ใน git
