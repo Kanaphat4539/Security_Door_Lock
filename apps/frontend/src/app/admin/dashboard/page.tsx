@@ -5,6 +5,7 @@ import { useWebSocket } from '@/providers/WebSocketProvider';
 import { useLogStore } from '@/store/useLogStore';
 import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key, KeyRound } from 'lucide-react';
 import Link from 'next/link';
+import { CctvMonitor } from '@/components/shared/CctvMonitor';
 
 export default function AdminDashboardPage() {
   const { isConnected } = useWebSocket();
@@ -53,6 +54,15 @@ export default function AdminDashboardPage() {
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 font-medium">Real-time facility monitoring and physical access control.</p>
         </div>
       </header>
+ 
+      {/* CCTV Surveillance Monitor - Top Center */}
+      <div className="mb-8 relative z-10">
+        <CctvMonitor
+          cameraTitle="ADMIN CCTV · DOOR LOCK SURVEILLANCE"
+          locationName="MAIN ENTRANCE / LAB 01"
+          className="w-full"
+        />
+      </div>
 
       <div className="grid grid-cols-12 gap-6 relative z-10">
 
