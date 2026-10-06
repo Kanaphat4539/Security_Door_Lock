@@ -6,6 +6,8 @@ import { Activity, AlertTriangle, ArrowDownLeft, ArrowUpRight, Clock3, FileText,
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { fetchStats, type AccessStats } from '@/services/backend';
 import { useLogStore } from '@/store/useLogStore';
+import { CctvMonitor } from '@/components/shared/CctvMonitor';
+import { ProximityNotice } from '@/components/shared/ProximityNotice';
 
 const timeOf = (value: string) => new Date(value).toLocaleString('th-TH', {
   dateStyle: 'short',
@@ -50,6 +52,11 @@ export default function GuardDashboardPage() {
           {isConnected ? 'Live connection' : 'Connection offline'}
         </span>
       </header>
+
+      <div className="mb-6 relative z-10 space-y-4">
+        <ProximityNotice />
+        <CctvMonitor cameraTitle="CCTV 01 · MAIN ENTRANCE" locationName="SECURE LAB DOOR" className="w-full max-w-5xl mx-auto" />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-blue-100/80 dark:border-blue-800/50">

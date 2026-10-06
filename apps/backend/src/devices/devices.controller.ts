@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 
-import { DeviceRoute } from '../auth/auth.constants';
+import { DeviceRoute, GuardReadable } from '../auth/auth.constants';
 import { CamRegistryService } from './cam-registry.service';
+import { CamPresenceService } from './cam-presence.service';
+import { CamPresenceDto } from './presence.dto';
 
 function isIpv4(v: string): boolean {
   return /^(\d{1,3}\.){3}\d{1,3}$/.test(v);
@@ -14,7 +16,23 @@ function sourceIp(req: Request): string {
 
 @Controller('devices')
 export class DevicesController {
-  constructor(private readonly camRegistry: CamRegistryService) {}
+  constructor(
+    private readonly camRegistry: CamRegistryService,
+    private readonly camPresence: CamPresenceService,
+  ) {}
+
+  @Post('cam/presence')
+  @DeviceRoute()
+  reportCamPresence(@Body() body: CamPresenceDto) {
+    return this.camPresence.report(body.present);
+  }
+
+  /** Last reported presence (not a live occupancy guarantee). */
+  @Get('cam/presence')
+  @GuardReadable()
+  camPresenceStatus() {
+    return this.camPresence.status();
+  }
 
   /**
    * ESP32-CAM เรียกตอนบูตเพื่อรายงาน IP ของตัวเอง
