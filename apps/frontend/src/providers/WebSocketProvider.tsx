@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useLogStore } from '@/store/useLogStore';
 import {
@@ -8,15 +8,21 @@ import {
   fetchRecentLogs,
   mapAccessAttempt,
 } from '@/services/backend';
+import { fetchCamPresence } from '@/services/backend';
+import { notificationForLivePresence, type CamPresence, type PresenceNotification } from '@/services/proximity';
 
 interface WebSocketContextType {
   socket: Socket | null;
   isConnected: boolean;
+  presence: CamPresence | null;
+  latestPresenceAlert: PresenceNotification | null;
 }
 
 const WebSocketContext = createContext<WebSocketContextType>({
   socket: null,
   isConnected: false,
+  presence: null,
+  latestPresenceAlert: null,
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -24,6 +30,9 @@ export const useWebSocket = () => useContext(WebSocketContext);
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [presence, setPresence] = useState<CamPresence | null>(null);
+  const [latestPresenceAlert, setLatestPresenceAlert] = useState<PresenceNotification | null>(null);
+  const lastPresenceReportAt = useRef<string | null>(null);
   const addLog = useLogStore((state) => state.addLog);
   const setLogs = useLogStore((state) => state.setLogs);
 
@@ -32,6 +41,17 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     let socketInstance: Socket | null = null;
 
     async function connect() {
+      if (typeof window !== 'undefined' && !localStorage.getItem('auth_token')) return;
+      try {
+        const initialPresence = await fetchCamPresence();
+        if (active) {
+          setPresence(initialPresence);
+          lastPresenceReportAt.current = initialPresence.reportedAt;
+        }
+      } catch (err) {
+        console.error('โหลดรายงานเซ็นเซอร์ระยะใกล้ไม่สำเร็จ', err);
+      }
+      if (!active) return;
       // 1) โหลด log ล่าสุดจาก REST มาลง store ก่อน
       try {
         const logs = await fetchRecentLogs();
@@ -85,6 +105,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       socketInstance.on('access', (data) => {
         if (active) addLog(mapAccessAttempt(data));
       });
+      socketInstance.on('presence', (event: CamPresence) => {
+        if (!active) return;
+        setPresence(event);
+        const notification = notificationForLivePresence(event, lastPresenceReportAt.current);
+        if (event.reportedAt) lastPresenceReportAt.current = event.reportedAt;
+        if (notification) setLatestPresenceAlert(notification);
+      });
     }
 
     connect();
@@ -96,7 +123,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   }, [addLog, setLogs]);
 
   return (
-    <WebSocketContext.Provider value={{ socket, isConnected }}>
+    <WebSocketContext.Provider value={{ socket, isConnected, presence, latestPresenceAlert }}>
       {children}
     </WebSocketContext.Provider>
   );

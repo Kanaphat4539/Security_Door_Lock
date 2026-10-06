@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Camera,
   Maximize2,
@@ -10,6 +10,21 @@ import {
   Video,
   VideoOff,
 } from 'lucide-react';
+
+function subscribeCameraSettings(onChange: () => void) {
+  window.addEventListener('storage', onChange);
+  return () => window.removeEventListener('storage', onChange);
+}
+
+function savedCameraUrl() {
+  try {
+    return localStorage.getItem('cctv_stream_url') ?? process.env.NEXT_PUBLIC_CAMERA_STREAM_URL ?? '';
+  } catch {
+    return process.env.NEXT_PUBLIC_CAMERA_STREAM_URL ?? '';
+  }
+}
+
+function serverCameraUrl() { return ''; }
 
 interface CctvMonitorProps {
   cameraTitle?: string;
@@ -22,8 +37,11 @@ export function CctvMonitor({
   locationName = 'SECURE LAB DOOR',
   className = 'w-full max-w-5xl mx-auto',
 }: CctvMonitorProps) {
-  const [streamUrl, setStreamUrl] = useState<string>('');
-  const [inputUrl, setInputUrl] = useState<string>('');
+  const savedUrl = useSyncExternalStore(subscribeCameraSettings, savedCameraUrl, serverCameraUrl);
+  const [streamOverride, setStreamUrl] = useState<string | null>(null);
+  const [inputOverride, setInputUrl] = useState<string | null>(null);
+  const streamUrl = streamOverride ?? savedUrl;
+  const inputUrl = inputOverride ?? streamUrl;
   const [showConfig, setShowConfig] = useState<boolean>(false);
   const [, setIsStreamLoading] = useState<boolean>(false);
   const [streamError, setStreamError] = useState<boolean>(false);
@@ -44,17 +62,6 @@ export function CctvMonitor({
     return () => clearInterval(interval);
   }, []);
 
-  // Load saved camera stream URL from localStorage or environment
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved =
-        localStorage.getItem('cctv_stream_url') ||
-        process.env.NEXT_PUBLIC_CAMERA_STREAM_URL ||
-        '';
-      setStreamUrl(saved);
-      setInputUrl(saved);
-    }
-  }, []);
 
   // Handle Fullscreen toggle
   const toggleFullscreen = () => {
@@ -115,7 +122,7 @@ export function CctvMonitor({
                 {cameraTitle}
               </h2>
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> REC
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> MJPEG
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
@@ -243,14 +250,14 @@ export function CctvMonitor({
 
         {/* Overlay Info: Top Right */}
         <div className="absolute top-5 right-6 z-20 font-mono text-xs text-right text-emerald-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pointer-events-none">
-          <p className="font-bold">1080P · 30 FPS</p>
-          <p className="text-[10px] text-slate-400">ENCRYPTION: ACTIVE</p>
+          <p className="font-bold">VGA · MJPEG</p>
+          <p className="text-[10px] text-slate-400">STREAM URL CONFIGURED BY USER</p>
         </div>
 
         {/* Overlay Info: Bottom Left Live Clock */}
         <div className="absolute bottom-5 left-6 z-20 font-mono text-xs text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pointer-events-none">
           <p className="text-sm font-bold tracking-widest">{currentTime}</p>
-          <p className="text-[10px] text-cyan-300/80">LATENCY: &lt;50ms</p>
+          <p className="text-[10px] text-cyan-300/80">LOCAL DISPLAY TIME</p>
         </div>
 
         {/* Overlay Info: Bottom Right */}

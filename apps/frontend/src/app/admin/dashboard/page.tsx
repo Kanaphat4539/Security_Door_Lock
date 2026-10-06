@@ -6,6 +6,7 @@ import { useLogStore } from '@/store/useLogStore';
 import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { CctvMonitor } from '@/components/shared/CctvMonitor';
+import { ProximityNotice } from '@/components/shared/ProximityNotice';
 
 export default function AdminDashboardPage() {
   const { isConnected } = useWebSocket();
@@ -55,6 +56,7 @@ export default function AdminDashboardPage() {
         </div>
       </header>
  
+      <ProximityNotice />
       {/* CCTV Surveillance Monitor - Top Center */}
       <div className="mb-8 relative z-10">
         <CctvMonitor

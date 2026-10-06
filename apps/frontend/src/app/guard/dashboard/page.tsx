@@ -18,6 +18,7 @@ import { useWebSocket } from '@/providers/WebSocketProvider';
 import { fetchStats, type AccessStats } from '@/services/backend';
 import { useLogStore } from '@/store/useLogStore';
 import { CctvMonitor } from '@/components/shared/CctvMonitor';
+import { ProximityNotice } from '@/components/shared/ProximityNotice';
 
 const timeOf = (value: string) =>
   new Date(value).toLocaleString('th-TH', {
@@ -77,6 +78,7 @@ export default function GuardDashboardPage() {
         </span>
       </header>
 
+      <ProximityNotice />
       {/* CCTV Live Screen Section - Top Center */}
       <div className="mb-8 relative z-10">
         <CctvMonitor
