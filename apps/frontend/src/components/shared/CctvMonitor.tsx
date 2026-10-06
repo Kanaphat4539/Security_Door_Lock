@@ -121,8 +121,8 @@ export function CctvMonitor({
               <h2 id="live-cctv-heading" className="text-sm font-bold text-white tracking-wide">
                 {cameraTitle}
               </h2>
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-700/60 text-slate-300 border border-slate-600">
-                MJPEG
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> MJPEG
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">

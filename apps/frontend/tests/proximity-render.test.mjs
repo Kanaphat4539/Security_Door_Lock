@@ -70,3 +70,10 @@ test('CCTV URL hydration does not disable the React effect state rule', () => {
   const source = fs.readFileSync(path.join(root, 'src/components/shared/CctvMonitor.tsx'), 'utf8');
   assert.doesNotMatch(source, /eslint-disable-next-line react-hooks\/set-state-in-effect/);
 });
+
+test('CCTV retains the original pooh badge colors without claiming recording', () => {
+  const { CctvMonitor } = loadTs('src/components/shared/CctvMonitor.tsx', {});
+  const html = renderToStaticMarkup(React.createElement(CctvMonitor));
+  assert.ok(html.includes('bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'));
+  assert.doesNotMatch(html, /\bREC\b/);
+});
