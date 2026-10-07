@@ -4,6 +4,7 @@ import type { Request } from 'express';
 import { DeviceRoute, GuardReadable } from '../auth/auth.constants';
 import { CamRegistryService } from './cam-registry.service';
 import { CamPresenceService } from './cam-presence.service';
+import { ImageFetchService } from './image-fetch.service';
 import { CamPresenceDto } from './presence.dto';
 
 function isIpv4(v: string): boolean {
@@ -19,7 +20,16 @@ export class DevicesController {
   constructor(
     private readonly camRegistry: CamRegistryService,
     private readonly camPresence: CamPresenceService,
+    private readonly imageFetch: ImageFetchService,
   ) {}
+
+  /** ดึงรูปถ่ายสดจาก ESP32-CAM (GET /capture) บันทึกและส่ง path กลับ */
+  @Get('cam/capture')
+  @GuardReadable()
+  async captureImage(): Promise<{ ok: boolean; imagePath: string | null }> {
+    const imagePath = await this.imageFetch.fetchFromCam();
+    return { ok: imagePath !== null, imagePath };
+  }
 
   @Post('cam/presence')
   @DeviceRoute()

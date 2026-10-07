@@ -36,7 +36,7 @@ constexpr unsigned long kIdleSleepMs = 30000;
 constexpr unsigned long kMaxStreamMs = 120000;
 constexpr unsigned long kCooldownMs = 10000;
 constexpr unsigned long kFrameIntervalMs = 125; // Upper bound 8 FPS, not guaranteed FPS.
-constexpr int kJpegQuality = 10; // Lower means less compression/better quality.
+constexpr int kJpegQuality = 16; // 16 provides safe buffer margin (~8-12KB) to eliminate FB-OVF.
 constexpr bool kDashboardOnly = false; // Test variant disables backend, capture and ESP-NOW.
 constexpr unsigned long kAbsenceSleepMs = 5000;
 constexpr uint32_t kPresenceDebounceMs = 300;
@@ -108,9 +108,9 @@ bool wakeCameraLocked(bool entryCapture = false) {
   config.pin_sccb_scl = SIOC_GPIO_NUM;
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
-  config.xclk_freq_hz = 20000000;
+  config.xclk_freq_hz = 10000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size = hasPsram ? FRAMESIZE_VGA : FRAMESIZE_QVGA;
+  config.frame_size = FRAMESIZE_QVGA;
   config.jpeg_quality = kJpegQuality;
   config.fb_count = 1;
   config.fb_location = hasPsram ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
@@ -426,6 +426,19 @@ void loop() {
     }
   }
   if (!kDashboardOnly) publishPresence();
+  // เมื่อมีคนเข้าใกล้ ปลุกเซนเซอร์กล้องให้ตื่นทันที เพื่อให้ Stream Online และพร้อมถ่ายรูป
+  if (!kDashboardOnly && presenceCommand.load() == 1 && !cameraOn.load() && !manualSleep.load()) {
+    CameraLock lock(20);
+    if (lock.acquired && !cameraOn.load() && presenceCommand.load() == 1 && !manualSleep.load()) {
+      if (wakeCameraLocked(true)) {
+        lastCameraUse.store(millis());
+        Serial.println("[PRESENCE] Someone approached -> Waking camera sensor, stream online & capture ready!");
+      }
+    }
+  }
+  if (!kDashboardOnly && presenceCommand.load() == 1 && cameraOn.load()) {
+    lastCameraUse.store(millis());
+  }
   const bool absent = !kDashboardOnly && presenceCommand.load() == 0;
   const uint32_t idleMs = absent ? kAbsenceSleepMs : kIdleSleepMs;
   if (!streamActive.load() && pendingCaptures.load() == 0 && (manualSleep.load() || isCooling() ||

@@ -185,6 +185,12 @@ void grantAccess(String name, String device) {
   delay(5000);   // ปลดล็อกประตูค้าง 5 วินาที (ตามโฟลว์ชาร์ต) แล้วล็อกกลับ
   digitalWrite(RELAY_PIN, LOW);
 
+  // 🛡️ พัก 50ms ให้สัญญาณรบกวนจากการตัดขดลวด Solenoid หายไป แล้ว Re-init หัวอ่านทั้งสองตัว
+  // ป้องกันชิป RC522 ดับ/เสาอากาศหลุดจากแรงดันเหนี่ยวนำกระชาก (Back-EMF)
+  delay(50);
+  rfidIn.PCD_Init();
+  rfidOut.PCD_Init();
+
   lastDisplayState = false;
 }
 
@@ -233,6 +239,10 @@ void processRFID(MFRC522 &mfrc522, String deviceName) {
     }
     uid.toUpperCase();
 
+    // ★ ปิดการสื่อสารกับบัตรทันทีขณะที่บัตรยังแตะอยู่ (ไม่รอให้ดึงบัตรออกหลังหน่วงเวลา 5 วิ)
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+
     show("Scanning [" + deviceName + "]", "UID: " + uid, "Checking...");
 
     String status, name;
@@ -247,9 +257,6 @@ void processRFID(MFRC522 &mfrc522, String deviceName) {
       delay(1500);
       lastDisplayState = false;
     }
-
-    mfrc522.PICC_HaltA();
-    mfrc522.PCD_StopCrypto1();
   }
 }
 

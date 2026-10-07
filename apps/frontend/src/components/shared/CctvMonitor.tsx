@@ -10,6 +10,9 @@ import {
   Video,
   VideoOff,
 } from 'lucide-react';
+import { api } from '@/services/api';
+
+const LOCKED_DEFAULT_URL = process.env.NEXT_PUBLIC_CAMERA_STREAM_URL || 'http://192.168.137.50:81/stream';
 
 function subscribeCameraSettings(onChange: () => void) {
   window.addEventListener('storage', onChange);
@@ -18,9 +21,9 @@ function subscribeCameraSettings(onChange: () => void) {
 
 function savedCameraUrl() {
   try {
-    return localStorage.getItem('cctv_stream_url') ?? process.env.NEXT_PUBLIC_CAMERA_STREAM_URL ?? '';
+    return localStorage.getItem('cctv_stream_url') || LOCKED_DEFAULT_URL;
   } catch {
-    return process.env.NEXT_PUBLIC_CAMERA_STREAM_URL ?? '';
+    return LOCKED_DEFAULT_URL;
   }
 }
 
@@ -47,7 +50,47 @@ export function CctvMonitor({
   const [streamError, setStreamError] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isPageVisible, setIsPageVisible] = useState<boolean>(() => {
+    return typeof document !== 'undefined' ? !document.hidden : true;
+  });
   const cctvContainerRef = useRef<HTMLDivElement>(null);
+
+  // Pause stream when tab is not visible to save bandwidth
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Effective stream URL - only active when page is visible
+  const activeStreamUrl = isPageVisible ? streamUrl : null;
+
+  // Auto-sync with live registered camera IP from backend
+  useEffect(() => {
+    let active = true;
+    const fetchRegisteredCam = async () => {
+      try {
+        const res = await api.get<{ ip: string | null }>('/devices/cam');
+        if (active && res.data?.ip) {
+          const autoUrl = `http://${res.data.ip}:81/stream`;
+          const current = localStorage.getItem('cctv_stream_url');
+          if (!current || current === LOCKED_DEFAULT_URL || current.includes(':81/stream')) {
+            setStreamUrl(autoUrl);
+            setInputUrl(autoUrl);
+            localStorage.setItem('cctv_stream_url', autoUrl);
+          }
+        }
+      } catch {
+        // Backend not ready or offline; keeps locked default
+      }
+    };
+    void fetchRegisteredCam();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Live real-time clock for CCTV display
   useEffect(() => {
@@ -96,6 +139,36 @@ export function CctvMonitor({
     setShowConfig(false);
   };
 
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [captureNotice, setCaptureNotice] = useState<string | null>(null);
+
+  const handleCaptureSnapshot = async () => {
+    try {
+      setIsCapturing(true);
+      setCaptureNotice('กำลังส่งคำสั่งถ่ายภาพ...');
+      const res = await api.get<{ ok: boolean; imagePath: string | null }>('/devices/cam/capture');
+      if (res.data?.ok && res.data.imagePath) {
+        setCaptureNotice(`บันทึกภาพสำเร็จ! (${res.data.imagePath})`);
+        setTimeout(() => setCaptureNotice(null), 4000);
+        return;
+      }
+      throw new Error('Backend capture failed');
+    } catch {
+      try {
+        const urlObj = new URL(streamUrl);
+        const directCapture = `${urlObj.protocol}//${urlObj.hostname}/capture`;
+        window.open(directCapture, '_blank');
+        setCaptureNotice('เปิดหน้าต่างบันทึกภาพจากกล้องแล้ว');
+        setTimeout(() => setCaptureNotice(null), 3000);
+      } catch {
+        setCaptureNotice('ไม่สามารถบันทึกภาพได้');
+        setTimeout(() => setCaptureNotice(null), 3000);
+      }
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
   const refreshFeed = () => {
     setStreamError(false);
     setIsStreamLoading(true);
@@ -132,22 +205,33 @@ export function CctvMonitor({
         </div>
 
         <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-              streamUrl && !streamError
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-            }`}
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                      activeStreamUrl && !streamError
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                    }`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        activeStreamUrl && !streamError
+                          ? 'bg-emerald-400 animate-ping'
+                          : 'bg-amber-400'
+                      }`}
+                    />
+                    {activeStreamUrl && !streamError ? 'LIVE FEED' : 'STANDBY'}
+                  </span>
+
+          <button
+            onClick={handleCaptureSnapshot}
+            disabled={isCapturing}
+            type="button"
+            title="ถ่ายภาพจากกล้องและบันทึกภาพ"
+            className="px-2.5 py-1.5 rounded-lg bg-emerald-600/80 hover:bg-emerald-500 disabled:opacity-50 text-white transition-colors border border-emerald-500/40 cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold shadow-sm"
           >
-            <span
-              className={`h-2 w-2 rounded-full ${
-                streamUrl && !streamError
-                  ? 'bg-emerald-400 animate-ping'
-                  : 'bg-amber-400'
-              }`}
-            />
-            {streamUrl && !streamError ? 'LIVE FEED' : 'STANDBY'}
-          </span>
+            <Camera className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{isCapturing ? 'กำลังถ่าย...' : 'ถ่ายภาพ'}</span>
+          </button>
 
           <button
             onClick={() => setShowConfig(!showConfig)}
@@ -217,6 +301,15 @@ export function CctvMonitor({
                 ล้างค่า
               </button>
             )}
+            <a
+              href="http://192.168.137.50/"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3 py-2 bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              title="เปิดแผงควบคุมและปรับความละเอียด/FPS สดๆ จากกล้อง"
+            >
+              ปรับโหมดกล้อง (Max FPS)
+            </a>
           </div>
         </form>
       )}
@@ -248,6 +341,22 @@ export function CctvMonitor({
           <span>{locationName}</span>
         </div>
 
+        {/* Capture Snapshot Feedback Banner */}
+        {captureNotice && (
+          <div className="absolute top-12 left-6 right-6 z-30 py-2 px-4 rounded-xl bg-slate-900/95 border border-emerald-500/60 text-emerald-400 text-xs font-mono flex items-center justify-between shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300">
+            <span className="flex items-center gap-2 font-semibold">
+              <Camera className="w-4 h-4 text-emerald-400 shrink-0" />
+              {captureNotice}
+            </span>
+            <button
+              onClick={() => setCaptureNotice(null)}
+              className="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Overlay Info: Top Right */}
         <div className="absolute top-5 right-6 z-20 font-mono text-xs text-right text-emerald-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pointer-events-none">
           <p className="font-bold">VGA · MJPEG</p>
@@ -266,19 +375,22 @@ export function CctvMonitor({
         </div>
 
         {/* Video / Stream Feed or Placeholder */}
-        {streamUrl && !streamError ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={streamUrl}
-            alt="Live CCTV Camera Feed"
-            onLoad={() => setIsStreamLoading(false)}
-            onError={() => {
-              setStreamError(true);
-              setIsStreamLoading(false);
-            }}
-            className="w-full h-full object-cover object-center select-none"
-          />
-        ) : (
+                {activeStreamUrl && !streamError ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={activeStreamUrl}
+                    alt="Live CCTV Camera Feed"
+                    onLoad={() => setIsStreamLoading(false)}
+                    onError={() => {
+                      setStreamError(true);
+                      setIsStreamLoading(false);
+                      setTimeout(() => {
+                        setStreamError(false);
+                      }, 2500);
+                    }}
+                    className="w-full h-full object-cover object-center select-none"
+                  />
+                ) : (
           <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center max-w-md">
             <div className="relative mb-5">
               <div className="w-20 h-20 rounded-full bg-slate-900/90 border border-slate-700/80 flex items-center justify-center shadow-inner">
