@@ -4,6 +4,7 @@
 // auth: เก็บ JWT ใน localStorage 'auth_token' + role ใน cookie 'user_role' (ให้ middleware อ่าน)
 import { api } from './api';
 import { useLogStore, type AccessLog } from '@/store/useLogStore';
+import type { CamPresence } from './proximity';
 
 export type BackendRole = 'ADMIN' | 'USER' | 'GUARD';
 export type UiRole = 'admin' | 'guard';
@@ -92,6 +93,11 @@ export async function getWsTicket(): Promise<string> {
   }
   const { data } = await api.post<{ ticket: string }>('/auth/ws-ticket');
   return data.ticket;
+}
+
+export async function fetchCamPresence(): Promise<CamPresence> {
+  const { data } = await api.get<CamPresence>('/devices/cam/presence');
+  return data;
 }
 
 // ===================== access logs =====================

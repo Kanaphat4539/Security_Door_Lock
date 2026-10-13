@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+# KiCad backups/autosave
+*-bak
+*.kicad_pcb-bak
+*.kicad_sch-bak
+fp-info-cache
+*.kicad_prl
+# ERC/DRC report snapshots - regenerate with kicad-cli, don't track stale runs
+erc_report.json
+drc_report.json
+*.png
+*.svg
+crop_*.png

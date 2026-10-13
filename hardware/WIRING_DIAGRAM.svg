@@ -1,0 +1,90 @@
+<svg width="100%" viewBox="0 0 720 470" role="img" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+<title>Security Door Lock - wiring overview (ESP-NOW firmware)</title>
+<desc>ESP32 DevKit V1 เป็นศูนย์กลาง ต่อ RC522 สองตัว OLED HC-SR04 relay buzzer, ไฟจาก step-down 12V เป็น 5V, ส่วน ESP32-CAM คุยไร้สายด้วย ESP-NOW ไม่มีสายข้อมูล</desc>
+
+<rect x="20" y="18" width="90" height="40" rx="6" fill="#FAECE7" stroke="#D85A30"/>
+<text x="65" y="36" text-anchor="middle" font-size="12" font-weight="bold" fill="#712B13">12V เข้า</text>
+<text x="65" y="50" text-anchor="middle" font-size="10" fill="#993C1D">อะแดปเตอร์</text>
+
+<line x1="110" y1="38" x2="132" y2="38" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="132" y="18" width="120" height="40" rx="6" fill="#E1F5EE" stroke="#1D9E75"/>
+<text x="192" y="36" text-anchor="middle" font-size="12" font-weight="bold" fill="#0F6E56">Step-down</text>
+<text x="192" y="50" text-anchor="middle" font-size="10" fill="#0F6E56">12V → 5V</text>
+
+<line x1="252" y1="38" x2="274" y2="38" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="274" y="14" width="180" height="48" rx="6" fill="#E1F5EE" stroke="#1D9E75"/>
+<text x="364" y="30" text-anchor="middle" font-size="11" font-weight="bold" fill="#0F6E56">ราง 5V → VIN, sensors, CAM</text>
+<text x="364" y="44" text-anchor="middle" font-size="10" fill="#0F6E56">ราง 3.3V ← จากขา 3V3 ของ DevKit</text>
+<text x="364" y="56" text-anchor="middle" font-size="10" fill="#0F6E56">GND ร่วมทุกก้อน</text>
+
+<rect x="474" y="18" width="224" height="40" rx="6" fill="#FAECE7" stroke="#D85A30"/>
+<text x="586" y="34" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#712B13">12V → Relay COM → โซลินอยด์</text>
+<text x="586" y="49" text-anchor="middle" font-size="9.5" fill="#993C1D">(ไฟล็อกประตู ไม่ผ่าน ESP32)</text>
+
+<rect x="290" y="150" width="140" height="250" rx="8" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1.5"/>
+<text x="360" y="264" text-anchor="middle" font-size="14" font-weight="bold" fill="#3C3489">ESP32</text>
+<text x="360" y="282" text-anchor="middle" font-size="12" fill="#534AB7">DevKit V1</text>
+<text x="360" y="298" text-anchor="middle" font-size="10" fill="#534AB7">(30 ขา)</text>
+<text x="360" y="388" text-anchor="middle" font-size="9" fill="#534AB7">VIN←5V · 3V3→out</text>
+
+<rect x="20" y="150" width="150" height="44" rx="6" fill="#F1EFE8" stroke="#888780"/>
+<text x="30" y="170" font-size="12" font-weight="bold" fill="#2C2C2A">RC522 #1 (เข้า)</text>
+<text x="30" y="186" font-size="10" fill="#5F5E5A">U1 · VSPI</text>
+
+<rect x="20" y="212" width="150" height="42" rx="6" fill="#F1EFE8" stroke="#888780"/>
+<text x="30" y="231" font-size="12" font-weight="bold" fill="#2C2C2A">OLED SH1106</text>
+<text x="30" y="246" font-size="10" fill="#5F5E5A">U7 · I2C</text>
+
+<rect x="20" y="296" width="150" height="52" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-dasharray="4 3"/>
+<text x="30" y="315" font-size="12" font-weight="bold" fill="#0C447C">ESP32-CAM</text>
+<text x="30" y="330" font-size="9.5" fill="#185FA5">ESP-NOW ไร้สาย</text>
+<text x="30" y="343" font-size="9.5" fill="#185FA5">ต่อแค่ไฟ 5V/GND</text>
+
+<rect x="550" y="140" width="150" height="44" rx="6" fill="#F1EFE8" stroke="#888780"/>
+<text x="560" y="160" font-size="12" font-weight="bold" fill="#2C2C2A">RC522 #2 (ออก)</text>
+<text x="560" y="176" font-size="10" fill="#5F5E5A">U2 · HSPI</text>
+
+<rect x="550" y="198" width="150" height="46" rx="6" fill="#FAEEDA" stroke="#EF9F27"/>
+<text x="560" y="217" font-size="12" font-weight="bold" fill="#633806">HC-SR04</text>
+<text x="560" y="233" font-size="9.5" fill="#854F0B">ECHO 5V → ÷ R4/R3</text>
+
+<rect x="550" y="258" width="150" height="42" rx="6" fill="#F1EFE8" stroke="#888780"/>
+<text x="560" y="277" font-size="12" font-weight="bold" fill="#2C2C2A">Relay module</text>
+<text x="560" y="292" font-size="10" fill="#5F5E5A">U6 · +/−/S(IN)</text>
+
+<rect x="550" y="316" width="150" height="44" rx="6" fill="#F1EFE8" stroke="#888780"/>
+<text x="560" y="336" font-size="12" font-weight="bold" fill="#2C2C2A">Buzzer + Q1</text>
+<text x="560" y="352" font-size="10" fill="#5F5E5A">BZ1 · S8050</text>
+
+<line x1="170" y1="172" x2="290" y2="185" stroke="#7F77DD" stroke-width="1.5"/>
+<text x="180" y="167" font-size="9.5" fill="#3C3489">SS5 SCK18 MOSI23 MISO19 RST4</text>
+
+<line x1="170" y1="233" x2="290" y2="250" stroke="#7F77DD" stroke-width="1.5"/>
+<text x="188" y="246" font-size="9.5" fill="#3C3489">SDA21 · SCL22 (+R1,R2)</text>
+
+<line x1="170" y1="322" x2="285" y2="300" stroke="#378ADD" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="176" y="292" font-size="9.5" fill="#0C447C">ไร้สาย (ไฟร่วม 5V/GND)</text>
+
+<line x1="550" y1="162" x2="430" y2="185" stroke="#7F77DD" stroke-width="1.5"/>
+<text x="416" y="157" text-anchor="end" font-size="9.5" fill="#3C3489">SS17 SCK14 MOSI13 MISO35 RST2</text>
+
+<line x1="550" y1="221" x2="430" y2="238" stroke="#BA7517" stroke-width="1.5"/>
+<text x="540" y="234" text-anchor="end" font-size="9.5" fill="#633806">TRIG26 · ECHO27÷</text>
+
+<line x1="550" y1="279" x2="430" y2="290" stroke="#7F77DD" stroke-width="1.5"/>
+<text x="540" y="292" text-anchor="end" font-size="9.5" fill="#3C3489">IN → 25</text>
+
+<line x1="550" y1="338" x2="430" y2="345" stroke="#7F77DD" stroke-width="1.5"/>
+<text x="540" y="352" text-anchor="end" font-size="9.5" fill="#3C3489">33 → R5 → Q1</text>
+
+<line x1="360" y1="62" x2="360" y2="150" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#b)"/>
+
+<text x="20" y="420" font-size="9.5" fill="#5F5E5A">ม่วง = ESP32 · เทา = อุปกรณ์ · เขียว = ไฟเลี้ยง · ฟ้าประ = กล้องไร้สาย · เหลือง = ระวัง 5V เข้า GPIO</text>
+<text x="20" y="436" font-size="9.5" fill="#993C1D">! ยึดตาม full-main_test.ino (ESP-NOW) · ECHO ผ่าน R4/R3 · GND ต่อถึงกันหมด</text>
+<text x="20" y="452" font-size="9" fill="#888780">ตัวเลข = GPIO · CAM ไม่มีสายข้อมูล (ตั้ง MAC address ในโค้ดแทน) · ดู EASYEDA_WIRING_TH.md</text>
+
+<defs>
+<marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5F5E5A"/></marker>
+<marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1D9E75"/></marker>
+</defs>
+</svg>

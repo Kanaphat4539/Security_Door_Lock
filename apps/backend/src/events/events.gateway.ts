@@ -10,7 +10,11 @@ import { Server, Socket } from 'socket.io';
 
 import { extractBearer, tokenMatches } from '../auth/auth.constants';
 import { AuthService } from '../auth/auth.service';
-import { WS_EVENTS, type AccessEventPayload } from './events.types';
+import {
+  WS_EVENTS,
+  type AccessEventPayload,
+  type PresenceEventPayload,
+} from './events.types';
 
 /**
  * ส่ง log การเข้า-ออกแบบเรียลไทม์ไปยัง Next.js dashboard
@@ -105,6 +109,14 @@ export class EventsGateway
       this.server?.emit(WS_EVENTS.ACCESS, payload);
     } catch (err) {
       this.logger.error(`emit ${WS_EVENTS.ACCESS} failed`, err as Error);
+    }
+  }
+
+  emitPresence(payload: PresenceEventPayload): void {
+    try {
+      this.server?.emit(WS_EVENTS.PRESENCE, payload);
+    } catch (err) {
+      this.logger.error(`emit ${WS_EVENTS.PRESENCE} failed`, err as Error);
     }
   }
 }

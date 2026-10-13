@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, LogOut, Shield, Menu, X, KeyRound } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Users, FileText, LogOut, Shield, Menu, X, KeyRound, Volume2, VolumeX } from 'lucide-react';
 import { WebSocketProvider } from '@/providers/WebSocketProvider';
+import { GlobalProximitySound } from '@/components/shared/GlobalProximitySound';
+import { useSoundStore } from '@/store/useSoundStore';
 import ParticleBackground from '@/components/shared/ParticleBackground';
 import MouseTrail from '@/components/shared/MouseTrail';
 import { logout } from '@/services/backend';
@@ -12,8 +14,8 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
 
 export default function DashboardShell({ children, portal }: { children: React.ReactNode; portal: 'admin' | 'guard' }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { soundEnabled, toggleSound } = useSoundStore();
 
   const handleLogout = () => {
     logout();
@@ -33,6 +35,7 @@ export default function DashboardShell({ children, portal }: { children: React.R
 
   return (
     <WebSocketProvider>
+      <GlobalProximitySound />
       <div 
         className="min-h-screen flex relative bg-[url('https://images.unsplash.com/photo-1548092372-0d1bd40894a3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2VjdXJpdHl8ZW58MHx8MHx8fDA%3D')] bg-cover bg-center bg-fixed"
       >
@@ -103,7 +106,20 @@ export default function DashboardShell({ children, portal }: { children: React.R
                 {navItems.find(item => item.href === pathname)?.name || (portal === 'admin' ? 'Admin' : 'Guard')}
               </h1>
             </div>
-            <div className="flex items-center gap-4 shrink-0">
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="p-2 rounded-lg bg-white/40 dark:bg-zinc-800/40 hover:bg-white/70 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer border border-slate-200/50 dark:border-zinc-700/50"
+                title={soundEnabled ? 'ปิดเสียงแจ้งเตือนคนเข้าใกล้' : 'เปิดเสียงแจ้งเตือนคนเข้าใกล้'}
+                aria-label={soundEnabled ? 'ปิดเสียงแจ้งเตือนคนเข้าใกล้' : 'เปิดเสียงแจ้งเตือนคนเข้าใกล้'}
+              >
+                {soundEnabled ? (
+                  <Volume2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <VolumeX className="w-5 h-5 text-slate-400" />
+                )}
+              </button>
               <ThemeToggle />
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold">

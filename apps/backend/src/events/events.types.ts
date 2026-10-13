@@ -7,6 +7,13 @@ import type { AccessAttempt } from '../access/access.types';
 export const WS_EVENTS = {
   /** มีการทาบบัตร (ทั้ง granted และ denied) */
   ACCESS: 'access',
+  /** CAM proximity presence state changed */
+  PRESENCE: 'presence',
 } as const;
 
 export type AccessEventPayload = AccessAttempt;
+
+export interface PresenceEventPayload {
+  present: boolean;
+  reportedAt: string;
+}

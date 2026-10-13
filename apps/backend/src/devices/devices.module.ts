@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { CamRegistryService } from './cam-registry.service';
+import { CamPresenceService } from './cam-presence.service';
 import { DevicesController } from './devices.controller';
 import { ImageFetchService } from './image-fetch.service';
 
@@ -12,7 +13,7 @@ import { ImageFetchService } from './image-fetch.service';
  */
 @Module({
   controllers: [DevicesController],
-  providers: [CamRegistryService, ImageFetchService],
-  exports: [ImageFetchService, CamRegistryService],
+  providers: [CamRegistryService, CamPresenceService, ImageFetchService],
+  exports: [ImageFetchService, CamRegistryService, CamPresenceService],
 })
 export class DevicesModule {}
