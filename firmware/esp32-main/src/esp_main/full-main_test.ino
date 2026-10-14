@@ -372,8 +372,6 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h> 
 #include <SPI.h>
-// ★ ไลบรารี MFRC522v2 (ต้องติดตั้งใน Arduino IDE: Library Manager → ค้น "MFRC522v2")
-//   ใช้ v2 เพราะรับ SPIClass& ได้ จึงต่อหัวอ่าน 2 ตัวคนละบัส (VSPI/HSPI) เพื่อไม่ให้ MISO ชนกัน
 #include <MFRC522v2.h>
 #include <MFRC522DriverSPI.h>
 #include <MFRC522DriverPinSimple.h>
@@ -382,7 +380,6 @@
 #include <Adafruit_SH110X.h>
 #include <esp_now.h>
 
-// 🛡️ ป้องกัน ESP32 รีเซ็ตตัวเองจากปัญหาไฟตกกระชาก
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 
@@ -393,7 +390,6 @@ const char *SERVER_URL   = "http://192.168.137.1:3001/access";
 const char *DEVICE_TOKEN = "a033222b56976a4d77ac32d427599ec16a2c71dac747df219475973a191ff4e5";
 
 // ---------- ★ ESP-NOW Receiver Address (ESP32-CAM) ★ ----------
-// ⚠️ ตรวจสอบให้ตรงกับ MAC Address ที่แสดงใน Serial Monitor ของ ESP32-CAM
 uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
 
 // ---------- ★ PIN Definitions ★ ----------
@@ -405,23 +401,22 @@ uint8_t camMacAddress[] = {0x00, 0x4B, 0x12, 0x24, 0x74, 0x00};
 
 #define SS_OUT   17       // RFID ออก — HSPI
 #define RST_OUT  2
-#define SCK_OUT  14       // ⚠️ ย้ายจาก 18
-#define MISO_OUT 35       // ⚠️ ย้ายจาก 19 — GPIO35 input-only
-#define MOSI_OUT 13       // ⚠️ ย้ายจาก 23
+#define SCK_OUT  14
+#define MISO_OUT 35
+#define MOSI_OUT 13
 
 #define RELAY_PIN  25
 #define TRIG_PIN   26
 #define ECHO_PIN   27
 #define BUZZER_PIN 33
 
-// ★ ระยะ (ซม.) ที่ตรวจจับว่ามีคนเข้ามาใกล้ → ปลุกจอ OLED และส่ง ESP-NOW ปลุกกล้อง CAM
+// ★ ระยะตรวจจับ Ultrasonic 45 ซม.
 #define WAKE_DISTANCE_CM 45
 
 #define i2c_Address 0x3c
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
-// ★ หัวอ่าน 2 ตัวคนละบัส (MFRC522v2 รับ SPIClass& ได้)
 SPIClass gSpiIn(VSPI);
 SPIClass gSpiOut(HSPI);
 MFRC522DriverPinSimple gSsIn(SS_IN);
@@ -435,7 +430,7 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 
 bool lastDisplayState = false;
 
-// ==================== ส่งสัญญาณ Presence (1=พบคน, 0=ไม่พบ) ไปปลุก/พักกล้อง ESP32-CAM ====================
+// ==================== ส่งสัญญาณไปปลุก/สั่งหลับกล้อง ESP32-CAM ====================
 void sendCamCommand(uint8_t command) {
   esp_err_t result = esp_now_send(camMacAddress, &command, sizeof(command));
   if (result == ESP_OK) {
@@ -457,11 +452,17 @@ void show(String a, String b = "", String c = "") {
   display.display();
 }
 
+// ==================== รีเซ็ตกลับโหมด Standby และสั่งพักกล้อง ====================
+void backToStandby() {
+  show("== STANDBY ==", "Please come closer");
+  sendCamCommand(0);
+  lastDisplayState = false;
+}
+
 // ==================== เชื่อมต่อ WiFi ====================
 void connectWiFi() {
   show("Connecting WiFi...", WIFI_SSID);
   
-  // ใช้ AP_STA เพื่อรองรับทั้ง WiFi และ ESP-NOW ไปพร้อมกัน
   WiFi.mode(WIFI_AP_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
@@ -551,12 +552,12 @@ void grantAccess(String name, String device) {
   delay(5000);   // ปลดล็อกประตูค้าง 5 วินาที แล้วล็อกกลับ
   digitalWrite(RELAY_PIN, LOW);
 
-  // 🛡️ พัก 50ms ให้สัญญาณรบกวนจากการตัดขดลวด Solenoid หายไป แล้ว Re-init หัวอ่านทั้งสองตัว
   delay(50);
   rfidIn.PCD_Init();
   rfidOut.PCD_Init();
 
-  lastDisplayState = false;
+  // ★ สั่งกล้องกลับเข้าโหมดพักทันทีหลังจบการเปิดประตู
+  backToStandby();
 }
 
 void denyAccess(String name, String device) {
@@ -567,7 +568,8 @@ void denyAccess(String name, String device) {
   delay(3000);
   digitalWrite(BUZZER_PIN, LOW);
 
-  lastDisplayState = false;
+  // ★ สั่งกล้องกลับเข้าโหมดพักทันที
+  backToStandby();
 }
 
 // ==================== เริ่มต้นหัวอ่าน RFID ====================
@@ -613,7 +615,7 @@ void processRFID(MFRC522 &mfrc522, String deviceName) {
     } else {
       show("SERVER ERROR", "Try again", deviceName);
       delay(1500);
-      lastDisplayState = false;
+      backToStandby();
     }
   }
 }
@@ -642,7 +644,6 @@ void setup() {
   show("System Starting...", "Checking sensors...");
   delay(1500);
 
-  // ---------- เริ่มหัวอ่าน RFID (2 บัสแยกกัน VSPI/HSPI) ----------
   releaseReset(RST_IN);
   releaseReset(RST_OUT);
   gSpiIn.begin(SCK_IN, MISO_IN, MOSI_IN, SS_IN);
@@ -652,7 +653,6 @@ void setup() {
 
   connectWiFi();
 
-  // ---------- เริ่มระบบ ESP-NOW (สำหรับส่งสถานะ Ultrasonic ไปปลุกกล้อง ESP32-CAM) ----------
   if (esp_now_init() == ESP_OK) {
     esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, camMacAddress, 6);
@@ -664,54 +664,41 @@ void setup() {
     }
   }
 
-  show("== STANDBY ==", "Please come closer");
-
-  // ส่งค่าเริ่มต้น 0 (ไม่มีคน) ให้กล้องเข้าโหมด Sleep รอไว้
-  sendCamCommand(0);
-
+  backToStandby();
   Serial.println(F("[SYSTEM] Standby. Waiting for Ultrasonic (<= 45 cm)..."));
 }
 
 void loop() {
-  // 1. อ่านระยะจาก Ultrasonic Sensor
+  // 1. อ่านระยะจาก Ultrasonic Sensor พร้อมตัวกรองสัญญาณรบกวน (Debounce 3 ครั้งติดกัน)
   digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
   digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
   long dist = pulseIn(ECHO_PIN, HIGH, 20000) * 0.0343 / 2;
 
-  // มีคนเข้ามาใกล้ในระยะ 45 ซม. หรือไม่
-  bool nearby = (dist > 0 && dist <= WAKE_DISTANCE_CM);
+  static int detectCount = 0;
+  if (dist > 0 && dist <= WAKE_DISTANCE_CM) {
+    if (detectCount < 3) detectCount++;
+  } else {
+    if (detectCount > 0) detectCount--;
+  }
+  bool nearby = (detectCount >= 2);
 
   // 2. ควบคุมหน้าจอ OLED และส่ง ESP-NOW ปลุก/พักเซ็นเซอร์กล้อง ESP32-CAM
   if (nearby) {
     if (!lastDisplayState) {
       Serial.printf("[Ultrasonic] Detected! Distance: %ld cm (<= %d cm)\n", dist, WAKE_DISTANCE_CM);
-
-      // 💡 เปลี่ยนข้อความหน้าจอ OLED ตัวหลัก
       show("== READY TO SCAN ==", "Tap your RFID card");
-
-      // 📡 ส่ง 1 ไปให้ ESP32-CAM ปลุกเซ็นเซอร์กล้องมารอ /capture และแจ้งเตือน Backend
       sendCamCommand(1);
-
       lastDisplayState = true;
     }
   } else {
     if (lastDisplayState) {
       Serial.println("[Ultrasonic] No object nearby. Back to standby...");
-
-      // 🌑 OLED กลับไปแสดงสแตนด์บาย
-      show("== STANDBY ==", "Please come closer");
-
-      // 📡 ส่ง 0 ไปให้ ESP32-CAM เตรียมพักเซ็นเซอร์กล้อง (หลังจากหน่วงเวลา 5 วินาทีฝั่ง CAM)
-      sendCamCommand(0);
-
-      lastDisplayState = false;
+      backToStandby();
     }
   }
 
   // 3. ตรวจสอบการแตะบัตร RFID
-  //    หัวเข้า (IN) : ทาบได้เฉพาะตอนมีคนอยู่ในระยะ 45 ซม.
-  //    หัวออก (OUT): ทาบได้เสมอ
   if (nearby) processRFID(rfidIn, "IN");
   processRFID(rfidOut, "OUT");
 
