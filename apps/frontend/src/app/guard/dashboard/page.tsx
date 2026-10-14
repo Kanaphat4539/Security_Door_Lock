@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import {
   Activity,
   AlertTriangle,
@@ -143,12 +142,13 @@ export default function GuardDashboardPage() {
               Who scanned in or out, and when.
             </p>
           </div>
-          <Link
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a
             href="/guard/logs"
             className="inline-flex items-center gap-2 text-sm font-bold text-blue-700 dark:text-blue-400 hover:underline"
           >
             <FileText className="w-4 h-4" /> Full history
-          </Link>
+          </a>
         </div>
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800/50">

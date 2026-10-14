@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, FileText, LogOut, Shield, Menu, X, KeyRound, Volume2, VolumeX } from 'lucide-react';
 import { WebSocketProvider } from '@/providers/WebSocketProvider';
@@ -74,7 +73,8 @@ export default function DashboardShell({ children, portal }: { children: React.R
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link
+                /* eslint-disable-next-line @next/next/no-html-link-for-pages */
+                <a
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -86,7 +86,7 @@ export default function DashboardShell({ children, portal }: { children: React.R
                 >
                   <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400'}`} />
                   {item.name}
-                </Link>
+                </a>
               );
             })}
           </nav>

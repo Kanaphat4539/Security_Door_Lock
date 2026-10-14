@@ -61,6 +61,22 @@ export function CctvMonitor({
     return typeof document !== 'undefined' ? !document.hidden : true;
   });
   const cctvContainerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  // Cleanly abort camera stream on component unmount and before page unload
+  useEffect(() => {
+    const cleanupStream = () => {
+      if (imgRef.current) {
+        imgRef.current.src = '';
+        imgRef.current.removeAttribute('src');
+      }
+    };
+    window.addEventListener('beforeunload', cleanupStream);
+    return () => {
+      window.removeEventListener('beforeunload', cleanupStream);
+      cleanupStream();
+    };
+  }, []);
 
   // Pause stream when tab is not visible to save bandwidth
   useEffect(() => {
@@ -412,6 +428,7 @@ export function CctvMonitor({
                 {activeStreamUrl && !streamError ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
+                    ref={imgRef}
                     src={activeStreamUrl}
                     alt="Live CCTV Camera Feed"
                     onLoad={() => setIsStreamLoading(false)}

@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useWebSocket } from '@/providers/WebSocketProvider';
 import { useLogStore } from '@/store/useLogStore';
 import { Lock, Users, Activity, Battery, Wifi, Unlock, Monitor, AlertTriangle, UserPlus, Settings, FileText, Info, Shield, ShieldCheck, Power, RefreshCw, ShieldAlert, DoorClosed, Server, Key, KeyRound } from 'lucide-react';
-import Link from 'next/link';
 import { CctvMonitor } from '@/components/shared/CctvMonitor';
 import { ProximityNotice } from '@/components/shared/ProximityNotice';
 
@@ -218,9 +217,10 @@ export default function AdminDashboardPage() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="w-5 h-5 text-blue-500" /> Live Access Stream
               </h3>
-              <Link href="/admin/logs" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors">
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/admin/logs" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors">
                 View Log History
-              </Link>
+              </a>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 divide-y xl:divide-y-0 xl:divide-x divide-slate-200 dark:divide-slate-800/60">
@@ -320,18 +320,21 @@ export default function AdminDashboardPage() {
                 <Settings className="w-4 h-4 text-indigo-500" /> Administration
               </h3>
               <div className="flex flex-col gap-2.5">
-                <Link href="/admin/users" className="w-full bg-blue-600 dark:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a href="/admin/users" className="w-full bg-blue-600 dark:bg-blue-600 text-white text-xs font-bold py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
                   <UserPlus className="w-4 h-4" />
                   Register New User
-                </Link>
-                <Link href="/admin/guards" className="w-full bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-3 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all border border-indigo-200/80 dark:border-indigo-800/60 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                </a>
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a href="/admin/guards" className="w-full bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-3 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all border border-indigo-200/80 dark:border-indigo-800/60 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
                   <KeyRound className="w-4 h-4 text-indigo-500" />
                   Guard Invite Keys
-                </Link>
-                <Link href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
+                </a>
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                <a href="/admin/users" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:-translate-y-0.5 flex items-center justify-center gap-2 active:scale-95">
                   <Shield className="w-4 h-4" />
                   Manage Permissions
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -380,12 +383,13 @@ export default function AdminDashboardPage() {
                 <p className="text-xs text-slate-300 mt-0.5">จัดการและสร้างรหัสเชิญสำหรับสมัคร GUARD แบบเต็มหน้าจอ</p>
               </div>
             </div>
-            <Link
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a
               href="/admin/guards"
               className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 shrink-0"
             >
               เปิดหน้าจัดการรหัสเชิญ →
-            </Link>
+            </a>
           </div>
         </div>
       </div>
