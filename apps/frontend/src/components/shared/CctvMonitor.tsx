@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Camera,
   Maximize2,
@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { api } from '@/services/api';
 
-const LOCKED_DEFAULT_URL = process.env.NEXT_PUBLIC_CAMERA_STREAM_URL || 'http://192.168.137.50:81/stream';
+const MDNS_DEFAULT_URL = 'http://kmitl-cam.local:81/stream';
+const LOCKED_DEFAULT_URL = process.env.NEXT_PUBLIC_CAMERA_STREAM_URL || MDNS_DEFAULT_URL;
 
 function subscribeCameraSettings(onChange: () => void) {
   window.addEventListener('storage', onChange);
@@ -21,7 +22,13 @@ function subscribeCameraSettings(onChange: () => void) {
 
 function savedCameraUrl() {
   try {
-    return localStorage.getItem('cctv_stream_url') || LOCKED_DEFAULT_URL;
+    const saved = localStorage.getItem('cctv_stream_url');
+    // หากเคยเก็บ IP เก่าที่อาจหมดอายุหรือเปลี่ยนไปแล้ว ให้เคลียร์กลับเป็น default
+    if (saved && (saved.includes('192.168.137.50') || saved.includes('192.168.137.66'))) {
+      localStorage.removeItem('cctv_stream_url');
+      return LOCKED_DEFAULT_URL;
+    }
+    return saved || LOCKED_DEFAULT_URL;
   } catch {
     return LOCKED_DEFAULT_URL;
   }
@@ -67,30 +74,56 @@ export function CctvMonitor({
   // Effective stream URL - only active when page is visible
   const activeStreamUrl = isPageVisible ? streamUrl : null;
 
+  // Dynamic camera web control URL (Port 80)
+  const cameraControlUrl = React.useMemo(() => {
+    try {
+      const u = new URL(streamUrl);
+      return `${u.protocol}//${u.hostname}/`;
+    } catch {
+      return 'http://kmitl-cam.local/';
+    }
+  }, [streamUrl]);
+
+  const syncCamRef = useRef<() => void>(() => {});
+
+  const fetchRegisteredCam = useCallback(async () => {
+    try {
+      const res = await api.get<{ ip: string | null }>('/devices/cam');
+      if (res.data?.ip) {
+        const autoUrl = `http://${res.data.ip}:81/stream`;
+        const current = localStorage.getItem('cctv_stream_url');
+        if (
+          !current ||
+          current === LOCKED_DEFAULT_URL ||
+          current === MDNS_DEFAULT_URL ||
+          current.includes(':81/stream')
+        ) {
+          setStreamUrl(autoUrl);
+          setInputUrl(autoUrl);
+          localStorage.setItem('cctv_stream_url', autoUrl);
+        }
+      }
+    } catch {
+      // Backend not ready or offline; keeps locked default
+    }
+  }, []);
+
+  useEffect(() => {
+    syncCamRef.current = fetchRegisteredCam;
+  }, [fetchRegisteredCam]);
+
   // Auto-sync with live registered camera IP from backend
   useEffect(() => {
     let active = true;
-    const fetchRegisteredCam = async () => {
-      try {
-        const res = await api.get<{ ip: string | null }>('/devices/cam');
-        if (active && res.data?.ip) {
-          const autoUrl = `http://${res.data.ip}:81/stream`;
-          const current = localStorage.getItem('cctv_stream_url');
-          if (!current || current === LOCKED_DEFAULT_URL || current.includes(':81/stream')) {
-            setStreamUrl(autoUrl);
-            setInputUrl(autoUrl);
-            localStorage.setItem('cctv_stream_url', autoUrl);
-          }
-        }
-      } catch {
-        // Backend not ready or offline; keeps locked default
-      }
-    };
     void fetchRegisteredCam();
+    const interval = setInterval(() => {
+      if (active) void fetchRegisteredCam();
+    }, 10000);
     return () => {
       active = false;
+      clearInterval(interval);
     };
-  }, []);
+  }, [fetchRegisteredCam]);
 
   // Live real-time clock for CCTV display
   useEffect(() => {
@@ -172,6 +205,7 @@ export function CctvMonitor({
   const refreshFeed = () => {
     setStreamError(false);
     setIsStreamLoading(true);
+    syncCamRef.current();
     const current = streamUrl;
     setStreamUrl('');
     setTimeout(() => setStreamUrl(current), 100);
@@ -277,7 +311,7 @@ export function CctvMonitor({
               type="text"
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
-              placeholder="e.g. http://192.168.1.50:81/stream หรือ http://192.168.1.50/capture"
+              placeholder="e.g. http://kmitl-cam.local:81/stream หรือ http://192.168.137.249:81/stream"
               className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -302,7 +336,7 @@ export function CctvMonitor({
               </button>
             )}
             <a
-              href="http://192.168.137.50/"
+              href={cameraControlUrl}
               target="_blank"
               rel="noreferrer"
               className="px-3 py-2 bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
@@ -384,6 +418,7 @@ export function CctvMonitor({
                     onError={() => {
                       setStreamError(true);
                       setIsStreamLoading(false);
+                      syncCamRef.current();
                       setTimeout(() => {
                         setStreamError(false);
                       }, 2500);

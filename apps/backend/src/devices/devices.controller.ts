@@ -63,6 +63,7 @@ export class DevicesController {
 
   /** ดูสถานะ CAM ที่ register ไว้ (ต้องมี session หรือ DASHBOARD_TOKEN) */
   @Get('cam')
+  @GuardReadable()
   camStatus(): { ip: string | null; lastSeen: string | null } {
     return this.camRegistry.status();
   }

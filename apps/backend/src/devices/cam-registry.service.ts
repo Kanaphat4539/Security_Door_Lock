@@ -24,11 +24,11 @@ export class CamRegistryService {
     this.lastSeen = new Date();
   }
 
-  /** URL /capture ของ CAM — ใช้ IP ที่ register ก่อน ถ้าไม่มีค่อยใช้ env fallback */
-  getCaptureUrl(): string | null {
+  /** URL /capture ของ CAM — ใช้ IP ที่ register ก่อน ถ้าไม่มีค่อยใช้ env หรือ mDNS fallback */
+  getCaptureUrl(): string {
     if (this.ip !== null) return `http://${this.ip}/capture`;
     const fallback = process.env.CAM_CAPTURE_URL;
-    return fallback && fallback.length > 0 ? fallback : null;
+    return fallback && fallback.length > 0 ? fallback : 'http://kmitl-cam.local/capture';
   }
 
   status(): { ip: string | null; lastSeen: string | null } {
